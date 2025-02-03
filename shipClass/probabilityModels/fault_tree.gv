@@ -1,0 +1,7 @@
+digraph {
+	"Top Event"
+	"Event A"
+	"Event B"
+	"Event A" -> "Top Event" [label=AND]
+	"Event B" -> "Top Event" [label=OR]
+}
