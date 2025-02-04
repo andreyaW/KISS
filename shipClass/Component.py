@@ -1,5 +1,6 @@
 import MarkovChain as mc
 import scipy.stats as stats
+import numpy as np
 
 from matplotlib import pyplot as plt
 
@@ -102,17 +103,47 @@ class Component:
 
 
 # ---------------------- Markov Random Proccess Modelling ----------------------
-    def setupMarkovChain(self, states:int, transition_matrix: list):
+    
+            
+        
+    def defineTransitionMatrix(self, MTTF:float = 100., number_of_states: int = 2):
+        
+        """ Use the reliability distribution parameters to setup a transition matrix"""
+        
+        transition_matrix = np.zeros((number_of_states, number_of_states))
+        for i in range(number_of_states):
+            for j in range(number_of_states):
+                if i == j:
+                    transition_matrix[i, j] = 1 - 1/MTTF
+                else:
+                    transition_matrix[i, j] = 1/MTTF
+        # print(transition_matrix)
+        return transition_matrix
+    
+    
+    def setupMarkovChain(self, 
+                        states:dict = {0: 'Working', 1: 'Broken'}, 
+                        transition_matrix: list = None):
 
-        # inheriting MarkovChain class for modelling the component
+        """ Using the inherent Markov Chain class to model a component """
+        # setup the transition matrix if one is not given
+        if transition_matrix is None:
+            transition_matrix = self.defineTransitionMatrix()
+
+        # inheriting MarkovChain class from MarkovChain.py
         self.mC_model = mc.MarkovChain()
-
-        states = {0: 'Good', 1: 'Bad'}
-        transition_matrix = [[0.9, 0.1], [0.2, 0.8]]
-
         self.mC_model.setupMarkovChain(states, transition_matrix)
+              
+    def simulate(self, steps):      
+        """ simulating the component as a Markov Random Process over n steps"""
+        self.setupMarkovChain()
+        self.mC_model.simulate(steps)
+        return self.mC_model.history
+        
+    def currentState(self):        
+        """ return the current state of the component"""
+        return self.mC_model.currentState()
 
 
-    def simulate(self):
-        self.mC_model.simulate(1000)
-        self.mC_model.plotSimulation()
+        
+        
