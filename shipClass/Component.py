@@ -1,5 +1,5 @@
-import MarkovChain as mc
-import scipy.stats as stats
+import shipClass.MarkovChain as mc
+from scipy.stats import weibull_min 
 import numpy as np
 
 from matplotlib import pyplot as plt
@@ -31,8 +31,9 @@ class Component:
     plt.show()
     """
 
-    def __init__(self, name:str, shape:int = 2, scale: int = 10)-> None:
+    def __init__(self, name:str, MTTF:float , shape:int = 2, scale: int = 10)-> None:
         self.name = name
+        self.MTTF = MTTF
 
         # failure distribution parameters
         self.shape = shape  # Shape parameter (beta)
@@ -40,29 +41,41 @@ class Component:
 
 
 # ---------------------- Reliability Modelling  ----------------------    
-    def generateFailureTimes(self):
+    def generateFailureTimes(self, simulation_period : int):
         '''Generate random failure times from the failure distribution'''
+        # Define the parameters
+        beta = 100 # beta = shape
+        eta =  3 # eta = scale
+        # c = 0 # gamma = location
+
+        # Generate random failure times
+        failure_times = weibull_min.rvs(c=beta, scale=eta, size=1000)
+        self.failure_times = failure_times
+        print(failure_times.mean())             # Calculate the mean
+        plt.figure(figsize=(5, 5))
+        plt.plot(failure_times)        
+        plt.show()
+
         
-        # temporary fixed failure distribution 
-        shape = self.shape
-        scale = self.scale
-        self.failure_times = stats.weibull_min(c=shape, scale=scale).rvs(size=5000) 
+
 
     def determineReliabilityCurve(self):
-       
-        # Determine the reliability curve of the component
-        shape = self.shape
-        scale = self.scale
+        # Determine the reliability curve of the component from failure times
         failure_times = self.failure_times
-        
         failure_times.sort()   # sort the failure times in ascending order
+
         initial_reliability = len(failure_times)  # initial reliability is the number of failure times
-        reliability_curve = [1]  # empty list to store the reliability curve
+        rel_curve = []  # store the reliability curve
         for time in failure_times:
+            rel_curve.append(initial_reliability) 
             initial_reliability -= 1
-            reliability_curve.append(initial_reliability / len(failure_times))
-        self.reliability_curve = reliability_curve # store the reliability curve
-  
+
+        rel_curve = np.array(rel_curve) / len(failure_times)  # normalize the reliability curve
+        self.reliability_curve = rel_curve # store the reliability curve
+        plt.figure(figsize=(5, 5))
+        plt.plot(failure_times, self.reliability_curve)
+        plt.show()
+
     def determineFailureRate(self):
         # Determine the failure rate of the component
         shape = self.shape
@@ -102,24 +115,23 @@ class Component:
         plt.show()
 
 
-# ---------------------- Markov Random Proccess Modelling ----------------------
-    
-            
+# ---------------------- Markov Random Proccess Modelling ----------------------       
         
     def defineTransitionMatrix(self, MTTF:float = 100., number_of_states: int = 2):
         
         """ Use the reliability distribution parameters to setup a transition matrix"""
         
         transition_matrix = np.zeros((number_of_states, number_of_states))
-        for i in range(number_of_states):
-            for j in range(number_of_states):
-                if i == j:
-                    transition_matrix[i, j] = 1 - 1/MTTF
-                else:
-                    transition_matrix[i, j] = 1/MTTF
-        # print(transition_matrix)
+        
+        # calculate the probability of transitioning from working to broken
+        p = 6 / MTTF 
+
+        # setup the transition matrix
+        transition_matrix[0, 0] = 1 - p
+        transition_matrix[0, 1] = p
+
+
         return transition_matrix
-    
     
     def setupMarkovChain(self, 
                         states:dict = {0: 'Working', 1: 'Broken'}, 
@@ -133,12 +145,23 @@ class Component:
         # inheriting MarkovChain class from MarkovChain.py
         self.mC_model = mc.MarkovChain()
         self.mC_model.setupMarkovChain(states, transition_matrix)
-              
-    def simulate(self, steps):      
+
+# ---------------------- Monte Carlo Simulation  ----------------------       
+
+    def simulate(self, simulation_period: int):      
         """ simulating the component as a Markov Random Process over n steps"""
-        self.setupMarkovChain()
-        self.mC_model.simulate(steps)
-        return self.mC_model.history
+        
+        # for t in simulation_period:
+
+        # determine reliability curve and plot
+        self.generateFailureTimes(simulation_period)
+        self.determineReliabilityCurve()
+
+            # # setup the Markov Chain
+            # self.determineTransitionMatrix()
+            # self.setupMarkovChain(states, transition_matrix)
+            # self.mC_model.simulate(steps)
+            # return self.mC_model.history
         
     def currentState(self):        
         """ return the current state of the component"""

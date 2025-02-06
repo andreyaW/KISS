@@ -36,7 +36,7 @@ class MarkovChain:
     def setupMarkovChain(self, states, transitionMatrix):
         self.states = states
         self.transitionMatrix = transitionMatrix
-        self.draw()    
+        # self.draw()    
 
         initial_state = states[0]
         self.history.append(initial_state)
@@ -58,7 +58,7 @@ class MarkovChain:
             self.history.append(next_state)
             
             # if the current state is the first ocurance of a failure, store the time
-            if currentState == state_names[-1] and self.history[-2] != state_names[-1]:
+            if next_state == state_names[-1] and self.history[-2] != state_names[-1]:
                 self.failure_time = i
 
 # ---------------------- Example ---------------------- 
