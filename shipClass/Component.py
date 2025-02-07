@@ -41,25 +41,23 @@ class Component:
 
 
 # ---------------------- Reliability Modelling  ----------------------    
-    def generateFailureTimes(self, simulation_period : int):
+    def generateFailureTimes(self, simulation_period : int , plots = False):
         '''Generate random failure times from the failure distribution'''
         # Define the parameters
-        beta = 100 # beta = shape
-        eta =  3 # eta = scale
-        # c = 0 # gamma = location
+        beta = 5 # beta = shape
+        eta =  92 # eta = scale
 
         # Generate random failure times
         failure_times = weibull_min.rvs(c=beta, scale=eta, size=1000)
         self.failure_times = failure_times
-        print(failure_times.mean())             # Calculate the mean
-        plt.figure(figsize=(5, 5))
-        plt.plot(failure_times)        
-        plt.show()
-
+        # print(failure_times.mean())             # Calculate the mean
         
-
-
-    def determineReliabilityCurve(self):
+        if plots:
+            # Plot the failure times
+            plt.figure(figsize=(5, 5))
+            plt.plot(failure_times)        
+      
+    def determineReliabilityCurve(self, plots = False):
         # Determine the reliability curve of the component from failure times
         failure_times = self.failure_times
         failure_times.sort()   # sort the failure times in ascending order
@@ -72,9 +70,11 @@ class Component:
 
         rel_curve = np.array(rel_curve) / len(failure_times)  # normalize the reliability curve
         self.reliability_curve = rel_curve # store the reliability curve
-        plt.figure(figsize=(5, 5))
-        plt.plot(failure_times, self.reliability_curve)
-        plt.show()
+        
+        if plots:
+            # Plot the reliability curve
+            plt.figure(figsize=(5, 5))
+            plt.plot(failure_times, self.reliability_curve)
 
     def determineFailureRate(self):
         # Determine the failure rate of the component
