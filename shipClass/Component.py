@@ -76,43 +76,18 @@ class Component:
             plt.figure(figsize=(5, 5))
             plt.plot(failure_times, self.reliability_curve)
 
-    def determineFailureRate(self):
-        # Determine the failure rate of the component
-        shape = self.shape
-        scale = self.scale
-        failure_times = self.failure_times
-        reliability_curve = self.reliability_curve
-        self.failure_rate = stats.weibull_min(c=shape, scale=scale).pdf(failure_times) / reliability_curve[0:-1]
-
-    def plotDistros(self):
-
-        self.generateFailureTimes()
-        self.determineReliabilityCurve()
-        self.determineFailureRate()
-
-        # Plot the failure distribution
-        plt.figure(figsize=(15, 5))
-        plt.subplot(1, 3, 1)
-        plt.hist(self.failure_times, bins=10, density=True)
-        plt.title('Failure Distribution')
-        plt.xlabel('Failure Time')
-        plt.ylabel('Density')
+    def determineFailureRate(self, plots = False):
+        # Determine the failure rate of the component from the reliability curve
+        failure_rate = []
+        for i in range(len(self.reliability_curve) - 1):
+            failure_rate.append(self.reliability_curve[i] - self.reliability_curve[i + 1])
+        self.failure_rate = np.array(failure_rate)
         
-        # Plot the reliability curve
-        plt.subplot(1, 3, 2)
-        plt.plot(self.failure_times, self.reliability_curve[0:-1])
-        plt.title('Reliability Curve')
-        plt.xlabel('Failure Time')
-        plt.ylabel('Reliability')
+        if plots:
+            # Plot the failure rate
+            plt.figure(figsize=(5, 5))
+            plt.plot(self.failure_times, self.failure_rate)
 
-        # Plot the failure rate
-        plt.subplot(1, 3, 3)
-        plt.plot(self.failure_times, self.failure_rate)
-        plt.title('Failure Rate')
-        plt.xlabel('Failure Time')
-        plt.ylabel('Failure Rate')
-
-        plt.show()
 
 
 # ---------------------- Markov Random Proccess Modelling ----------------------       
@@ -154,8 +129,9 @@ class Component:
         # for t in simulation_period:
 
         # determine reliability curve and plot
-        self.generateFailureTimes(simulation_period)
-        self.determineReliabilityCurve()
+        self.generateFailureTimes(simulation_period, plots = True)
+        self.determineReliabilityCurve( plots = True)
+        self.determineFailureRate( plots = True ) 
 
             # # setup the Markov Chain
             # self.determineTransitionMatrix()
