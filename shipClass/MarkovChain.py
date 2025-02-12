@@ -4,23 +4,33 @@ import matplotlib.pyplot as plt
 
 
 class MarkovChain:
-    def __init__(self):
+    def __init__(self, states : dict[int : str] , transition_matrix: np.array) -> None:
         
+        self.states = states
+        self.transitionMatrix = transition_matrix
         self.history = []
-        self.states = []
-        self.transitionMatrix = []
         
-    def draw(self):
-        
-        # Create the Markov Chain as a directed graph
-        G = nx.DiGraph()
+        # set the initial state of the chain to "state 0: working"
+        initial_state = states[0]
+        self.history.append(initial_state)
 
-        # Add edges based on transition matrix
+# ---------------------- Useful Methods  ----------------------       
+
+    def currentState(self):
+        """ Return the current state of the Markov Chain """
+        return self.history[-1]
+
+    def draw(self):
+        """ Draw the Markov Chain as a directed graph """
+        
+        G = nx.DiGraph() # Directed graph G
+
+        # Add edges to G based on transition matrix
         for i in range(len(self.states)):
             for j in range(len(self.states)):
                 G.add_edge(self.states[i], self.states[j], weight=self.transitionMatrix[i][j])
 
-        # Define positions for states arranged in a straight line
+        # Define positions for states (arranged in a straight line)
         pos = {self.states[i]: (i, 0) for i in range(len(self.states))}
 
         # Draw the graph with the defined positions
@@ -33,20 +43,15 @@ class MarkovChain:
         # Show the plot
         plt.show()
 
-    def setupMarkovChain(self, states, transitionMatrix):
-        self.states = states
-        self.transitionMatrix = transitionMatrix
-        # self.draw()    
 
-        initial_state = states[0]
-        self.history.append(initial_state)
 
-    def currentState(self):
-        return self.history[-1]
-
-    def simulate(self, steps):
+# ---------------------- Monte Carlo Simulation  ----------------------       
+        
+    def simulate(self, num_steps):
+        """ Simulate the Markov Chain over n steps """
+        
         # Simulate the Markov Chain
-        for i in range(steps):
+        for i in range(num_steps):
             states = list(self.states.keys())
             state_names = list(self.states.values())
             
@@ -60,5 +65,6 @@ class MarkovChain:
             # if the current state is the first ocurance of a failure, store the time
             if next_state == state_names[-1] and self.history[-2] != state_names[-1]:
                 self.failure_time = i
-
+                
+   
 # ---------------------- Example ---------------------- 
