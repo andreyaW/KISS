@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class MarkovChain:
-    def __init__(self, states : dict[int : str] , transition_matrix: np.array) -> None:
+    def __init__(self, states , transition_matrix)-> None:
         
         self.states = states
         self.transitionMatrix = transition_matrix

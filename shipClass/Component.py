@@ -1,25 +1,115 @@
-import shipClass.MarkovChain as MarkovChain
-from scipy.stats import weibull_min 
+# import shipClass.MarkovChain as MarkovChain
 import numpy as np
+import networkx as nx
 
 from matplotlib import pyplot as plt
+from scipy.stats import weibull_min 
+
+class MarkovChain:
+    def __init__(self, states , transition_matrix)-> None:
+        
+        self.states = states
+        self.transitionMatrix = transition_matrix
+        self.history = []
+        
+        # set the initial state of the chain to "state 0: working"
+        initial_state = states[0]
+        self.history.append(initial_state)
+
+
+    
+# ---------------------- Useful Methods  ----------------------       
+
+    def draw(self):
+        """ Draw the Markov Chain as a directed graph """
+        
+        G = nx.DiGraph() # Directed graph G
+
+        # Add edges to G based on transition matrix
+        for i in range(len(self.states)):
+            for j in range(len(self.states)):
+                G.add_edge(self.states[i], self.states[j], weight=self.transitionMatrix[i][j])
+
+        # Define positions for states (arranged in a straight line)
+        pos = {self.states[i]: (i, 0) for i in range(len(self.states))}
+
+        # Draw the graph with the defined positions
+        nx.draw(G, pos, with_labels=True, node_size=2000, node_color='skyblue')
+
+        # Draw edge labels with transition weights
+        edge_labels = nx.get_edge_attributes(G, 'weight')
+        nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
+        
+        # Show the plot
+        plt.show()
+
+
+
+# ---------------------- Monte Carlo Simulation  ----------------------       
+        
+    def simulate(self, num_steps):
+        """ Simulate the Markov Chain over n steps """
+        
+        # Simulate the Markov Chain
+        for i in range(num_steps):
+            states = list(self.states.keys())
+            state_names = list(self.states.values())
+            
+            currentState = self.currentState()  # name of the current state
+            currentState_idx = list(self.states.values()).index(currentState)
+                       
+            next_state_idx = np.random.choice(states, p=self.transitionMatrix[currentState_idx])
+            next_state = state_names[next_state_idx]        
+            self.history.append(next_state)
+            
+            # if the current state is the first ocurance of a failure, store the time
+            if next_state == state_names[-1] and self.history[-2] != state_names[-1]:
+                self.failure_time = i
+ 
 
 class Component(MarkovChain):
 
-    def __init__(self, name:str, MTTF:float , shape:int = 2, scale: int = 10)-> None:        
+    def __init__(self, name: str, MTTF: float,  states: dict[int: str], transition_matrix )-> None:      # name:str, MTTF:float , shape:int = 2, scale: int = 10 
+        """ Initialize the Component with the states and transition matrix """
         self.name = name
 
-        # failure distribution parameters
+        # # failure distribution parameters
         self.MTTF = MTTF
-        self.shape = shape  # Shape parameter (beta)
-        self.scale = scale  # Scale parameter (eta)
+        self.defineTransitionMatrix(MTTF)  # define the transition matrix based on the failure rate
 
-        # setup the component as a Markov Chain
-        states = {0: 'Working', 1: 'Broken'}
-        transition_mat = self.defineTransitionMatrix(MTTF)
-        super.__init__(states, transition_mat) # inheriting from MarkovChain class
+        # self.shape = shape  # Shape parameter (beta)
+        # self.scale = scale  # Scale parameter (eta)
+
+        super().__init__(states, transition_matrix) # inheriting from MarkovChain class
 
 # ---------------------- Reliability Modelling  ----------------------    
+    def defineTransitionMatrix(self, 
+                               MTTF:float = 1000.,
+                               delta_t:float = 1.)-> np.array:
+        """ Define the transition matrix based on the failure rate """
+
+        # Desired Mean Time to Failure (MTTF)
+        MTTF = self.MTTF  # in hours
+
+        # Compute failure rate lambda
+        failure_rate = 1 / MTTF  # λ = 1/MTTF
+
+        # Compute transition probability
+        p_failure = failure_rate * delta_t  # Probability of failure per time step
+
+        # Define the transition matrix
+        P = np.array([[1 - p_failure, p_failure], 
+                    [0, 1]])
+
+        # Print transition matrix
+        print("Transition Matrix P:")
+        print(P)
+
+        return P
+   
+
+    
+    
     def generateFailureTimes(self, simulation_period : int , plots = False) -> None:
         '''Generate random failure times from the failure distribution'''
         # Define the parameters
