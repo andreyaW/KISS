@@ -20,7 +20,7 @@ class MarkovChain:
         """ Return the current state of the Markov Chain """
         return self.history[-1]
 
-    def draw(self):
+    def drawChain(self):
         """ Draw the Markov Chain as a directed graph """
         
         G = nx.DiGraph() # Directed graph G
@@ -43,15 +43,30 @@ class MarkovChain:
         # Show the plot
         plt.show()
 
-
+    def plotHistory(self):
+        """ Plot the history of the Markov Chain """
+        
+        # Create a figure and axis
+        fig, ax = plt.subplots()
+        
+        # Plot the history
+        ax.plot(self.history, marker='o')
+        
+        # Set the title and labels
+        ax.set_title('Markov Chain History')
+        ax.set_xlabel('Time Step')
+        ax.set_ylabel('State')
+        
+        # Show the plot
+        plt.show()
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
         
-    def simulate(self, num_steps):
+    def simulate(self, number_of_steps: int) -> None:
         """ Simulate the Markov Chain over n steps """
         
         # Simulate the Markov Chain
-        for i in range(num_steps):
+        for i in range(number_of_steps):
             states = list(self.states.keys())
             state_names = list(self.states.values())
             
