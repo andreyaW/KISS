@@ -66,6 +66,11 @@ class SensedComp(Component, Sensor):
         # Plot the true and sensed history
         ax.plot(self.history, marker=',', label='Truth')
         ax.plot(self.sensedHistory, marker=',', label='Sensed')
+
+        # # add a marker for unsensed failures
+        # for i in range(len(self.history)):
+        #     if self.history[i] != self.sensedHistory[i]:
+        #         ax.plot(self.history[i],  marker='x', color='red', markersize=10)
         
         # Set the title and labels
         ax.set_title('Sensed Component History')

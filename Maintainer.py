@@ -2,6 +2,8 @@ from shipClass.Component import Component
 from shipClass.Sensor import Sensor
 from shipClass.SensedComp import SensedComp
 
+import numpy as np
+
 class Maintainer(SensedComp):
 
     def __init__(self):
@@ -9,6 +11,7 @@ class Maintainer(SensedComp):
         self.cost = 0
         self.average_maintenance_cost = 0
         self.average_maintenance_delay = 10
+        self.preventive_maintenance_interval = 25
         
     def diagnose(self, sensedComp) -> None:
         """ Diagnose the component """
@@ -22,12 +25,12 @@ class Maintainer(SensedComp):
        
         # if state is 'Broken' then repair the component
         if state == 'Broken':
-            repairedSensedComp = self.maintain(sensedComp)
+            repairedSensedComp = self.corrective_maintaince(sensedComp)
             sensedComp = repairedSensedComp
-        
+
         return sensedComp
 
-    def maintain(self, sensedComp) -> None:
+    def corrective_maintaince(self, sensedComp) -> None:
         """ Maintain the component (Good as New Repair)"""
     
         # repair the component and its sensors (Reinitialize the Markov Chain models)
@@ -53,3 +56,14 @@ class Maintainer(SensedComp):
         self.cost += 1
         return sensedComp_R
 
+
+
+    def preventive_maintaince(self, sensedComp) -> None:
+        """ Maintain the component regularly (Preventive Maintenance)"""
+        
+        flag = np.mod(len(sensedComp.history), self.preventive_maintenance_interval) == 0
+        
+        if flag:
+            sensedComp = self.corrective_maintaince(sensedComp)
+
+        return sensedComp
