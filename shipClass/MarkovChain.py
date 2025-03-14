@@ -79,7 +79,12 @@ class MarkovChain:
             
             # if the current state is the first ocurance of a failure, store the time
             if next_state == state_names[-1] and self.history[-2] != state_names[-1]:
-                self.failure_time = i
+                self.failure_time = len(self.history)-1
+                
+                
                 
    
 # ---------------------- Example ---------------------- 
+
+    # def get_failure_time(self):
+    #     return self.failure_time
