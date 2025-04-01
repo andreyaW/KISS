@@ -6,6 +6,14 @@ import matplotlib.pyplot as plt
 class MarkovChain:
     def __init__(self, states , transition_matrix)-> None:
         
+        ''' Initialize the Markov Chain with the given states and transition matrix 
+        
+        Parameters:
+        states (dict): a dictionary of states with the state names as keys and the state indices as values
+        transition_matrix ( np.array): a matrix of transition probabilities between states
+        '''
+        
+        
         self.states = states
         self.transitionMatrix = transition_matrix
         self.history = []

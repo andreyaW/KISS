@@ -38,7 +38,6 @@ class SensedComp(Component, Sensor):
         self.state = comp_state = self.comp.currentState()  # update truth
 
 
-
     def simulate(self, number_of_steps: int) -> None:
         """ Simulate the sensed component """
         
