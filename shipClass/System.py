@@ -10,33 +10,19 @@ class System():
         self.components = comps
         self.parallels = parallels
         self.history = []
-        self.state = determineSysState()
-        
+        self.state = SolveStructureFunction()
         
     def simulate(self, number_of_steps: int) -> None:
         ''' update the state of the system '''
         
-        for comp in self.components:
-            comp.simulate(number_of_steps)            
-        self.state = determineSysState()
-        
-        
-    def determineSysState(self):
-        
-        ''' determine the state of the system based on the states of its components '''
-        states = np.zeros(len(self.components))
-        for i,comp in enumerate(self.components):
-            
-            states[i] = comp.sensedState
-            
+        while current_time < number_of_steps:
+            for comp in self.components:
+                comp.simulate(1)            
+                self.state = SolveStructureFunction()
+                self.history.append(self.state)
 
-        # if self.parallels is not None:            
-        # self.history.append(self.state)
 
-            return states
-        
-
-    def structureFunction():
+    def SolveStructureFunction(self):
 
         ''' calculate the structure function of the system '''
         
@@ -48,16 +34,14 @@ class System():
                 
             if comp.sensedState >= 2:
                 Xi[i] = 0  
-        
-        return 1 - np.prod(1 - Xi)
-        
-        
-        # # for series comps 
-        # phi = np.prod(xi)
-        
+
+        # for series comps 
+        phi = min(Xi)
+
         # # for parallel comps
-        # phi = 1 - np.prod(1 - xi)
-        
+        # phi = max(Xi)
+
+        return phi
         
         
         
