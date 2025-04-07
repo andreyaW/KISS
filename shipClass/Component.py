@@ -14,7 +14,7 @@ class Component(MarkovChain):
         # inheriting from MarkovChain class
         super().__init__(states, transition_matrix) 
 
-# ---------------------- Simulation ----------------------       
+# ---------------------- Markov Chain Simulation ----------------------       
         
     def simulate(self, number_of_steps: int) -> None:
         """ update the state of the component """
@@ -30,4 +30,10 @@ class Component(MarkovChain):
         super().plotHistory()
 
 
+# ---------------------- Reliability Modelling ----------------------       
+    def reliability(self, time: int) -> float:
+        """ Calculate the reliability of the component """
+        
+        # Calculate the reliability of the Markov Chain
+        return super().reliability(time)
     
