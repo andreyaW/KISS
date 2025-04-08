@@ -29,6 +29,8 @@ class SensedComp(Component, Sensor):
         self.sensedState = comp.state             
         self.sensedHistory = []            
 
+# ---------------------- Useful Methods  ----------------------       
+
     def senseState(self) -> None:
         """ Sense the state of the component """
         
@@ -49,8 +51,9 @@ class SensedComp(Component, Sensor):
         self.state = comp_state = self.comp.currentState()  # update truth
 
 
+# ---------------------- Monte Carlo Simulation  ----------------------       
     def simulate(self, number_of_steps: int) -> None:
-        """ Simulate the sensed component """
+        """ Simulate the sensed component (uses simulate() from Component and Sensor classes) """
         
         # For each step sense the state of the component
         for i in range(number_of_steps):

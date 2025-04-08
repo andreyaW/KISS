@@ -2,6 +2,8 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from utils.helperFunctions import get_key_by_value
+
 
 class MarkovChain:
     def __init__(self, states , transition_matrix)-> None:
@@ -19,7 +21,7 @@ class MarkovChain:
         
         # setting initial state
         self.state = list(self.states.values())[-1]               
-        print('Initial state:', self.state)
+            # print('Initial state:', self.state)
         self.history.append(self.state)
 
 
@@ -28,9 +30,19 @@ class MarkovChain:
         """ Return the current state of the Markov Chain """
         return self.history[-1]
 
+    def get_failure_time(self):
+        """ Determine from the history when the object fails """
+        failure_state = list(self.states.values())[0]
+        
+        # find the first occurrence of the failure state in the history
+        for i, state in enumerate(self.history):
+            if state == failure_state:
+                self.failure_time = i
+                break       
+        return self.failure_time
+
     def drawChain(self):
         """ Draw the Markov Chain as a directed graph """
-
         G = nx.DiGraph() # Directed graph G
 
         # Add edges to G based on transition matrix
@@ -40,9 +52,14 @@ class MarkovChain:
 
         # Define positions for states (arranged in a straight line)
         pos = {self.states[i]: (i, 0) for i in range(len(self.states))}
+        pos[self.states[0]] = (i+1, -1)  # Position the first state lower then others
+        
+        # pos = nx.circular_layout(G)  # Position nodes in a circle
 
         # Draw the graph with the defined positions
-        nx.draw(G, pos, with_labels=True, node_size=2000, node_color='skyblue')
+        nx.draw(G, pos, with_labels=True, node_size=2000, node_color='skyblue', alpha=0.3,
+                                          arrowsize=60, arrowstyle = '-', 
+                                          font_size=10, font_weight='bold')
 
         # Draw edge labels with transition weights
         edge_labels = nx.get_edge_attributes(G, 'weight')
@@ -51,9 +68,24 @@ class MarkovChain:
         # Show the plot
         plt.show()
 
+# ---------------------- Monte Carlo Simulation  ----------------------       
+
+    def simulate(self, number_of_steps: int) -> None:
+        """ Simulate the Markov Chain over n steps """
+        
+        # Simulate the Markov Chain
+        for i in range(number_of_steps):
+            states = list(self.states.keys())                                       # get the keys of the all states (0, 1, 2, ...)      
+            currentState_idx = get_key_by_value(self.states, self.currentState())   # get the index of the current state
+                       
+            # randomly select and update the next state using probabilities from the transition matrix
+            next_state_idx = np.random.choice(states, p=self.transitionMatrix[currentState_idx]) 
+            next_state = self.states[next_state_idx]        
+            self.history.append(next_state)
+
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
-        
+
         # Create a figure and axis
         fig, ax = plt.subplots()
         
@@ -67,32 +99,3 @@ class MarkovChain:
         
         # Show the plot
         plt.show()
-
-# ---------------------- Monte Carlo Simulation  ----------------------       
-        
-    def simulate(self, number_of_steps: int) -> None:
-        """ Simulate the Markov Chain over n steps """
-        
-        # Simulate the Markov Chain
-        for i in range(number_of_steps):
-            states = list(self.states.keys())
-            state_names = list(self.states.values())
-            
-            currentState = self.currentState()  # name of the current state
-            currentState_idx = list(self.states.values()).index(currentState)
-                       
-            next_state_idx = np.random.choice(states, p=self.transitionMatrix[currentState_idx])
-            next_state = state_names[next_state_idx]        
-            self.history.append(next_state)
-            
-            # if the current state is the first ocurance of a failure, store the time
-            if next_state == state_names[-1] and self.history[-2] != state_names[-1]:
-                self.failure_time = len(self.history)-1
-                
-                
-                
-   
-# ---------------------- Example ---------------------- 
-
-    # def get_failure_time(self):
-    #     return self.failure_time
