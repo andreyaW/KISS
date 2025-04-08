@@ -22,12 +22,17 @@ class Component(MarkovChain):
         # Simulate the Markov Chain
         super().simulate(number_of_steps)
         self.state = super().currentState()
+        
+        
 
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
         
         # Create a figure and axis
         super().plotHistory()
+        
+        
+        
 
 
 # ---------------------- Reliability Modelling ----------------------       
