@@ -7,38 +7,28 @@ class Component(MarkovChain):
                  states: dict[int: str], 
                  transition_matrix )-> None:      
         
-        """ Initialize the component  """
+        """ Initialize the component as a Markov Chain object """
         self.name = name
-        self.state = states[0]  # initial state
 
-        # inheriting from MarkovChain class
-        super().__init__(states, transition_matrix) 
+        # inheriting from MarkovChain class (holds self.state, and self.history)
+        super().__init__(states, transition_matrix)  
+
 
 # ---------------------- Markov Chain Simulation ----------------------       
         
     def simulate(self, number_of_steps: int) -> None:
         """ update the state of the component """
-        
-        # Simulate the Markov Chain
-        super().simulate(number_of_steps)
-        self.state = super().currentState()
-        
-        
+    
+        super().simulate(number_of_steps)  # Simulate the Markov Chain
 
-    def plotHistory(self):
+
+
+    def plotHistory(self): # not sure if this is needed************************
         """ Plot the history of the Markov Chain """
         
         # Create a figure and axis
         super().plotHistory()
-        
-        
-        
 
 
 # ---------------------- Reliability Modelling ----------------------       
-    def reliability(self, time: int) -> float:
-        """ Calculate the reliability of the component """
-        
-        # Calculate the reliability of the Markov Chain
-        return super().reliability(time)
     

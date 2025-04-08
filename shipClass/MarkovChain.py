@@ -8,29 +8,29 @@ class MarkovChain:
         
         ''' Initialize the Markov Chain with the given states and transition matrix 
         
-        Parameters:
-        states (dict): a dictionary of states with the state names as keys and the state indices as values
-        transition_matrix ( np.array): a matrix of transition probabilities between states
+            Args:
+                states (dict): a dictionary of states (keys = state #, vals = state description)
+                transition_matrix ( np.array): a matrix of transition probabilities between states
         '''
-        
-        
+        # necessary attributes
         self.states = states
         self.transitionMatrix = transition_matrix
         self.history = []
         
-        # set the initial state of the chain to "state 0: working"
-        initial_state = states[0]
-        self.history.append(initial_state)
+        # setting initial state
+        self.state = list(self.states.values())[-1]               
+        print('Initial state:', self.state)
+        self.history.append(self.state)
+
 
 # ---------------------- Useful Methods  ----------------------       
-
     def currentState(self):
         """ Return the current state of the Markov Chain """
         return self.history[-1]
 
     def drawChain(self):
         """ Draw the Markov Chain as a directed graph """
-        
+
         G = nx.DiGraph() # Directed graph G
 
         # Add edges to G based on transition matrix

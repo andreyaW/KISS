@@ -1,9 +1,16 @@
 from shipClass.Component import Component
 from shipClass.Sensor import Sensor
 
+from utils.helperFunctions import get_key_by_value
+
 import matplotlib.pyplot as plt
 
 class SensedComp(Component, Sensor):
+
+    """ Sensed component class that inherits from Component and Sensor classes """
+
+    # possibly need to remake the __init__ method to initialize the sensor and components
+    # can have comp_states, comp_transition_matrix, sensor_states, sensor_transition_matrix as inputs
 
     def __init__(self, 
                 comp : Component, 
@@ -12,12 +19,15 @@ class SensedComp(Component, Sensor):
         """ Initialize the sensed component """
         self.comp = comp
         self.sensors = sensors
+        self.name = 'Sensed ' + comp.name    # name of the sensed component
         
-        self.state = comp.state             # truth
-        self.history = []                   # truth history
+        # true states of the component
+        self.state = comp.state             
+        self.history = []                   
 
-        self.sensedState = comp.state       # sensed state
-        self.sensedHistory = []             # sensed history
+        # sensed states of the component
+        self.sensedState = comp.state             
+        self.sensedHistory = []            
 
     def senseState(self) -> None:
         """ Sense the state of the component """
@@ -25,16 +35,17 @@ class SensedComp(Component, Sensor):
         # store the state of the sensors
         n = len(self.sensors) if isinstance(self.sensors, list) else 1    # number of sensors
         if n > 1:
-            pass
-        else:
-            sensor = self.sensors
+            pass    # functions for multiple sensors not implemented yet
+        else:            
+            # current sensor state 
+            sensor_state = get_key_by_value(self.sensor.states, self.sensor.state)  # get the state of the sensor as a number
+            working_state_val = list(sensor.states.keys())[-1]
             
-            # what is sensor state 
-            sensor_state = sensor.currentState()
-            if sensor_state == 'Working': 
+            # if the sensor is working, update state to match the comp_state
+            if sensor_state == working_state_val: 
                 self.sensedState = self.comp.state  # only updates to truth if sensor works
 
-        # Update the true state of the component
+        # Update the true state of the component always
         self.state = comp_state = self.comp.currentState()  # update truth
 
 
