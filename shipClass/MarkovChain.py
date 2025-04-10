@@ -76,12 +76,14 @@ class MarkovChain:
         # Simulate the Markov Chain
         for i in range(number_of_steps):
             states = list(self.states.keys())                                       # get the keys of the all states (0, 1, 2, ...)      
-            currentState_idx = get_key_by_value(self.states, self.currentState())   # get the index of the current state
+            currentState_idx = get_key_by_value(self.states, self.state)   # get the index of the current state
                        
             # randomly select and update the next state using probabilities from the transition matrix
             next_state_idx = np.random.choice(states, p=self.transitionMatrix[currentState_idx]) 
             next_state = self.states[next_state_idx]        
+            self.state = next_state
             self.history.append(next_state)
+
 
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
