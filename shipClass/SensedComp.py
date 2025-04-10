@@ -18,9 +18,18 @@ class SensedComp(Component, Sensor):
                 sensors : list[Sensor])-> None:
         
         """ Initialize the sensed component """
+        self.name = 'Sensed ' + comp.name    # name of the sensed component
         self.comp = comp
         self.sensors = sensors
-        self.name = 'Sensed ' + comp.name    # name of the sensed component
+        
+        # determine the number of sensors
+        self.n = len(self.sensors) if isinstance(self.sensors, list) else 1  
+         
+        if self.n > 1:
+            for sensor in sensors:
+                sensor.sensorReadings.append(comp.state)  # allow sensors to keep a log of the readings they have taken 
+        else:
+            self.sensors.sensorReadings. append(comp.state)        
         
         # true states of the component
         self.state = comp.state             
@@ -30,58 +39,52 @@ class SensedComp(Component, Sensor):
         self.sensedState = comp.state             
         self.sensedHistory = []            
 
+       
+
 # ---------------------- Useful Methods  ----------------------       
 
     def senseState(self) -> None:
         """ Sense the state of the component """
-        
-        # determine the number of sensors
-        n = len(self.sensors) if isinstance(self.sensors, list) else 1    
-        
+    
         # multiple sensors logic
-        if n > 1:
-            # list to store the multiple sensedStates from each sensor
-            sensedStates = []    
-            
+        if self.n > 1:
+            sensedStates = np.zeros(self.n)  # create an array of zeros to store the sensed states
+               
             # iterate through each sensor and get the sensed state
-            for i in range(n):
+            for i in range(self.n):
                 sensor = self.sensors[i]
-
-                # get the state of the sensor as a number
+                
+                # only updates to truth if sensor works
                 working_state= list(sensor.states.keys())[-1]
-                sensor_state = get_key_by_value(sensor.states, sensor.state)
-                                
-                # if the sensor is working, update sensed state to current comp_state
-                if sensor_state == working_state: 
-                    comp_true_state = get_key_by_value(self.comp.states, self.comp.state)  # get the state of the component as a number
-                    sensedStates.append(comp_true_state)
-
-                # if the sensor is broken, assume no update is recieved and sensed state is unchanged
+                if sensor.state == working_state:     
+                    sensor.sensorReadings.append(self.comp.state)  # updates sensors to keep a log of readings they have taken
                 else:                    
-                    # print(f'Sensor {i} is broken, using last sensed state')
-                    last_sensed_state = get_key_by_value(self.comp.states, self.sensedState)  # get the last sensed state as a number
-                    sensedStates.append(last_sensed_state)
-
-            # update the sensed state to the most common sensed state
-
-            sensedState = find_mode(sensedStates)
-            self.sensedState = self.comp.states[sensedState]
-       
+                    # broken sensor, assume no update is recieved and the readings remain unchanged
+                    last_sensed_state = sensor.sensorReadings[-1]
+                    sensor.sensorReadings.append(last_sensed_state)
+                
+                sensedStates[i] = sensor.sensorReadings[-1]    
+                
+            # update the overall sensed state to the most common sensed state from all sensors
+            self.sensedState  = find_mode(sensedStates)
+            
         # single sensor logic
         else:            
             sensor = self.sensors
 
-            # get the state of the sensor as a number
-            sensor_state = get_key_by_value(sensor.states, sensor.state)
+            # only updates to truth if sensor works
             working_state= list(sensor.states.keys())[-1]
-            
-            # if the sensor is working, update sensed state to match the current comp_state
-            if sensor_state == working_state: 
-                self.sensedState = self.comp.state  # only updates to truth if sensor works
-
-        # Update the true state of the component always
-        self.state = self.comp.state  # update truth
-
+            if sensor.state == working_state: 
+                sensor.sensorReadings.append(self.comp.state)  # updates sensors to keep a log of readings they have taken
+            else:
+                # broken sensor, assume no update is recieved and the reading remain unchanged
+                last_sensed_state = sensor.sensorReadings[-1]
+                sensor.sensorReadings.append(last_sensed_state)
+                
+            self.sensedState = sensor.sensorReadings[-1]
+                
+        # update true state of the component always
+        self.state = self.comp.state  
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
     def simulate(self, number_of_steps: int) -> None:
@@ -94,10 +97,9 @@ class SensedComp(Component, Sensor):
             self.comp.simulate(1)
             
             # update the state of all the sensors
-            n = len(self.sensors) if isinstance(self.sensors, list) else 1    # number of sensors
-            if n > 1:
+            if self.n > 1:
                 for sensor in self.sensors:
-                    sensor.simulate(1)           # functions for multiple sensors not implemented yet
+                    sensor.simulate(1)
             else:    
                 self.sensors.simulate(1)
             
@@ -121,14 +123,17 @@ class SensedComp(Component, Sensor):
         # add a marker for unsensed failures
         for i in range(len(self.history)):
             if self.history[i] != self.sensedHistory[i]:
-                y_location = get_key_by_value(self.comp.states, self.sensedHistory[i])
-                ax.plot(i, y_location, marker='x', linestyle = '',  color='red', markersize=10, label="Unsensed Failure")
+                # y_location = get_key_by_value(self.comp.states, self.sensedHistory[i])
+                ax.plot(i, self.sensedHistory[i], marker='x',  color='red', markersize=10, label="Unsensed Failure")
                 break   # only show the first unsensed failure
             
         # Set the title and labels
         ax.set_title('Sensed Component History')
         ax.set_xlabel('Time Step')
         ax.set_ylabel('State')
+        ax.set_yticks(list(self.comp.states.keys()))
+        ax.set_yticklabels(list(self.comp.states.values()))
+        ax.set_xlim(0, len(self.history))
         ax.legend()
         plt.grid()
 
@@ -136,8 +141,7 @@ class SensedComp(Component, Sensor):
         if plot_sensor_history:
             # ax2 = ax.twinx()
             fig, ax2 = plt.subplots()
-            n = len(self.sensors) if isinstance(self.sensors, list) else 1    # number of sensors
-            if n > 1:
+            if self.n > 1:
                 for i,sensor in enumerate(self.sensors):
                     ax2.plot(sensor.history,',--', label= 'Sensor '+  str(i+1) + ' History')
             else:

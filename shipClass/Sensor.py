@@ -14,3 +14,4 @@ class Sensor(MarkovChain):
         # inheriting from MarkovChain class 
         # (super() holds self.state, self.history, and simulate(), plotHistory() and other methods)
         super().__init__(states, transition_matrix)
+        self.sensorReadings = [] # list of sensor readings from the component it is sensing
