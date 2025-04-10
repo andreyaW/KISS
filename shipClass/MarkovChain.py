@@ -6,7 +6,7 @@ from utils.helperFunctions import get_key_by_value
 
 
 class MarkovChain:
-    def __init__(self, states , transition_matrix)-> None:
+    def __init__(self, states: dict , transition_matrix : np.array )-> None:
         
         ''' Initialize the Markov Chain with the given states and transition matrix 
         
@@ -20,19 +20,18 @@ class MarkovChain:
         self.history = []
         
         # setting initial state
-        self.state = list(self.states.values())[-1]               
-            # print('Initial state:', self.state)
+        self.state = list(self.states.keys())[-1]               
         self.history.append(self.state)
 
 
 # ---------------------- Useful Methods  ----------------------       
-    def currentState(self):
-        """ Return the current state of the Markov Chain """
-        return self.history[-1]
-
+    def getCurrentState(self):
+        """ Get the current state description from the state number """
+        return self.states[self.state] 
+    
     def get_failure_time(self):
         """ Determine from the history when the object fails """
-        failure_state = list(self.states.values())[0]
+        failure_state = list(self.states.keys())[0]
         
         # find the first occurrence of the failure state in the history
         for i, state in enumerate(self.history):
@@ -40,6 +39,7 @@ class MarkovChain:
                 self.failure_time = i
                 break       
         return self.failure_time
+
 
     def drawChain(self):
         """ Draw the Markov Chain as a directed graph """
@@ -75,12 +75,11 @@ class MarkovChain:
         
         # Simulate the Markov Chain
         for i in range(number_of_steps):
-            states = list(self.states.keys())                                       # get the keys of the all states (0, 1, 2, ...)      
-            currentState_idx = get_key_by_value(self.states, self.state)   # get the index of the current state
+            states = list(self.states.keys())                              # get the keys of the all states (0, 1, 2, ...)      
+            currentState_idx = self.state   # get the index of the current state
                        
             # randomly select and update the next state using probabilities from the transition matrix
-            next_state_idx = np.random.choice(states, p=self.transitionMatrix[currentState_idx]) 
-            next_state = self.states[next_state_idx]        
+            next_state = np.random.choice(states, p=self.transitionMatrix[currentState_idx])       
             self.state = next_state
             self.history.append(next_state)
 
@@ -93,11 +92,15 @@ class MarkovChain:
         
         # Plot the history
         ax.plot(self.history, marker='o')
-        
+                
         # Set the title and labels
         ax.set_title('Markov Chain History')
         ax.set_xlabel('Time Step')
         ax.set_ylabel('State')
+        y_ticks = list(self.states.keys())
+        y_labels = [self.states[i] for i in y_ticks]
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_labels)
         
         # Show the plot
         plt.show()

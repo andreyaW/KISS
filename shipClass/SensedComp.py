@@ -89,7 +89,7 @@ class SensedComp(Component, Sensor):
         
         # For each step sense the state of the component
         for i in range(number_of_steps):
-          
+            
             # update the state of the component
             self.comp.simulate(1)
             
