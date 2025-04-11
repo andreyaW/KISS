@@ -79,7 +79,7 @@ class MarkovChain:
             currentState_idx = self.state   # get the index of the current state
                        
             # randomly select and update the next state using probabilities from the transition matrix
-            next_state = np.random.choice(states, p=self.transitionMatrix[currentState_idx])       
+            next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
             
             if next_state > currentState_idx:  # if the next state is higher than the current state, it means a failure has occurred
                 print(f"The problem is here")
@@ -110,3 +110,9 @@ class MarkovChain:
         
         # Show the plot
         plt.show()
+              
+    def reset(self):
+        """ Reset the Markov Chain to its initial state and delete its history"""
+        self.state = list(self.states.keys())[-1]
+        self.history = [self.state]
+        
