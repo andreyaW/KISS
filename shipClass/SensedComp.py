@@ -42,7 +42,7 @@ class SensedComp(Component, Sensor):
             sensors.append(sensor)        
         self.sensors = sensors
         self.sensedState = comp.state                   # sensed states of the component
-        self.sensedHistory = []                         # array to keep track of the sensed states of this object          
+        self.sensedHistory = [self.sensedState]                         # array to keep track of the sensed states of this object          
        
 
 # ---------------------- Useful Methods  ----------------------       
