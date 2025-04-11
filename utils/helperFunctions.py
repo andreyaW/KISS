@@ -26,6 +26,9 @@ def find_mode(data):
             max_count = count
         elif count == max_count:
             modes.append(item)
+            
+        if max_count == 1:
+            return min(data) # If all values are unique, return the minimum value
 
     return modes[0] # If there are multiple modes, return the first only
     
