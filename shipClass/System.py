@@ -128,7 +128,12 @@ class System():
                 
             # determine and store the sensed state of the system
             self.sensedState = self.SolveStructureFunction()
-            self.sensedHistory.append(self.sensedState)           
+            self.sensedHistory.append(self.sensedState)          
+            
+            if self.sensedHistory[-1] > self.sensedHistory[-2]:  # if the sensed state has improved
+                print( 'There has been an error in simulation') # error messsage 
+                break
+            
             
             # determine and store the true state of the system
             self.state = self.SolveStructureFunction(True)
