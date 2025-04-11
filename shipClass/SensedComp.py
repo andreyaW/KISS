@@ -76,19 +76,12 @@ class SensedComp(Component, Sensor):
 # ---------------------- Monte Carlo Simulation  ----------------------       
     def simulate(self, number_of_steps: int) -> None:
         """ Simulate the sensed component (uses simulate() from Component and Sensor classes) """
-        
         # For each step, simulate comp and sensors then sense the new state
         for i in range(number_of_steps):
-            
-            # update the state of the component
-            self.comp.simulate(1)
-            
-            # update the state of all the sensors
+            self.comp.simulate(1)   # update the comp state
             for sensor in self.sensors:
-                sensor.simulate(1)
-
-            # determine and store the state of the sensed component
-            self.senseState()
+                sensor.simulate(1)  # update the sensor state
+            self.senseState()       # determine and store the state of the sensed component
 
 
     def reset(self):
@@ -98,11 +91,9 @@ class SensedComp(Component, Sensor):
                 sensor.reset()
                 sensor.sensorReadings = []  # reset the sensor readings history
                 
-
         
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
         """ Plot the ground truth and sensed history of the Markov Chain """
-
         # Create a figure and axis
         fig, ax = plt.subplots()
  
@@ -113,7 +104,6 @@ class SensedComp(Component, Sensor):
         # add a marker for unsensed failures
         for i in range(len(self.comp.history)):
             if self.comp.history[i] != self.sensedHistory[i]:
-                # y_location = get_key_by_value(self.comp.states, self.sensedHistory[i])
                 ax.plot(i, self.sensedHistory[i], marker='x',  color='red', markersize=10, label="Unsensed Failure")
                 break   # only show the first unsensed failure
             
@@ -145,7 +135,6 @@ class SensedComp(Component, Sensor):
             ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
             fancybox=True, shadow=True, ncol=5)
             
-
         # Show the plot
         plt.grid()
         plt.show()
