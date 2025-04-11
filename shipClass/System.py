@@ -1,8 +1,6 @@
 from shipClass.SensedComp import SensedComp
-from utils.helperFunctions import get_key_by_value
 
 import matplotlib.pyplot as plt
-
 
 class System():
     ''' a simple model of a system composed of many sensed components'''
@@ -16,6 +14,7 @@ class System():
         # true state of the system
         self.state = self.SolveStructureFunction()  
         self.history = [self.state]  
+        
         # sensed state of the system
         self.sensedState = self.SolveStructureFunction()  
         self.sensedHistory = [self.sensedState]  

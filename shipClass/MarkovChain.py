@@ -80,9 +80,15 @@ class MarkovChain:
                        
             # randomly select and update the next state using probabilities from the transition matrix
             next_state = np.random.choice(states, p=self.transitionMatrix[currentState_idx])       
+            
+            if next_state > currentState_idx:  # if the next state is higher than the current state, it means a failure has occurred
+                print(f"The problem is here")
+                j=2
+                
             self.state = next_state
             self.history.append(next_state)
 
+        
 
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
