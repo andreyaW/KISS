@@ -120,7 +120,7 @@ class System():
         
 # ---------------------- Markov Chain Simulation ----------------------  
 #      
-    def simulate(self, number_of_steps: int) -> None:
+    def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the system (uses simulate() from SensedComp class) """
         
         # For each step sense the state of the component
@@ -134,15 +134,15 @@ class System():
             self.sensedState = self.SolveStructureFunction()
             self.sensedHistory.append(self.sensedState)          
             
-            if self.sensedHistory[-1] > self.sensedHistory[-2]:  # if the sensed state has improved
-                print( 'There has been an error in simulation') # error messsage 
-                break
-            
-            
+            # if self.sensedHistory[-1] > self.sensedHistory[-2]:  # flags when the sensed state has improved
+            #     print( 'There has been an error in simulation or maintenance has occurred') # error messsage 
+                
             # determine and store the true state of the system
             self.state = self.SolveStructureFunction(True)
             self.history.append(self.state)                     # truth
 
+
+# ------------------------ Functions Useful for Maintenance / Reset ----------------------
 
     def reset(self):
         """ Reset the system to initial state (same objects as before, new histories) """
@@ -157,3 +157,14 @@ class System():
         
         self.sensedState = self.SolveStructureFunction()  
         self.sensedHistory = [self.sensedState]
+
+    def failureCheck(self):
+        """ Check if the system has failed """
+        if self.state == 0:  # if the system is in the failed state
+            return True
+
+        # if all components are in the working state, return false
+        return False
+    
+
+            

@@ -23,9 +23,6 @@ class MarkovChain:
         self.history = [self.state]                     # array to keep track of the history of states
 
 # ---------------------- Useful Methods  ----------------------       
-    # def getCurrentState(self):
-    #     """ Get the current state description from the state number """
-    #     return self.states[self.state] 
     
     def get_failure_time(self):
         """ Determine from the history when the object fails """
@@ -68,7 +65,7 @@ class MarkovChain:
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
 
-    def simulate(self, number_of_steps: int) -> None:
+    def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the Markov Chain over n steps """
         
         # Simulate the Markov Chain
@@ -80,8 +77,8 @@ class MarkovChain:
             next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
             
             if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
-                print(f"The problem is here")
-                j=2
+                print(f"There has been an error in simulation.")
+                break
                 
             self.state = next_state
             self.history.append(next_state)     # append the new state to the history

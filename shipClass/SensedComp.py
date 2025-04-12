@@ -75,13 +75,13 @@ class SensedComp(Component, Sensor):
 
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
-    def simulate(self, number_of_steps: int) -> None:
+    def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the sensed component (uses simulate() from Component and Sensor classes) """
         # For each step, simulate comp and sensors then sense the new state
         for i in range(number_of_steps):
-            self.comp.simulate(1)   # update the comp state
+            self.comp.simulate()   # update the comp state
             for sensor in self.sensors:
-                sensor.simulate(1)  # update the sensor state
+                sensor.simulate()  # update the sensor state
             self.senseState()       # determines and stores the state of the sensed component
 
 
