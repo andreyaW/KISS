@@ -17,17 +17,15 @@ class MarkovChain:
         # necessary attributes
         self.states = states
         self.transitionMatrix = transition_matrix
-        self.history = []
         
         # setting initial state
         self.state = list(self.states.keys())[-1]               
-        self.history.append(self.state)
-
+        self.history = [self.state]                     # array to keep track of the history of states
 
 # ---------------------- Useful Methods  ----------------------       
-    def getCurrentState(self):
-        """ Get the current state description from the state number """
-        return self.states[self.state] 
+    # def getCurrentState(self):
+    #     """ Get the current state description from the state number """
+    #     return self.states[self.state] 
     
     def get_failure_time(self):
         """ Determine from the history when the object fails """
@@ -75,20 +73,19 @@ class MarkovChain:
         
         # Simulate the Markov Chain
         for i in range(number_of_steps):
-            states = list(self.states.keys())                              # get the keys of the all states (0, 1, 2, ...)      
-            currentState_idx = self.state   # get the index of the current state
+            states = list(self.states.keys())   # get the keys of the all states (0, 1, 2, ...)      
+            currentState_idx = self.state       # get the index of the current state
                        
             # randomly select and update the next state using probabilities from the transition matrix
             next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
             
-            if next_state > currentState_idx:  # if the next state is higher than the current state, it means a failure has occurred
+            if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
                 print(f"The problem is here")
                 j=2
                 
             self.state = next_state
-            self.history.append(next_state)
-
-        
+            self.history.append(next_state)     # append the new state to the history
+       
 
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
@@ -110,9 +107,9 @@ class MarkovChain:
         
         # Show the plot
         plt.show()
-              
+
+
     def reset(self):
-        """ Reset the Markov Chain to its initial state and delete its history"""
-        self.state = list(self.states.keys())[-1]
-        self.history = [self.state]
-        
+        """ Reset the Markov Chain to its initial state and delete its history """
+        self.state = list(self.states.keys())[-1]       # reset the state to the working state (initial state)
+        self.history = [self.state]                     # save initial state to history

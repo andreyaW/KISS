@@ -1,6 +1,5 @@
 from shipClass.Component import Component
 from shipClass.Sensor import Sensor
-from utils.helperFunctions import get_key_by_value
 from utils.helperFunctions import find_mode
 
 import matplotlib.pyplot as plt
@@ -31,18 +30,20 @@ class SensedComp(Component, Sensor):
         comp = Component(comp_name, comp_states, comp_transition_matrix)
         self.comp = comp
         self.name = 'Sensed ' + comp.name               
-        self.state = comp.state                         # ground truth state of the component       
 
         # initialize sensors to be attached to the component
         self.n = num_sensors
         sensors = []
         for i in range(self.n):
             sensor = Sensor('Sensor ' + str(i+1), sensor_states, sensor_transition_matrix)
-            sensor.sensorReadings.append(comp.state)    # array for each sensors to keep track of their individual readings 
+            sensor.sensorReadings.append(comp.state)    # each sensors keeps track of their individual readings from the comp
             sensors.append(sensor)        
         self.sensors = sensors
+        
+        # sensed component attributes
+        self.state = comp.state                         # ground truth state of the component       
         self.sensedState = comp.state                   # sensed states of the component
-        self.sensedHistory = [self.sensedState]                         # array to keep track of the sensed states of this object          
+        self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
        
 
 # ---------------------- Useful Methods  ----------------------       
@@ -58,20 +59,20 @@ class SensedComp(Component, Sensor):
             # only updates to truth if sensor works
             working_state= list(sensor.states.keys())[-1]
             if sensor.state == working_state:     
-                sensor.sensorReadings.append(self.comp.state)  # updates sensors to keep a log of readings they have taken
+                sensedState = self.comp.state
             else:                    
                 # broken sensor, assume no update is recieved and the readings remain unchanged
                 last_sensed_state = sensor.sensorReadings[-1]
-                sensor.sensorReadings.append(last_sensed_state)
-            
-            sensedStates[i] = sensor.sensorReadings[-1]    
-            
-        # update the overall sensed state to the most common sensed state from all sensors
-        self.sensedState  = find_mode(sensedStates)
-        self.sensedHistory.append(self.sensedState)         # update the sensed state history
+                sensedState = last_sensed_state
 
-        # update true state of the component always
-        self.state = self.comp.state                        # ground truth history automatically updated in the component class
+            sensor.sensorReadings.append(sensedState)       # update the sensor readings history
+            sensedStates[i] = sensor.sensorReadings[-1]     # store the sensed state of the sensor to array for solving
+            
+        # the overall sensed state is the most common state sensed between the sensors
+        self.sensedState  = int(find_mode(sensedStates))
+        self.sensedHistory.append(self.sensedState)         # update the sensed components sensed history
+        self.state = self.comp.state                        # update the ground truth to match the component state
+
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
     def simulate(self, number_of_steps: int) -> None:
@@ -81,17 +82,18 @@ class SensedComp(Component, Sensor):
             self.comp.simulate(1)   # update the comp state
             for sensor in self.sensors:
                 sensor.simulate(1)  # update the sensor state
-            self.senseState()       # determine and store the state of the sensed component
+            self.senseState()       # determines and stores the state of the sensed component
 
 
     def reset(self):
-        """ Reset the sensed component to initial state (same objects as before, new histories)"""
+        """ Reset the sensed component to initial state (same objects as before, new histories) """
         self.comp.reset()
         for sensor in self.sensors:
                 sensor.reset()
-                sensor.sensorReadings = []  # reset the sensor readings history
-                
-        
+                sensor.sensorReadings = [self.comp.state]  # reset the sensor readings history and store initial state
+        self.sensedHistory = [self.comp.state]             # reset the sensed history of the sensed component and store initial state
+        self.state = self.comp.state                       # reset the ground truth state of the component
+    
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
         """ Plot the ground truth and sensed history of the Markov Chain """
         # Create a figure and axis

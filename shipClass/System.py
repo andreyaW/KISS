@@ -25,7 +25,6 @@ class System():
         """gets the states of the systems components """
         
         states = []            # create list to store the states       
-        
         # if bool is True, get the TRUE states of the components
         if bool: 
             for i,comp_idx in enumerate(list_of_comps):
@@ -44,16 +43,17 @@ class System():
         Xi = []  # list to store the states of the system
                 
         if self.parallels is not None:
-            n = len(self.parallels)  # number of parallel sets
-            if n >1: 
-                pass # functionality not yet implemented for multiple parallel sets
-            else:
-                # get the states of the components in parallel
-                states = self.getStates(self.parallels,bool)
+            for parallel_sets in self.parallels:
+                
+                #subtract 1 from each value to get the idx
+                parallel_sets = [i-1 for i in parallel_sets]
+                states = self.getStates(parallel_sets,bool)
                 
                 # determine the state of the set using structure function then, 
+                Xi_parallels = max(states) 
+                
                 # add the state of the parallel sets to overall system list
-                Xi= Xi + max(states)      
+                Xi.append(Xi_parallels)      
                         
         # considering all other components in series
         series_comps = []  # list to store the states of series components            
@@ -67,11 +67,15 @@ class System():
         else:
             series_comps = list(range(len(self.comps)))  # get the index of all components
         
-        Xi = Xi + self.getStates(series_comps, bool)
-        phi = min(Xi)               # considering series comps
+        # double checking there are some series components to add to the structure function
+        if series_comps != []:
+            Xi = Xi + self.getStates(series_comps, bool)
+        else:
+            pass # all comps must have been in a parallel set
         
+        # final series consideration (parallel sets and series components)
+        phi = min(Xi)               
         return phi
-    
     
 
     def outputSystemStates(self):
@@ -138,3 +142,18 @@ class System():
             # determine and store the true state of the system
             self.state = self.SolveStructureFunction(True)
             self.history.append(self.state)                     # truth
+
+
+    def reset(self):
+        """ Reset the system to initial state (same objects as before, new histories) """
+        
+        # reset the state of all the components
+        for sc in self.comps:
+            sc.reset()
+            
+        # reset the histories of the system
+        self.state = self.SolveStructureFunction(True)  
+        self.history = [self.state]  
+        
+        self.sensedState = self.SolveStructureFunction()  
+        self.sensedHistory = [self.sensedState]
