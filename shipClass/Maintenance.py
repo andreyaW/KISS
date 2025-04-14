@@ -15,9 +15,11 @@ def periodicMaintenance(system):
 
 
     for sc in system.comps:
+
+        # If any component is not in a working state, perform maintenance on it
+
         working_state = list(sc.comp.states.keys())[-1]
         if sc.state != working_state: 
-            # If the component is not in a working state, perform maintenance
             sc.reset()
 
     # Update the system state after maintenance
@@ -31,12 +33,14 @@ def correctiveMaintenance(system):
     """
     Perform corrective maintenance on a system.
     """
-    for comp in system.comps:
-        working_state = list(comp.comp.states.keys())[-1]  # get the working state of the component
-        if comp.state != working_state:
-            # If the component is not in a working state, perform maintenance
-
-            comp.reset()
+    # if the system is in a failed state
+    if system.state == 0:  
+        
+        # Perform corrective maintenance on any components not in a useable state
+        for comp in system.comps:
+            failed_state = list(comp.comp.states.keys())[0]  # get the failed state of the component
+            if comp.state == failed_state:
+                comp.reset()
 
     # Update the system state after maintenance
     system.state = system.SolveStructureFunction()
