@@ -1,4 +1,5 @@
 from shipClass.SensedComp import SensedComp
+from utils.helperFunctions import SolveStructureFunction
 
 import matplotlib.pyplot as plt
 
@@ -16,66 +17,8 @@ class System():
         self.history = [self.state]  
         
         # sensed state of the system
-        self.sensedState = self.SolveStructureFunction()  
+        self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]  
-        
-    # ---------------------- Determination of System State ----------------------       
-
-    def getStates(self, list_of_comps, bool = False) -> list:     
-        """gets the states of the systems components """
-        
-        states = []            # create list to store the states       
-        # if bool is True, get the TRUE states of the components
-        if bool: 
-            for i,comp_idx in enumerate(list_of_comps):
-                states.append(self.comps[comp_idx].state)   
-            return states
-        
-        # if bool is False, get the SENSED states of the components 
-        else: 
-            for i,comp_idx in enumerate(list_of_comps):
-                states.append(self.comps[comp_idx].sensedState)   
-            return states
-
-        
-    def SolveStructureFunction(self, bool = False) -> int:
-        ''' calculate the structure function of the system '''
-        Xi = []  # list to store the states of the system
-                
-        if self.parallels is not None:
-            for parallel_sets in self.parallels:
-                
-                #subtract 1 from each value to get the idx
-                parallel_sets = [i-1 for i in parallel_sets]
-                states = self.getStates(parallel_sets,bool)
-                
-                # determine the state of the set using structure function then, 
-                Xi_parallels = max(states) 
-                
-                # add the state of the parallel sets to overall system list
-                Xi.append(Xi_parallels)      
-                        
-        # considering all other components in series
-        series_comps = []  # list to store the states of series components            
-
-        # if there are components in parallel, get the idx of the series components
-        if self.parallels is not None: 
-            for i in range(len(self.comps)):
-                if i not in self.parallels:
-                    series_comps.append(i)  
-        # else get the idx of all components
-        else:
-            series_comps = list(range(len(self.comps)))  # get the index of all components
-        
-        # double checking there are some series components to add to the structure function
-        if series_comps != []:
-            Xi = Xi + self.getStates(series_comps, bool)
-        else:
-            pass # all comps must have been in a parallel set
-        
-        # final series consideration (parallel sets and series components)
-        phi = min(Xi)               
-        return phi
     
 
     def outputSystemStates(self):
@@ -87,9 +30,9 @@ class System():
         # Print the states of each component
         for i, comp in enumerate(self.comps):
             print("{:<10} {:<5} {:<10}".format(comp.name, comp.state, comp.sensedState))
-        print("System State:", self.state)  
-        
-        
+        print("System State:", self.state)   
+
+
         
     def plotHistory(self, plot_comp_history: bool = False) -> None:
         
@@ -105,7 +48,7 @@ class System():
         ax.set_title('Sensed System History')
         ax.set_xlabel('Time Step')
         ax.set_ylabel('State')
-        ax.set_yticks(list(self.states.keys()))
+        ax.set_yticks(list(self.states.keys()))  
         ax.set_yticklabels(list(self.states.values()))
         ax.set_xlim(0, len(self.history))
         ax.legend()
@@ -131,14 +74,14 @@ class System():
                 comp.simulate(1)
                 
             # determine and store the sensed state of the system
-            self.sensedState = self.SolveStructureFunction()
+            self.sensedState = SolveStructureFunction(self.comps, self.parallels)
             self.sensedHistory.append(self.sensedState)          
             
             # if self.sensedHistory[-1] > self.sensedHistory[-2]:  # flags when the sensed state has improved
             #     print( 'There has been an error in simulation or maintenance has occurred') # error messsage 
                 
             # determine and store the true state of the system
-            self.state = self.SolveStructureFunction(True)
+            self.state = self.SolveStructureFunction(self.comps, self.parallels, True)
             self.history.append(self.state)                     # truth
 
 
@@ -168,3 +111,67 @@ class System():
     
 
             
+
+
+
+
+
+
+
+
+# ----------- Extra stuff to delete later  -------------------
+    # def getStates(self, list_of_comps, bool = False) -> list:     
+    #     """gets the states of the systems components """
+        
+    #     states = []            # create list to store the states       
+    #     # if bool is True, get the TRUE states of the components
+    #     if bool: 
+    #         for i,comp_idx in enumerate(list_of_comps):
+    #             states.append(self.comps[comp_idx].state)   
+    #         return states
+        
+    #     # if bool is False, get the SENSED states of the components 
+    #     else: 
+    #         for i,comp_idx in enumerate(list_of_comps):
+    #             states.append(self.comps[comp_idx].sensedState)   
+    #         return states
+
+        
+    # def SolveStructureFunction(self, bool = False) -> int:
+    #     ''' calculate the structure function of the system '''
+    #     Xi = []  # list to store the states of the system
+                
+    #     if self.parallels is not None:
+    #         for parallel_sets in self.parallels:
+                
+    #             #subtract 1 from each value to get the idx
+    #             parallel_sets = [i-1 for i in parallel_sets]
+    #             states = self.getStates(parallel_sets,bool)
+                
+    #             # determine the state of the set using structure function then, 
+    #             Xi_parallels = max(states) 
+                
+    #             # add the state of the parallel sets to overall system list
+    #             Xi.append(Xi_parallels)      
+                        
+    #     # considering all other components in series
+    #     series_comps = []  # list to store the states of series components            
+
+    #     # if there are components in parallel, get the idx of the series components
+    #     if self.parallels is not None: 
+    #         for i in range(len(self.comps)):
+    #             if i not in self.parallels:
+    #                 series_comps.append(i)  
+    #     # else get the idx of all components
+    #     else:
+    #         series_comps = list(range(len(self.comps)))  # get the index of all components
+        
+    #     # double checking there are some series components to add to the structure function
+    #     if series_comps != []:
+    #         Xi = Xi + self.getStates(series_comps, bool)
+    #     else:
+    #         pass # all comps must have been in a parallel set
+        
+    #     # final series consideration (parallel sets and series components)
+    #     phi = min(Xi)               
+    #     return phi

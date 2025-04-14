@@ -4,6 +4,7 @@ This class is used to simulate a ship object subject to degradation over time an
 
 from shipClass import shipClass
 
+import pandas as pd
 
 class shipSimulator():
 
@@ -39,12 +40,38 @@ class shipSimulator():
        
         
         
-    def simulate():
+    def simulate(self, run_time: int):
+        """ sill simulate a manned or unmanned vessel and keep track of maintenane actions performed"""
         
-        #Initialise simulation time (starting at zero hours)
-
         # simulation loop
-        simtime= 0          # each step = 1 hour
-        while simTime != simulationLength:
+        time_step = 0          
+        while time_step != run_time:
             
+            # simulate the ship's systems
+            for system in self.ship.systems:
+                system.simulate(1)  # simulate each system for 1 hour       
             
+                # determine if maintenance is needed to bring the system back to a healthy state
+                if system.state == 0 :
+                    
+            time_step += 1          # each step = 1 hour
+        
+        
+        
+        
+    def outputSystemStates(self):
+        """ output system history to excel file """
+        
+        # Create a pandas DataFrame to store the states of the system
+        df = pd.DataFrame(columns=["Time Step", "System State", "Sensed State"])
+        
+        # Fill the DataFrame with the history of the system
+        for i in range(len(self.history)):
+            df.loc[i] = [i, self.history[i], self.sensedHistory[i]]
+            
+        # Save the DataFrame to an Excel file
+        df.to_excel("system_states.xlsx", index=False)
+        
+        print("System states saved to system_states.xlsx")   
+        
+        

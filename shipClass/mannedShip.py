@@ -17,5 +17,6 @@ class mannedShip(Ship):
 
 # ---------------------- Simulation of Object  ----------------------       
 
+
     def simulate(): 
         pass
