@@ -13,13 +13,13 @@ class System():
         self.states = self.comps[0].comp.states
                 
         # true state of the system
-        self.state = self.SolveStructureFunction()  
+        self.state = SolveStructureFunction(self.comps, self.parallels)  
         self.history = [self.state]  
         
         # sensed state of the system
         self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]  
-    
+        
 
     def outputSystemStates(self):
         ''' output the states of the system '''
@@ -29,8 +29,11 @@ class System():
         
         # Print the states of each component
         for i, comp in enumerate(self.comps):
-            print("{:<10} {:<5} {:<10}".format(comp.name, comp.state, comp.sensedState))
-        print("System State:", self.state)   
+            print("{:<10} {:<5} {:<10}".format(comp.name, comp.state, comp.sensedState))        
+        print("{:<10} {:<5} {:<10}".format(self.name, self.state, self.sensedState))
+        
+        # print("System Sensed State:", self.sensedState)   
+        # print("System True State:", self.state)
 
 
         
@@ -81,7 +84,7 @@ class System():
             #     print( 'There has been an error in simulation or maintenance has occurred') # error messsage 
                 
             # determine and store the true state of the system
-            self.state = self.SolveStructureFunction(self.comps, self.parallels, True)
+            self.state = SolveStructureFunction(self.comps, self.parallels, True)
             self.history.append(self.state)                     # truth
 
 

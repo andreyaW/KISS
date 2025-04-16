@@ -55,23 +55,4 @@ class shipSimulator():
                 if system.state == 0 :
                     
             time_step += 1          # each step = 1 hour
-        
-        
-        
-        
-    def outputSystemStates(self):
-        """ output system history to excel file """
-        
-        # Create a pandas DataFrame to store the states of the system
-        df = pd.DataFrame(columns=["Time Step", "System State", "Sensed State"])
-        
-        # Fill the DataFrame with the history of the system
-        for i in range(len(self.history)):
-            df.loc[i] = [i, self.history[i], self.sensedHistory[i]]
-            
-        # Save the DataFrame to an Excel file
-        df.to_excel("system_states.xlsx", index=False)
-        
-        print("System states saved to system_states.xlsx")   
-        
-        
+    

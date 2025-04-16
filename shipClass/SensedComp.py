@@ -4,6 +4,7 @@ from utils.helperFunctions import find_mode
 
 import matplotlib.pyplot as plt
 import numpy as np
+import xlsxwriter
 
 class SensedComp(Component, Sensor):
 
@@ -45,6 +46,9 @@ class SensedComp(Component, Sensor):
         self.sensedState = comp.state                   # sensed states of the component
         self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
        
+        # extended histories of the component and sensors (histories ignoring maintenance resets)
+        self.extendedHistory = self.comp.history  
+        self.extendedSensedHistory = self.sensedHistory  
 
 # ---------------------- Useful Methods  ----------------------       
 
@@ -84,16 +88,20 @@ class SensedComp(Component, Sensor):
                 sensor.simulate()  # update the sensor state
             self.senseState()       # determines and stores the state of the sensed component
 
-
     def reset(self):
         """ Reset the sensed component to initial state (same objects as before, new histories) """
+        self.extendedHistory = self.extendedHistory + self.comp.extendedHistory
+        self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory
         self.comp.reset()
         for sensor in self.sensors:
                 sensor.reset()
                 sensor.sensorReadings = [self.comp.state]  # reset the sensor readings history and store initial state
         self.sensedHistory = [self.comp.state]             # reset the sensed history of the sensed component and store initial state
         self.state = self.comp.state                       # reset the ground truth state of the component
-    
+
+
+# ---------------------- Plotting Methods  ----------------------
+
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
         """ Plot the ground truth and sensed history of the Markov Chain """
         # Create a figure and axis
@@ -140,3 +148,27 @@ class SensedComp(Component, Sensor):
         # Show the plot
         plt.grid()
         plt.show()
+
+
+        
+    def printHistory2Excel(self, filename: str = 'sensedComp_history.xlsx') -> None:
+        """ 
+        This function is used to print the history of the sensed component to an excel file. 
+        Each sensed component has one page with its true states, sensor states and sensed states.         
+        """
+        # create a new workbook
+        with xlsxwriter.Workbook(filename) as workbook:
+            
+            # create a new worksheet for the sensed component
+            worksheet = workbook.add_worksheet(self.name + ' History') 
+
+            # write the headers in the first row
+            sensor_headers = ['Sensor ' + str(i+1) for i in range(self.n)]
+            headers = ['Time Step', 'Truth State'] + sensor_headers + ['Sensed State']
+            worksheet.write_row(0, 0, headers)
+
+            # write the data into the following rows
+            for i in range(len(self.comp.extendedHistory)): 
+                sensor_data = [self.sensors[j].extendedHistory[i] for j in range(self.n)]           # get the sensor data for this time step
+                row = [i, self.comp.extendedHistory[i]] + sensor_data + [self.extendedSensedHistory[i]]
+                worksheet.write_row(i+1, 0, row)

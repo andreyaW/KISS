@@ -1,3 +1,6 @@
+import xlsxwriter
+
+
 def get_key_by_value(my_dict, value):
         """
         Returns the key associated with the given value in the dictionary.
@@ -38,7 +41,7 @@ def getStates(list_of_objs, bool = False) -> list:
     
     states = []  # list to store all states       
     
-    # if bool is True, get the TRUE states of the components
+    # if bool is True, get the TRUE states of the objects
     if bool: 
         for i, obj in enumerate(list_of_objs):
             states.append(obj.state)   
@@ -47,73 +50,63 @@ def getStates(list_of_objs, bool = False) -> list:
     # if bool is False, get the SENSED states of the components 
     else: 
         for i,obj in enumerate(list_of_objs):
-            states.append(obj.sensedState)   
-            
+            states.append(obj.sensedState)         
         return states
 
-    
-def SolveStructureFunction(objects, parallels: list[tuple],  bool = False) -> int:
+
+def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -> int:
     ''' calculate the structure function of either a system of sensed components or a ship of systems '''
-    
-    Xi = getStates(objects, bool)  # state vector (stores the state of each object in the objects list) 
-        
-    # do the math on the parallel sets first
+
+    Xi_overall = []     # overall state vector
+    Xi_temp = []        # state vector for each group considered
+
+    # determine the state of each parallel set first
     if parallels is not None: 
-        for parallel_set in parallels:
-            
-            #subtract 1 from each value to get the idx
-            parallel_set = [i-1 for i in parallel_set]
-            parallels_states = [0 for i in parallel_set]  
-            for i, comp_idx in enumerate(parallel_set):
-                parallels_states[i] = Xi[comp_idx]        # get the state of each component in the parallel set 
-                
-                # remove the states from the state vector
-                Xi[comp_idx] = None
-            
-            # determine the state of the set using structure function and add it to the state vector 
-            Xi_parallels = max(parallels_states) 
-            Xi.append(Xi_parallels)
-        
-    # now finish the math on the series components
-    phi = min(Xi)                
+        for parallel_sets in parallels:
+
+            # subtract 1 from each value to get the idx
+            parallel_sets = [i-1 for i in parallel_sets]
+            parallel_objs = [objects[i] for i in parallel_sets]  # get the objects in the parallel set
+            Xi_temp = getStates(parallel_objs,bool)          
+            Xi_overall.append(max(Xi_temp))                      # add the state of the parallel sets to overall system list
+
+    # determine the state of the series components
+        # if parallels is None, all comps are in series
+    if parallels is None: 
+        series_comps = list(range(len(objects)))
+        series_objs = [objects[i] for i in series_comps]  # get the objects in the series set
+        Xi_temp = getStates(series_objs,bool)
+        Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
+    
+    # if parallels is not None, get the idx of the series components
+    else: 
+        series_comps = []  # list to store the idx of series components
+        objects_in_parallel = [i for sublist in parallels for i in sublist]  # get all objects in parallel sets
+        for i in range(len(objects)):
+            if i not in objects_in_parallel:
+                series_comps.append(i)
+        series_objs = [objects[i] for i in series_comps]  # get the objects in the series set
+        Xi_temp = getStates(series_objs,bool)  # get the states of the series components
+        Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
+
+    # final consideration of all states in overall system state vector
+    phi = min(Xi_overall)               
+    
     return phi
 
 
 
+# def printHistory2Excel(obj):
+#     """ 
+#     This function is used to print the history of the system to an excel file. 
+#     Each object in the system has its own sensed and true histories.        
+#     """
+#     # create a new workbook and add a worksheet
+#     with xlsxwriter.Workbook('system_test.xlsx') as workbook:
+#         worksheet = workbook.add_worksheet()
 
+#         # write the headers in the first row
+         
 
-    # if parallels is not None:
-        
-    #     for parallel_sets in parallels:
-            
-    #         #subtract 1 from each value to get the idx
-    #         parallel_sets = [i-1 for i in parallel_sets]
-    #         states = getStates(parallel_sets,bool)
-            
-    #         # determine the state of the set using structure function then, 
-    #         Xi_parallels = max(states) 
-            
-    #         # add the state of the parallel sets to overall system list
-    #         Xi.append(Xi_parallels)      
-                    
-    # # considering all other components in series
-    # series_comps = []  # list to store the states of series components            
-
-    # # if there are components in parallel, get the idx of the series components
-    # if self.parallels is not None: 
-    #     for i in range(len(self.comps)):
-    #         if i not in self.parallels:
-    #             series_comps.append(i)  
-    # # else get the idx of all components
-    # else:
-    #     series_comps = list(range(len(self.comps)))  # get the index of all components
-    
-    # # double checking there are some series components to add to the structure function
-    # if series_comps != []:
-    #     Xi = Xi + self.getStates(series_comps, bool)
-    # else:
-    #     pass # all comps must have been in a parallel set
-    
-    # # final series consideration (parallel sets and series components)
-    # phi = min(Xi)               
-    # return phi
+#         for col_num, data in enumerate(list_of_histories):
+#             worksheet.write_row(1, col_num, data)

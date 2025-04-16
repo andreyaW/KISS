@@ -63,27 +63,6 @@ class MarkovChain:
         # Show the plot
         plt.show()
 
-# ---------------------- Monte Carlo Simulation  ----------------------       
-
-    def simulate(self, number_of_steps: int = 1) -> None:
-        """ Simulate the Markov Chain over n steps """
-        
-        # Simulate the Markov Chain
-        for i in range(number_of_steps):
-            states = list(self.states.keys())   # get the keys of the all states (0, 1, 2, ...)      
-            currentState_idx = self.state       # get the index of the current state
-                       
-            # randomly select and update the next state using probabilities from the transition matrix
-            next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
-            
-            if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
-                print(f"There has been an error in simulation.")
-                break
-                
-            self.state = next_state
-            self.history.append(next_state)     # append the new state to the history
-       
-
     def plotHistory(self):
         """ Plot the history of the Markov Chain """
 
@@ -105,7 +84,26 @@ class MarkovChain:
         # Show the plot
         plt.show()
 
+# ---------------------- Monte Carlo Simulation  ----------------------       
 
+    def simulate(self, number_of_steps: int = 1) -> None:
+        """ Simulate the Markov Chain over n steps """
+        
+        # Simulate the Markov Chain
+        for i in range(number_of_steps):
+            states = list(self.states.keys())   # get the keys of the all states (0, 1, 2, ...)      
+            currentState_idx = self.state       # get the index of the current state
+                       
+            # randomly select and update the next state using probabilities from the transition matrix
+            next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
+            
+            if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
+                print(f"There has been an error in simulation.")
+                break
+                
+            self.state = next_state
+            self.history.append(next_state)     # append the new state to the history
+       
     def reset(self):
         """ Reset the Markov Chain to its initial state and delete its history """
         self.state = list(self.states.keys())[-1]       # reset the state to the working state (initial state)
