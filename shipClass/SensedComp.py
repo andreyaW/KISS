@@ -50,8 +50,8 @@ class SensedComp(Component, Sensor):
         self.extendedHistory = self.comp.history  
         self.extendedSensedHistory = self.sensedHistory  
 
-# ---------------------- Useful Methods  ----------------------       
 
+# ---------------------- Monte Carlo Simulation  ----------------------       
     def senseState(self) -> None:
         """ Sense the state of the component """
               
@@ -78,7 +78,6 @@ class SensedComp(Component, Sensor):
         self.state = self.comp.state                        # update the ground truth to match the component state
 
 
-# ---------------------- Monte Carlo Simulation  ----------------------       
     def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the sensed component (uses simulate() from Component and Sensor classes) """
         # For each step, simulate comp and sensors then sense the new state
@@ -87,6 +86,7 @@ class SensedComp(Component, Sensor):
             for sensor in self.sensors:
                 sensor.simulate()  # update the sensor state
             self.senseState()       # determines and stores the state of the sensed component
+
 
     def reset(self):
         """ Reset the sensed component to initial state (same objects as before, new histories) """
@@ -100,7 +100,7 @@ class SensedComp(Component, Sensor):
         self.state = self.comp.state                       # reset the ground truth state of the component
 
 
-# ---------------------- Plotting Methods  ----------------------
+# ---------------------- Plotting + Output ----------------------
 
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
         """ Plot the ground truth and sensed history of the Markov Chain """
@@ -151,24 +151,33 @@ class SensedComp(Component, Sensor):
 
 
         
-    def printHistory2Excel(self, filename: str = 'sensedComp_history.xlsx') -> None:
+    def printHistory2Excel(self, filename: str = 'sensedComp_history.xlsx', worksheet=None) -> None:
         """ 
         This function is used to print the history of the sensed component to an excel file. 
         Each sensed component has one page with its true states, sensor states and sensed states.         
         """
-        # create a new workbook
-        with xlsxwriter.Workbook(filename) as workbook:
-            
-            # create a new worksheet for the sensed component
-            worksheet = workbook.add_worksheet(self.name + ' History') 
 
-            # write the headers in the first row
-            sensor_headers = ['Sensor ' + str(i+1) for i in range(self.n)]
-            headers = ['Time Step', 'Truth State'] + sensor_headers + ['Sensed State']
-            worksheet.write_row(0, 0, headers)
-
-            # write the data into the following rows
-            for i in range(len(self.comp.extendedHistory)): 
-                sensor_data = [self.sensors[j].extendedHistory[i] for j in range(self.n)]           # get the sensor data for this time step
+        if worksheet is not None:
+            # if a worksheet is provided, write to that worksheet
+            worksheet.write_row(0, 0, ['Time Step', 'Truth State'] + ['Sensor ' + str(i+1) for i in range(self.n)] + ['Sensed State'])
+            for i in range(len(self.extendedHistory)):
+                sensor_data = [self.sensors[j].extendedHistory[i] for j in range(self.n)]
                 row = [i, self.comp.extendedHistory[i]] + sensor_data + [self.extendedSensedHistory[i]]
                 worksheet.write_row(i+1, 0, row)
+        
+        # if no worksheet is provided, create a new workbook and worksheet
+        else:    
+            with xlsxwriter.Workbook(filename) as workbook:
+                worksheet = workbook.add_worksheet(self.name) 
+
+                # write the headers in the first row
+                sensor_headers = ['Sensor ' + str(i+1) for i in range(self.n)]
+                headers = ['Time Step', 'Truth State'] + sensor_headers + ['Sensed State']
+                worksheet.write_row(0, 0, headers)
+
+                # write the data into the following rows
+                for i in range(len(self.comp.extendedHistory)): 
+                    sensor_data = [self.sensors[j].extendedHistory[i] for j in range(self.n)]           # get the sensor data for this time step
+                    row = [i, self.comp.extendedHistory[i]] + sensor_data + [self.extendedSensedHistory[i]]
+                    worksheet.write_row(i+1, 0, row)
+        
