@@ -96,17 +96,9 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
 
 
 
-# def printHistory2Excel(obj):
-#     """ 
-#     This function is used to print the history of the system to an excel file. 
-#     Each object in the system has its own sensed and true histories.        
-#     """
-#     # create a new workbook and add a worksheet
-#     with xlsxwriter.Workbook('system_test.xlsx') as workbook:
-#         worksheet = workbook.add_worksheet()
 
-#         # write the headers in the first row
-         
-
-#         for col_num, data in enumerate(list_of_histories):
-#             worksheet.write_row(1, col_num, data)
+def idx2letter(idx):
+    """ Convert an index to a letter (1 -> A, 2 -> B, etc.) """
+    if idx < 1:
+        raise ValueError("Index must be greater than or equal to 1")
+    return chr(idx + 64)  # ASCII value of 'A' is 65
