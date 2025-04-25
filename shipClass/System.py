@@ -1,8 +1,9 @@
 from shipClass.SensedComp import SensedComp
-from utils.helperFunctions import SolveStructureFunction
+from utils.helperFunctions import SolveStructureFunction, idx2letter
 
 import matplotlib.pyplot as plt
 import xlsxwriter
+
 
 class System():
     ''' a simple model of a system composed of many sensed components'''
@@ -12,6 +13,8 @@ class System():
         self.comps = comps
         self.parallels = parallels
         self.states = self.comps[0].comp.states
+        self.n = len(self.comps)                                         # number of total components in the system
+        self.nPar = len(self.parallels) if parallels is not None else 0  # number of parallel components in the system
                 
         # true state of the system
         self.state = SolveStructureFunction(self.comps, self.parallels)  
@@ -108,30 +111,64 @@ class System():
         ax.set_yticklabels(list(self.states.values()))
         ax.set_xlim(0, len(self.history))
         ax.legend()
-        plt.grid()
+        ax.grid()
         
         # add a marker for unsensed failures
         for i in range(len(self.history)):
             if self.history[i] != self.sensedHistory[i]:
                 ax.plot(i, self.sensedHistory[i], marker='x',  color='red', markersize=10, label="Unsensed Failure")
                 break
+        
+        plt.show()
 
 
-    def printHistory2Excel(self, filename: str = 'system_history.xlsx') -> None:
+    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None) -> None:
         """ Print the history of the system and its sensed components to an excel file """
         
+        # create and add the headers for the system history sheet
+        comp_truth_headers = [f'Component {i+1} Truth' for i in range(self.n)]
+        comp_sensed_headers = [f'Component {i+1} Sensed' for i in range(self.n)]
+        headers = ['Time Step'] + comp_truth_headers + ['System True State'] + comp_sensed_headers + ['System Sensed State']
+
+        # determine important column letters
+        sys_truth_col = idx2letter(len(headers) - len(comp_sensed_headers) - 1)
+        sys_sensed_col = idx2letter(len(headers))
+        f1_col = idx2letter(len(headers) + 1)
+                
         # Create a new Excel file 
         with xlsxwriter.Workbook(filename) as workbook:
-            # Create a new worksheet for the system history
-            worksheet = workbook.add_worksheet('System')
+            
+            # if no worksheet is provided, create a new workbook and worksheet
+            if worksheet is None:
+                worksheet = workbook.add_worksheet(self.name) 
 
-            # write the header for the system history sheet
-            header = ['Time Step', 'System True State', 'System Sensed State']
-            worksheet.write_row(0, 0, header)
-            for i in range(len(self.extendedHistory)):
-                worksheet.write_row(i+1, 0, [i, self.history[i], self.sensedHistory[i]])
+            # write the headers in the first row
+            cell_format = workbook.add_format()            
+            cell_format.set_text_wrap()             # wrap text header row
+            worksheet.write_row(0, 0, headers, cell_format)
 
-            # add a new worksheet for each component and use its printHistory2Excel function
-            for i, comp in enumerate(self.comps):
-                worksheet = workbook.add_worksheet('Sensed Component ' + str(i+1))
-                comp.printHistory2Excel(filename, worksheet)
+            # add data to the sheet
+            for i in range(len(self.extendedHistory)):   
+
+                # add truth and sensed states of each sensed component to the row           
+                comp_truth = [self.comps[j].comp.history[i] for j in range(self.n)]
+                comp_sensed = [self.comps[j].sensedHistory[i] for j in range(self.n)]
+                data = [i] + [self.extendedHistory[i]] + comp_truth + [self.extendedSensedHistory[i]] + comp_sensed
+                worksheet.write_row(i+1, 0, data)   # python indexes start from 0, so we need to add 1 due to header row
+
+                # add formulas for checking results to end columns
+                row = i + 2     # formulas consider data which starts from row 2
+                f1 = f"IF({sys_truth_col}{row} = {sys_sensed_col}{row}, 1, 0)"
+                worksheet.write_formula(f"{f1_col}{row}", f1)
+
+            # add conditional formatting to formula colums
+            worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
+                                           {'type': '2_color_scale',
+                                            'min_color': '#FD0000',  # red
+                                            'max_color': '#00FD00'}) # green
+            
+            # increase column width for better readability
+            for i in range(len(headers)):
+                worksheet.set_column(i, i, 11.5)
+                
+            

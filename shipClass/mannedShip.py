@@ -3,8 +3,6 @@ This class is used to simulate a manned ship subject to degradation over time an
 """
 
 from shipClass.Ship import Ship
-from shipClass.Maintenance import correctiveMaintenance
-from shipClass.Maintenance import preventativeMaintenance
 
 class mannedShip(Ship):
 

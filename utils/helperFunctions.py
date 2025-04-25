@@ -73,8 +73,8 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
     # determine the state of the series components
         # if parallels is None, all comps are in series
     if parallels is None: 
-        series_comps = list(range(len(objects)))
-        series_objs = [objects[i] for i in series_comps]  # get the objects in the series set
+        series_comps_idx = list(range(len(objects)))
+        series_objs = [objects[i] for i in series_comps_idx]  # get the objects in the series set
         Xi_temp = getStates(series_objs,bool)
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
     
