@@ -80,12 +80,12 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
     
     # if parallels is not None, get the idx of the series components
     else: 
-        series_comps = []  # list to store the idx of series components
-        objects_in_parallel = [i for sublist in parallels for i in sublist]  # get all objects in parallel sets
+        series_comp_idxs = []  # list to store the idx of series components
+        objects_in_parallel = [i-1 for sublist in parallels for i in sublist]  # get all objects in parallel sets
         for i in range(len(objects)):
             if i not in objects_in_parallel:
-                series_comps.append(i)
-        series_objs = [objects[i] for i in series_comps]  # get the objects in the series set
+                series_comp_idxs.append(i)
+        series_objs = [objects[i] for i in series_comp_idxs]  # get the objects in the series set
         Xi_temp = getStates(series_objs,bool)  # get the states of the series components
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
 

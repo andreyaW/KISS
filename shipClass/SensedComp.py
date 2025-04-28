@@ -123,14 +123,17 @@ class SensedComp(Component, Sensor):
             
         # Set the title and labels
         ax.set_title('Sensed Component History')
+        # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
+        ax.set_xticks(range(0, len(self.comp.history), 5), [f'{i}h' for i in range(0, len(self.comp.history), 5)], rotation=45)   # make x ticks for every 5 hours
         ax.set_xlabel('Time Step')
-        ax.set_ylabel('State')
+        ax.set_xlim(0, len(self.comp.history))
         ax.set_yticks(list(self.comp.states.keys()))
         ax.set_yticklabels(list(self.comp.states.values()))
-        ax.set_xlim(0, len(self.comp.history))
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+        ax.set_ylabel('State')
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
         plt.grid()
+        plt.show()
 
         # (Optional) create a second plot for the sensor history
         if plot_sensor_history:
@@ -148,11 +151,7 @@ class SensedComp(Component, Sensor):
             ax2.set_xlim(0, len(self.comp.history))
             ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
             fancybox=True, shadow=True, ncol=5)
-            
-        # Show the plot
-        plt.grid()
         plt.show()
-
 
         
     def printHistory2Excel(self, filename: str = 'sensedComp_history.xlsx', worksheet = None ) -> None:

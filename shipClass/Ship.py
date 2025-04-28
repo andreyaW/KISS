@@ -65,18 +65,18 @@ class Ship:
         ax.plot(self.history, label='True State')
         ax.plot(self.sensedHistory, label='Sensed State')
 
-        # formatting the plot
-        # plt.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
+        # formatting the plot        
+        ax.set_title(f'{self.name} State History')
+        # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
         ax.set_xticks(range(0, len(self.history), 5), [f'{i}h' for i in range(0, len(self.history), 5)], rotation=45)   # make x ticks for every 5 hours
-        # ax.xticks(rotation=45)
+        ax.set_xlim(0, len(self.history))
         ax.set_xlabel('Time (hours)')
         ax.set_yticks(list(self.states.keys()))  
         ax.set_yticklabels(list(self.states.values()))
         ax.set_ylabel('State')
-        ax.legend()
-        ax.grid()
-
-        plt.title(f'{self.name} State History')
+        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05),
+                  fancybox=True, shadow=True, ncol=5)
+        ax.grid()        
         plt.show()
 
 
@@ -106,7 +106,10 @@ class Ship:
 
             # add the ship history to the sheet
             for i in range(len(self.history)):
-                data = [i] + [self.history[i]] + [self.sensedHistory[i]] + [self.systems[j].history[i] for j in range(self.n)] + [self.systems[j].sensedHistory[i] for j in range(self.n)]
+                
+                true_history = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)]
+                sensed_history = [self.sensedHistory[i]] + [self.systems[j].sensedHistory[i] for j in range(self.n)]
+                data = [i] + true_history + sensed_history
                 worksheet.write_row(i+1, 0, data)
                 
                 # add the formulas to the sheet
@@ -120,7 +123,9 @@ class Ship:
                                             'min_color': '#FD0000',  # red
                                             'max_color': '#00FD00'}) # green
 
-            
+            # increase the column width for better readability
+            worksheet.set_column(0, 0, 20)
+
             # add the systems data to new sheets
             for i in range(self.n):
                 worksheet = workbook.add_worksheet(f'System {i+1}')
