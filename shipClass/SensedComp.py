@@ -17,7 +17,8 @@ class SensedComp(Component, Sensor):
     #             comp : Component, 
     #             sensors : list[Sensor])-> None:
         
-    def __init__(self, comp_states: dict[int: str] = {0: 'Failed', 
+    def __init__(self, comp_name= None, 
+                 comp_states: dict[int: str] = {0: 'Failed', 
                                                       1: 'Working'}, 
                  comp_transition_matrix: list[list[float]]=[[1.0, 0.0], 
                                                             [0.02, 0.98]],  
@@ -25,7 +26,7 @@ class SensedComp(Component, Sensor):
                                                   1: 'Working'}, 
                  sensor_transition_matrix: list[list[float]] = [[1, 0],
                                                                 [0.15, 0.85]], 
-                 num_sensors: int = 3, comp_name= None)-> None:
+                 num_sensors: int = 3)-> None:
 
         """ Initialize the sensed component """     
         
