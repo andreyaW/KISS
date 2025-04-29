@@ -15,7 +15,7 @@ class SystemDiagram():
         Args:
             ax (matplotlib.axes.Axes, optional): The axes on which to draw the boxes. Defaults to None.
         """
-        
+                       
         if ax is None:
             # create a new figure and axis if no axis is provided
             fig, self.ax = plt.subplots()
@@ -31,7 +31,7 @@ class SystemDiagram():
 
 
 # ---- functions to draw the system on the axis ----
-    def draw_box(self, x:float = 0 ,y:float = 0, box_size = 1) -> None:
+    def drawBox(self, x:float = 0 ,y:float = 0, box_size = 1) -> None:
         """draws a square box at the given coordinates"""
 
         # grab the current axis if not provided
@@ -41,27 +41,27 @@ class SystemDiagram():
         plt.gca().add_patch(Rectangle((x, y), box_size, box_size, fill=None, edgecolor='black', lw=2))
 
         # adjust the axes to accommodate the new box
-        self.drawing_width = self.drawing_width + box_size
+        self.drawing_width = self.drawing_width + box_size + 1
         self.drawing_height = self.drawing_height + box_size
-        self.adjust_axes(x,y, box_size)
+        self.adjustAxes(x,y, box_size)
 
 
 
-    def draw_comp(self, comp, x, y, box_size = 2) -> None:
+    def drawComp(self, comp, x, y, box_size = 2) -> None:
         """draws a component at the given coordinates"""
         
         # draw a box at the given coordinates
-        self.draw_box(x, y, box_size)
+        self.drawBox(x, y, box_size)
     
         # add comp name to the box 
         text = comp.name
-        wrapped_text = wrap_text_in_box(self.ax, text, box_size, fontsize=8)
+        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
         self.ax.text(x + (box_size / 2), 
-                        (y + box_size / 2), 
+                        (y + 2*box_size / 3), 
                         wrapped_text, 
-                        ha='center', va='center', fontsize=8, color='black')
+                        ha='center', va='center', fontsize=fontsize, color='black')
 
-        # add comp state to the box
+        # add comp true state to the box
         if comp.state == max(list(comp.comp.states)):
             state_color = "green"
         elif comp.state != 0: 
@@ -69,18 +69,51 @@ class SystemDiagram():
         if comp.state == 0:
             state_color = "red"
         comp_state = comp.comp.states[comp.state]  # get the state of the component
-        text = f"State: {comp_state}"
-        wrapped_text = wrap_text_in_box(self.ax, text, box_size, fontsize=8)
+        text = f"Truth: {comp_state}"
+        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
         self.ax.text(x + (box_size / 2), 
-                        (y + box_size / 2) - 0.25, 
+                        (y + box_size / 3), 
                         wrapped_text, 
-                        ha='center', va='center', fontsize=8, color=state_color)
+                        ha='center', va='center', fontsize=fontsize, color=state_color)
 
+        # add comp sensed state to the box
+        if comp.sensedState == max(list(comp.comp.states)):
+            sensed_state_color = "green"
+        elif comp.sensedState != 0:
+            sensed_state_color = "blue"
+        if comp.sensedState == 0:
+            sensed_state_color = "red"
+        
+        comp_sensed_state = comp.comp.states[comp.sensedState]  # get the state of the component
+        text = f"Sensed: {comp_sensed_state}"
+        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
+        self.ax.text(x + (box_size / 2),
+                    (y + box_size / 3) - 0.25, 
+                    wrapped_text, 
+                    ha='center', va='center', fontsize=fontsize, color=sensed_state_color)
+                     
 
+    def drawConnections(self, x1, y1, x2, y2) -> None:
+        """draws a connection between two boxes"""
+        
+        # draw a line between the two boxes
+        plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
+        
+    def displayDiagram(self): 
+        """displays the diagram"""
+        
+        # set the aspect ratio to be equal
+        self.ax.set_aspect('equal', adjustable='box')
+        
+        # remove the axes for better visualization
+        self.ax.axis('off')
+        
+        # show the plot
+        plt.show()
 
 
 # ---- functions to adjust the display of the axis----
-    def adjust_axes(self, x, y, box_size) -> None:
+    def adjustAxes(self, x, y, box_size) -> None:
         """adjusts the axes of the given axis to make sure it accommodates an added box
         
         Args:
@@ -113,7 +146,10 @@ class SystemDiagram():
         # set the new limits for the axes
         self.ax.set_xlim(self.xlims)
         self.ax.set_ylim(self.ylims)
-
+        
+        # grab current figure and set the width to the drawing width
+        fig = plt.gcf()
+        fig.set_figwidth(self.drawing_width)
 
 
 

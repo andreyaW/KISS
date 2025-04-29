@@ -101,8 +101,10 @@ def idx2letter(idx):
         raise ValueError("Index must be greater than or equal to 1")
     return chr(idx + 64)  # ASCII value of 'A' is 65
 
-def wrap_text_in_box(ax, text, box_size, fontsize=8):
+def wrap_text_in_box(ax, text, box_size, xlims, ylims):
     """Wraps text to fit within a box of given size."""
-    wrapped_text = '\n'.join(textwrap.wrap(text, width=int(box_size * 8), break_long_words=False)) # 8 letters per box size
     
-    return wrapped_text
+    fontsize  = 8    
+    wrapped_text = '\n'.join(textwrap.wrap(text, width=int(box_size * fontsize), break_long_words=False)) # 8 letters per box size
+
+    return wrapped_text, fontsize
