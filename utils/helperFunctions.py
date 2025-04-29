@@ -1,5 +1,5 @@
 import xlsxwriter
-
+import textwrap
 
 def get_key_by_value(my_dict, value):
         """
@@ -95,10 +95,14 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
     return phi
 
 
-
-
 def idx2letter(idx):
     """ Convert an index to a letter (1 -> A, 2 -> B, etc.) """
     if idx < 1:
         raise ValueError("Index must be greater than or equal to 1")
     return chr(idx + 64)  # ASCII value of 'A' is 65
+
+def wrap_text_in_box(ax, text, box_size, fontsize=8):
+    """Wraps text to fit within a box of given size."""
+    wrapped_text = '\n'.join(textwrap.wrap(text, width=int(box_size * 8), break_long_words=False)) # 8 letters per box size
+    
+    return wrapped_text
