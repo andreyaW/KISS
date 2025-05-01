@@ -105,11 +105,29 @@ class SystemDiagram():
             # if there are parallels, their locations are defined more specifically
             if system.parallels != None: 
                 
+                # go through each parallel group and define their locations
                 for j in range(len(system.parallels)):
-                    if i in system.parallels[j]:
+                    comp_idx = i+1
+                    if comp_idx in system.parallels[j]:
                         # if the component is in a parallel group, set the x coordinate to be the same as the first component in the group
-                        print(f"Component {comp.name} is in parallel group {j+1}")
-                        y = 2
+                        print(f"{comp.name} is in parallel group {j+1}")
+                        
+                        # define the x coordinate of the first component in the group
+                        if comp_idx == system.parallels[j][0]:
+                            pass    # no change, the x coordinate is already set at the end of the for loop
+                        
+                        # defining the x coordinate of the remaining components in the group to match the first
+                        if comp_idx != system.parallels[j][0]:
+                            x = locations[system.comps[system.parallels[j][0]-1]][0]
+
+                        # define the y coordinates of the set to center along y = 0 
+                        n_pars = len(system.parallels[j])  # number of components in the parallel group
+                        limit = n_pars *(compsize+spacing) /2
+                            
+                        y_s = self.createEvenList(limit, compsize+spacing)  # create a list of y coordinates for the parallel group
+                        print( y_s)
+                        y = y_s[system.parallels[j].index(comp_idx)]  # get the y coordinate of the current component in the parallel group    
+                            
                         break
 
                     else: 
@@ -128,6 +146,13 @@ class SystemDiagram():
             
         return locations
     
+    # def createEvenList(self, limit, diff):
+            
+    #     lst = [-limit]
+    #     while lst[-1] < limit:
+    #         lst.append(lst[-1] + diff)
+    #     lst[-1] = limit
+    #     return lst
 
     def drawConnections(self, x1, y1, x2, y2) -> None:
         """draws a connection between two boxes"""
