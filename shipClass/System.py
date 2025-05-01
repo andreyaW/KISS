@@ -178,41 +178,25 @@ class System():
             
     def drawSystem(self, ax=None):
         """ Draw the system on the given axis """
-        
+
+        # create a new figure and axis if no axis is provided        
         if ax is None:
-            # create a new figure and axis if no axis is provided
             fig, ax = plt.subplots()
         
-        # initialize a SystemDiagram object
+        # initialize a SystemDiagram object in the given axis
         sys_diagram = SystemDiagram(ax=ax)
-        
-        x, y = 0, 0     # starting coordinates for the first component
+                
+        # define (x,y) coordinates of all components using function in SystemDiagram class
         spacing = 1
         comp_size = 2
-        for i,comp in enumerate(self.comps):
+        locations = sys_diagram.defineLocations(self, comp_size, spacing)
+        
+        # draw each component in the system at desired location
+        for i,comp in enumerate(self.comps):     
+            
             # draw current component
+            x,y = locations[comp]
             sys_diagram.drawComp(comp, x, y, comp_size)
-                    
-            # if not the last component, draw a connection and determine next comp location
-            if comp is not self.comps[-1]:  
-                # draw the connection to the next component
-                x1= x + comp_size
-                x2= x + comp_size + spacing
-                y1= y + comp_size/2  
-                y2= y1          
-
-                sys_diagram.drawConnections(x1, y1, x2, y2)
             
-                # add space between components
-                x += comp_size + spacing
-            
-                # if the component is in parallel, change y location, otherwise keep it the same
-                if self.parallels is not None:
-                    if i+1 in self.parallels:
-                        print('should adjust y accordingly')
-                    else:
-                        # if the next component is not in parallel, keep y the same
-                        pass
-                    
-                    
-        sys_diagram.displayDiagram()
+        # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
+        sys_diagram.displayDiagram()    # display the diagram

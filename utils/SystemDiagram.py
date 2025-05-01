@@ -93,6 +93,42 @@ class SystemDiagram():
                     ha='center', va='center', fontsize=fontsize, color=sensed_state_color)
                      
 
+
+    def defineLocations(self, system, compsize = 2, spacing=1) -> dict:
+        """ defines a x,y tuple for each component in the system"""
+        
+        # define the locations of the components in the system
+        locations = {}
+        x = 0           # initial x coordinate of the first component
+        for i, comp in enumerate(system.comps):
+            
+            # if there are parallels, their locations are defined more specifically
+            if system.parallels != None: 
+                
+                for j in range(len(system.parallels)):
+                    if i in system.parallels[j]:
+                        # if the component is in a parallel group, set the x coordinate to be the same as the first component in the group
+                        print(f"Component {comp.name} is in parallel group {j+1}")
+                        y = 2
+                        break
+
+                    else: 
+                        # if index is not in any parallel groups, leave x coordinate alone and set y to 0
+                        y = 0
+            
+            # if there are no parallels, all comps have the y coordinate set to 0
+            elif system.parallels == None:
+                y = 0            
+            
+            # add the component to the locations dictionary
+            locations[comp] = (x, y)
+            
+            # update x for the next component
+            x = x+ compsize + spacing
+            
+        return locations
+    
+
     def drawConnections(self, x1, y1, x2, y2) -> None:
         """draws a connection between two boxes"""
         
