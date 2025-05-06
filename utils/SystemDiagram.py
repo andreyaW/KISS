@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from helperFunctions import wrap_text_in_box, generate_centered_list
+from utils.helperFunctions import wrap_text_in_box, generate_centered_list
 
 class SystemDiagram():
     """A class to draw a system of sensed components as boxes on a matplotlib axis.

@@ -42,8 +42,9 @@ class Ship:
         
             # Update the state of all the systems
             for system in self.systems:
-                system.simulate(1)
-        
+                if len(system.history) <= len(self.history): # checks that the system didnt experience a maintenance action
+                    system.simulate(1)
+                    
             # Determine and store the sensed state of the ship
             self.sensedState = SolveStructureFunction(self.systems, self.parallels)
             self.sensedHistory.append(self.sensedState)
