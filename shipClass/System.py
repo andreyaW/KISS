@@ -189,14 +189,16 @@ class System():
         # define (x,y) coordinates of all components using function in SystemDiagram class
         spacing = 1
         comp_size = 2
-        locations = sys_diagram.defineLocations(self, comp_size, spacing)
+        sys_diagram.defineLocations(self, comp_size, spacing)
         
         # draw each component in the system at desired location
         for i,comp in enumerate(self.comps):     
             
             # draw current component
-            x,y = locations[comp]
+            x,y = sys_diagram.comp_locations[comp]
             sys_diagram.drawComp(comp, x, y, comp_size)
+        
+        sys_diagram.drawConnections(self,comp_size, spacing)   # draw connections between series and parallel components
             
         # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
         sys_diagram.displayDiagram()    # display the diagram

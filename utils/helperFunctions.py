@@ -1,5 +1,6 @@
-import xlsxwriter
 import textwrap
+import numpy as np
+
 
 def get_key_by_value(my_dict, value):
         """
@@ -108,3 +109,23 @@ def wrap_text_in_box(ax, text, box_size, xlims, ylims):
     wrapped_text = '\n'.join(textwrap.wrap(text, width=int(box_size * fontsize), break_long_words=False)) # 8 letters per box size
 
     return wrapped_text, fontsize
+
+import numpy as np
+
+def generate_centered_list(center, num_values, min_spacing=1.0) -> list:
+    """Evenly spaces values around a center point, with a minimum spacing."""
+    if num_values <= 0:
+        return []
+    if num_values == 1:
+        return [center]
+
+    # Compute total span needed for minimum spacing
+    total_span = (num_values - 1) * min_spacing
+    start = center - total_span / 2
+    end = center + total_span / 2
+
+    values = np.linspace(start, end, num_values)
+    return values.tolist()
+
+
+

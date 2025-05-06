@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from helperFunctions import wrap_text_in_box
+from helperFunctions import wrap_text_in_box, generate_centered_list
 
 class SystemDiagram():
     """A class to draw a system of sensed components as boxes on a matplotlib axis.
@@ -28,7 +28,7 @@ class SystemDiagram():
         self.drawing_width = 0              # no items drawn yet, all drawings start at 0,0
         self.drawing_height = 0             # no items drawn yet, all drawings start at 0,0
         
-
+        self.comp_locations = {}  # dictionary to store the locations of the components in the system
 
 # ---- functions to draw the system on the axis ----
     def drawBox(self, x:float = 0 ,y:float = 0, box_size = 1) -> None:
@@ -110,7 +110,7 @@ class SystemDiagram():
                     comp_idx = i+1
                     if comp_idx in system.parallels[j]:
                         # if the component is in a parallel group, set the x coordinate to be the same as the first component in the group
-                        print(f"{comp.name} is in parallel group {j+1}")
+                        # print(f"{comp.name} is in parallel group {j+1}")
                         
                         # define the x coordinate of the first component in the group
                         if comp_idx == system.parallels[j][0]:
@@ -122,11 +122,9 @@ class SystemDiagram():
 
                         # define the y coordinates of the set to center along y = 0 
                         n_pars = len(system.parallels[j])  # number of components in the parallel group
-                        limit = n_pars *(compsize+spacing) /2
-                            
-                        y_s = self.createEvenList(limit, compsize+spacing)  # create a list of y coordinates for the parallel group
-                        print( y_s)
-                        y = y_s[system.parallels[j].index(comp_idx)]  # get the y coordinate of the current component in the parallel group    
+                        y_s = generate_centered_list(0, n_pars, (compsize/2+spacing/2))  # create a list of y coordinates for the parallel group
+                        y_s.sort(reverse=True) # reverse the list to have the first component at the top
+                        y = y_s[system.parallels[j].index(comp_idx)] * compsize # get the y coordinate of the current component in the parallel group    
                             
                         break
 
@@ -142,29 +140,52 @@ class SystemDiagram():
             locations[comp] = (x, y)
             
             # update x for the next component
-            x = x+ compsize + spacing
-            
-        return locations
-    
-    # def createEvenList(self, limit, diff):
-            
-    #     lst = [-limit]
-    #     while lst[-1] < limit:
-    #         lst.append(lst[-1] + diff)
-    #     lst[-1] = limit
-    #     return lst
+            x_s = [loc[0] for loc in locations.values()]    # get the x coordinates of all components in the system
+            x_max = max(x_s) if x_s else x                  # get the maximum x coordinate of all components in the system
+            x = x_max+ compsize + spacing
 
-    def drawConnections(self, x1, y1, x2, y2) -> None:
+        self.comp_locations = locations  # store the locations of the components in the system
+        # return locations
+    
+
+    def drawConnections(self, system, compsize, spacing) -> None:
         """draws a connection between two boxes"""
         
-        # draw a line between the two boxes
-        plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
-        
+        # define the connection points based on the locations of the components
+        for i, comp in enumerate(self.comp_locations.keys()):
+            
+            if system.parallels != None:
+
+                # draw connections between components in parallel groups
+                for j in range(len(system.parallels)):
+                    comp_idx = i+1
+                    if comp_idx in system.parallels[j]:
+                        print("need to draw connection between parallel components")
+                        pass
+                    else:
+                        # if index is not in any parallel groups, draw a straight line to the next component
+                        self.drawSeriesConnections(system, comp, compsize, i)
+
+            else:
+                # draw connections between components in series
+                self.drawSeriesConnections(system, comp, compsize, i)
+                
+
+    def drawSeriesConnections(self, system, comp, compsize, i) -> None:
+        # get the x,y coordinates of the current component
+        if i == len(system.comps) - 1:
+            pass
+        else:
+            # if the current component is not the last one, draw a line to the next component
+            x1, y1 = self.comp_locations[comp]
+            x2, y2 = self.comp_locations[system.comps[i+1]]
+            x1 = x1 + compsize
+            y1, y2 = y1 + compsize/2, y2 + compsize/2
+            plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
+
+    
     def displayDiagram(self): 
-        """displays the diagram"""
-        
-        # set the aspect ratio to be equal
-        self.ax.set_aspect('equal', adjustable='box')
+        """final touches then displays the diagram"""
         
         # remove the axes for better visualization
         self.ax.axis('off')
