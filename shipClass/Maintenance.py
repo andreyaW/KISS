@@ -13,7 +13,6 @@ def periodicMaintenance(system, maintenance_delay):
     str: A message indicating the result of the maintenance.
     """
 
-
     for sc in system.comps:
 
         # If any component is not in a working state, perform maintenance on it

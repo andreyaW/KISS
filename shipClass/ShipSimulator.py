@@ -3,12 +3,12 @@ This class is used to simulate a ship object subject to degradation over time an
 """
 
 from shipClass import shipClass
+from shipClass.System import System
 
-import pandas as pd
 
 class shipSimulator():
 
-    def __init__(self, shipType : str, simulationLength: int) -> None:   
+    def __init__(self, shipType : str, systems: list[System] self.parallels, simulationLength: int) -> None:   
         
         '''
         param shipClass: The class of the ship object to be simulated. (manned or unmanned)
@@ -17,26 +17,48 @@ class shipSimulator():
         
         self.shipType = shipType
         self.simulationLength = simulationLength
+        self.systems = systems
         
         
-        
-    def setupSimulation(self):
+    def setupSimulation(self, ):
         
         '''
-        This method sets up the simulation by creating the ship object and initializing any necessary variables.
+        This method sets up the simulation by creating an appropriate ship object based on the provided class.
         '''
         
         # Create the ship object using the provided class
         if self.shipType == 'manned':
-            self.ship = shipClass.mannedShip()
+            self.ship = shipClass.mannedShip(self.systems)
+
         elif self.shipType == 'unmanned':
-            self.ship = shipClass.unmannedShip()
+            self.ship = shipClass.unmannedShip(self.systems)
         else:
             raise ValueError("Invalid ship type. Please choose 'manned' or 'unmanned'.")
         
         # Initialize any other necessary variables or data structures here
         # self.simulationData = []
        
+
+
+    
+    def simulate(self, num_hours: int) -> None:
+        '''
+        This method simulates the ship object by iterating through each system and performing maintenance actions as needed.
+        '''
+        for i in range(num_hours): 
+            
+            # Update the state of all the systems
+            super().simulate(1) # call the parent class simulate method
+        
+            # Perform maintenance actions as needed
+            for system in self.systems:
+
+                # perform periodic maintenance on the systems at the specified interval
+                if np.mod(len(system.history), self.perodic_maintenance_period) == 0:
+                    system = periodicMaintenance(system,self.maintenance_delay)
+
+            
+  
        
         
         
