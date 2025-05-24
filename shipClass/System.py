@@ -1,7 +1,7 @@
 from shipClass.SensedComp import SensedComp
-from utils.helperFunctions import SolveStructureFunction, idx2letter
+from utils.helperFunctions import SolveStructureFunction
 from utils.SystemDiagram import SystemDiagram
-
+from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 import matplotlib.pyplot as plt
 import xlsxwriter
 
@@ -77,7 +77,7 @@ class System():
         # if all components are in the working state, return false
         return False   
 
-# ---------------------- Plotting + Output Functions ----------------------  
+# ---------------------- Plotting Functions ----------------------  
 
     def outputSystemStates(self):
         ''' output the states of the system '''
@@ -124,58 +124,7 @@ class System():
         if plot_comp_history:
             for i, comp in enumerate(self.comps):
                 comp.plotHistory()  # plot the history of each component    
-
-
-    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None) -> None:
-        """ Print the history of the system and its sensed components to an excel file """
-        
-        # create and add the headers for the system history sheet
-        comp_truth_headers = [f'Component {i+1} Truth' for i in range(self.n)]
-        comp_sensed_headers = [f'Component {i+1} Sensed' for i in range(self.n)]
-        headers = ['Time Step']  + ['System True State'] + comp_truth_headers + ['System Sensed State'] + comp_sensed_headers
-
-        # determine important column letters
-        sys_truth_col = idx2letter(2)
-        sys_sensed_col = idx2letter(2+ self.n + 1)
-        f1_col = idx2letter(len(headers) + 1)
-                
-        # Create a new Excel file 
-        with xlsxwriter.Workbook(filename) as workbook:
-            
-            # if no worksheet is provided, create a new workbook and worksheet
-            if worksheet is None:
-                worksheet = workbook.add_worksheet(self.name) 
-
-            # write the headers in the first row
-            cell_format = workbook.add_format()            
-            cell_format.set_text_wrap()             # wrap text header row
-            worksheet.write_row(0, 0, headers, cell_format)
-
-            # add data to the sheet
-            for i in range(len(self.history)):   
-
-                # add truth and sensed states of each sensed component to the row           
-                truth_history = [self.history[i]] + [self.comps[j].comp.history[i] for j in range(self.n)]
-                sensed_history = [self.sensedHistory[i]] + [self.comps[j].sensedHistory[i] for j in range(self.n)]
-                data = [i] + truth_history + sensed_history
-                worksheet.write_row(i+1, 0, data)   # python index start from 0, so we need to add 1 due to header row
-
-                # add formulas for checking results to end columns
-                row = i + 2     # formulas consider data which starts from row 2
-                f1 = f"IF({sys_truth_col}{row} = {sys_sensed_col}{row}, 1, 0)"
-                worksheet.write_formula(f"{f1_col}{row}", f1)
-
-            # add conditional formatting to formula colums
-            worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
-                                           {'type': '2_color_scale',
-                                            'min_color': '#FD0000',  # red
-                                            'max_color': '#00FD00'}) # green
-            
-            # increase column width for better readability
-            for i in range(len(headers)):
-                worksheet.set_column(i, i, 11.5)
-                
-            
+                  
     def drawSystem(self, ax=None):
         """ Draw the system on the given axis """
 
@@ -202,3 +151,61 @@ class System():
             
         # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
         sys_diagram.displayDiagram()    # display the diagram
+
+# ---------------------- Excel Functions ----------------------
+    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
+        """ Print the history of the system and its sensed components to an excel file """
+
+        # determine important column letter numbers
+        truth_col =2
+        sensed_col = 3 + self.n
+        f1_col = 4 + self.n*2
+                
+        # add to the workbook using xlsxwriter
+        with xlsxwriter.Workbook(filename) as workbook:
+
+            # if no worksheet is provided, create a new workbook and worksheet
+            if worksheet is None:
+                worksheet = workbook.add_worksheet(self.name) 
+                
+            # add data to the sheet 
+            num_data = len(self.history)
+            for i in range(num_data):
+                
+                # add the time steps to the first column
+                addTimeSteps(workbook, worksheet, i)
+
+                # add truth states of the system and each sensed component to the row           
+                truth_data = [self.history[i]] + [self.comps[j].comp.history[i] for j in range(self.n)]
+                if i == 0: 
+                    sys_truth_headers = ['Sys Truth State'] + ['Comp ' + str(i+1) + ' Truth State' for i in range(self.n)]
+                    addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
+                else:
+                    addTruth(workbook, worksheet, i, truth_data)
+
+                # add the sensed states of te system and each sensed component to the row
+                sensed_data = [self.sensedHistory[i]] + [self.comps[j].sensedHistory[i] for j in range(self.n)]
+                if i == 0:
+                    sys_sensed_headers = ['Sys Sensed State'] + ['Comp ' + str(i+1) + ' Sensed State' for i in range(self.n)]
+                    addSensed(workbook, worksheet, i, sensed_data, sys_sensed_headers)
+                else:
+                    addSensed(workbook, worksheet, i, sensed_data)
+
+                # add formula for checking if the sensed state matches the truth state
+                addUnsensedFailureFormula(workbook, worksheet, i, truth_col, sensed_col, f1_col, num_data)
+
+            # add formating for parallel components
+            if self.parallels is not None:
+                highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
+            
+            finalFormatting(worksheet, self.n)
+
+            # add each sensed componet to its own worksheet
+            if addComps:
+                for i in range(self.n):
+                    # create a new worksheet for each component
+                    comp_name = self.comps[i].name.capitalize() + ' History'
+                    ws= workbook.add_worksheet(comp_name)
+
+                    # add the history of the component to the worksheet
+                    self.comps[i].printHistory2Excel(filename, worksheet=ws)

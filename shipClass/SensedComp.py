@@ -1,6 +1,7 @@
 from shipClass.Component import Component
 from shipClass.Sensor import Sensor
-from utils.helperFunctions import find_mode, idx2letter
+from utils.helperFunctions import find_mode
+from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, addSensorFailureFormula, finalFormatting
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,7 +36,7 @@ class SensedComp(Component, Sensor):
             comp_name = 'Component'
         comp = Component(comp_name, comp_states, comp_transition_matrix)
         self.comp = comp
-        self.name = 'Sensed ' + comp.name               
+        self.name = 'Sensed ' + comp.name.capitalize()               
 
         # initialize sensors to be attached to the component
         self.n = num_sensors
@@ -123,7 +124,7 @@ class SensedComp(Component, Sensor):
                 break   # only show the first unsensed failure
             
         # Set the title and labels
-        ax.set_title('Sensed Component History')
+        ax.set_title( self.name + ' History')
         # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
         ax.set_xticks(range(0, len(self.comp.history), 5), [f'{i}h' for i in range(0, len(self.comp.history), 5)], rotation=45)   # make x ticks for every 5 hours
         ax.set_xlabel('Time Step')
@@ -160,63 +161,51 @@ class SensedComp(Component, Sensor):
         This function is used to print the history of the sensed component to an excel file. 
         Each sensed component has one page with its true states, sensor states and sensed states.         
         """
-        # create headers for the output data 
-        sensor_headers = ['Sensor ' + str(i+1) for i in range(self.n)]
-        headers = ['Time Step', 'Truth State'] + sensor_headers + ['Sensed State', "Are Sensors Working?", "Did Sensed State Match Truth State?"]
+    
+        # determining necessary columns for the worksheet
+        truth_state_col = 2            # column letter for truth state
+        sensed_state_col = 3 + self.n  # column letter for sensed state      
+        f1_col = 4 + self.n * 2         # 1 column over from final sensor reading
+        f2_col = 5 + self.n * 2         # 2 columns over from final sensor reading
 
-        # determining necessary column letters for the worksheet
-        truth_state_col = idx2letter(2)            # column letter for truth state
-        sensed_state_col = idx2letter(3 + self.n)  # column letter for sensed state      
-        sensor_cols = [idx2letter(i+3) for i in range(self.n)]  # columns for sensor states        
-        
-        f1_col = idx2letter(2 + self.n + 2)        # column 2 over from the sensed state
-        f2_col = idx2letter(2 + self.n + 3)        # column 3 over from the sensed state
-
+        # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
 
             # if no worksheet is provided, create a new workbook and worksheet
             if worksheet is None:
                 worksheet = workbook.add_worksheet(self.name) 
 
-            # write the headers in the first row
-            cell_format = workbook.add_format()
-            cell_format.set_text_wrap()
-            worksheet.write_row(0, 0, headers, cell_format)
+            # loop through data points and add them to the worksheet
+            n_data = len(self.extendedHistory) # number of data points in the extended history
+            for i in range(n_data):
+                
+                # add time step
+                addTimeSteps(workbook, worksheet, i)  # add time step to the first column
+
+                # add truth data starting at the second column
+                truth_data = [self.extendedHistory[i]] + [self.sensors[j].extendedHistory[i] for j in range(self.n)]
+                if i == 0:
+                    sensor_headers = ['Sensor ' + str(i+1) + ' Truth State' for i in range(self.n)]
+                    truth_headers = ['Comp Truth State'] + sensor_headers
+                    addTruth(workbook, worksheet, i, truth_data, truth_headers)   # add the truth values starting at the second column
+                else:
+                    addTruth(workbook, worksheet, i, truth_data)
+
+                # add sensed data after truth data
+                sensed_data = [self.extendedSensedHistory[i]] + [self.sensors[j].sensorReadings[i] for j in range(self.n)]
+                if i == 0:
+                    sensor_readings_headers = ['Sensor ' + str(i+1) + ' Reading from Comp' for i in range(self.n)]
+                    sensed_headers = ['Sensed State'] + sensor_readings_headers
+                    addSensed(workbook, worksheet, i, sensed_data, sensed_headers)   # add the sensed values starting at the second column
+                else:
+                    addSensed(workbook, worksheet, i, sensed_data)
+
+                # add formula to chech if sensed state matches the truth state
+                addUnsensedFailureFormula(workbook, worksheet, i, truth_state_col, sensed_state_col, f1_col, n_data)  # add formula to check if sensors are working
+                
+                # add formula to check if the sensors are mostly working
+                addSensorFailureFormula(workbook, worksheet, i, truth_state_col, f2_col, n_data, self.n)  # add formula to check if the sensed state matches the truth state
             
-            # loop through all data and add it to each row of the worksheet
-            for i in range(len(self.extendedHistory)):
-                                
-                # add truth state, sensor states and sensed state to the row
-                sensor_data = [self.sensors[j].extendedHistory[i] for j in range(self.n)]
-                data = [i, self.comp.extendedHistory[i]] + sensor_data + [self.extendedSensedHistory[i]]
-                worksheet.write_row(i+1, 0, data, )
-                             
-                # adding a formula to chek if sensors are working
-                row = i + 2     # formulas consider data which starts from row 2 
-                if self.n == 1: 
-                    # copy sensor state from colomn C
-                    f1_sensors_working = f'={sensor_cols[0]}{row}' # can take the first sensor state as the only sensor is present
-                    worksheet.write_formula(f'{f1_col}{row}', f'={sensor_cols[0]}{row}')        
-                else: 
-                    f1_sensors_working = f'=MODE(C{row}:{sensor_cols[-1]}{row})'  # formula to check if all sensors are working
-                worksheet.write_formula(f'{f1_col}{row}', f1_sensors_working)        
-       
-                # adding a formula to check if the sensed state matches the truth state
-                f2_check_missed_failure = f'=IF({truth_state_col}{row}={sensed_state_col}{row}, 1, 0)'  # formula to check if the sensed state matches the truth state
-                worksheet.write_formula(f'{f2_col}{row}', f2_check_missed_failure)                
-           
-            # add conditional formating to this column to highlight the cells
-            worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
-                                        {'type': '2_color_scale',
-                                            'min_color': '#FD0000',  # red
-                                            'max_color': '#00FD00'}) # green
-
-            worksheet.conditional_format(f'{f2_col}2:{f2_col}{row}', 
-                                        {'type': '2_color_scale',
-                                            'min_color': '#FD0000',  # red
-                                            'max_color': '#00FD00'}) # green
-
-            # increase column width for better readability
-            for i in range(len(headers)):
-                worksheet.set_column(i, i, 11.5)
+            # format the sheet for better readability
+            finalFormatting(worksheet, self.n) 
                 

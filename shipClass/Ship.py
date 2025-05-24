@@ -4,7 +4,8 @@ Different types of ships (manned and unmanned) will inherit from this class.
 """
 
 from shipClass.System import System
-from utils.helperFunctions import SolveStructureFunction, idx2letter
+from utils.helperFunctions import SolveStructureFunction
+from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 
 import matplotlib.pyplot as plt
 import xlsxwriter
@@ -81,53 +82,59 @@ class Ship:
         plt.show()
 
 
-    def printHistory2Excel(self, filename: str) -> None:
+    def printHistory2Excel(self, filename: str, worksheet= None) -> None:
         """ Print the history of the ship and its systems to an excel file """
 
-        # create the headers for the ship history sheet
-        ship_truth_headers = [f'Ship Truth'] + [f'System {i+1} Truth' for i in range(self.n)]
-        ship_sensed_headers = [f'Ship Sensed'] + [f'System {i+1} Sensed' for i in range(self.n)]
-        headers = ['Time'] + ship_truth_headers + ship_sensed_headers
+        # # create the headers for the ship history sheet
+        # ship_truth_headers = [f'Ship Truth'] + [f'System {i+1} Truth' for i in range(self.n)]
+        # ship_sensed_headers = [f'Ship Sensed'] + [f'System {i+1} Sensed' for i in range(self.n)]
+        # headers = ['Time'] + ship_truth_headers + ship_sensed_headers
         
         # determine the columns for adding formulas to the sheet
-        truth_col = idx2letter(2)
-        sensed_col = idx2letter(2 + self.n + 1) 
-        f1_col = idx2letter(2 + self.n + 1 + self.n + 1)
+        truth_col = 2
+        sensed_col = 2 + self.n + 1
+        f1_col = 2 + self.n + 1 + self.n + 1
 
-        # Create a new Excel file 
+        # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
             
-            # Create a new worksheet for the ship history
-            worksheet = workbook.add_worksheet('Ship')
+            # if no worksheet is provided, create a new workbook and worksheet
+            if worksheet is None:
+                worksheet = workbook.add_worksheet(self.name) 
             
-            # write the headers in the first row
-            cell_format = workbook.add_format()            
-            cell_format.set_text_wrap()             # wrap text header row
-            worksheet.write_row(0, 0, headers, cell_format)
+            # add data to the worksheet
+            num_data = len(self.history)
+            for i in range(num_data):
 
-            # add the ship history to the sheet
-            for i in range(len(self.history)):
-                
-                true_history = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)]
-                sensed_history = [self.sensedHistory[i]] + [self.systems[j].sensedHistory[i] for j in range(self.n)]
-                data = [i] + true_history + sensed_history
-                worksheet.write_row(i+1, 0, data)
-                
-                # add the formulas to the sheet
-                row = i + 2
-                f1=f"IF({truth_col}{row}={sensed_col}{row},1,0)" 
-                worksheet.write_formula(f"{f1_col}{row}", f1)
+                # add the time steps to the first column
+                addTimeSteps(workbook, worksheet,i)
 
-            # add conditional formatting to formula colums
-            worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
-                                           {'type': '2_color_scale',
-                                            'min_color': '#FD0000',  # red
-                                            'max_color': '#00FD00'}) # green
+                # add truth data from the ship and its systems
+                truth_data = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)] 
+                if i==0:
+                    ship_truth_headers = [f'Ship Truth State'] + [f'System {i+1} Truth State' for i in range(self.n)]
+                    addTruth(workbook, worksheet, i, truth_data, ship_truth_headers)
+                else: 
+                    addTruth(workbook, worksheet, i, truth_data)
 
-            # increase the column width for better readability
-            worksheet.set_column(0, 0, 20)
+            
+                sensed_data = [self.sensedHistory[i]] + [self.systems[j].sensedHistory[i] for j in range(self.n)]
+                if i ==0:
+                    ship_sensed_headers = [f'Ship Sensed State'] + [f'System {i+1} Sensed State' for i in range(self.n)]
+                    addSensed(workbook, worksheet, i, sensed_data, ship_sensed_headers)
+                else:
+                    addSensed(workbook, worksheet, i, sensed_data)
+                    
+                # add formula for checking if the sensed state matches the truth state
+                addUnsensedFailureFormula(workbook, worksheet, i, truth_col, sensed_col, f1_col, num_data)
 
-            # add the systems data to new sheets
+            # add formating for parallel components
+            # if self.parallels is not None:
+            #     highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
+            
+            finalFormatting(worksheet, self.n)       
+
+            # add each systems data to their own worksheet
             for i in range(self.n):
-                worksheet = workbook.add_worksheet(f'System {i+1}')
-                self.systems[i].printHistory2Excel(filename, worksheet)
+                worksheet = workbook.add_worksheet(f'System {i+1} History')
+                self.systems[i].printHistory2Excel(filename, worksheet, False)
