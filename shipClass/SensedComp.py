@@ -82,7 +82,7 @@ class SensedComp(Component, Sensor):
         self.sensedState  = int(find_mode(sensedStates))
         self.sensedHistory.append(self.sensedState)         # update the sensed components sensed history
         self.state = self.comp.state                        # update the ground truth to match the component state
-
+        
 
     def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the sensed component (uses simulate() from Component and Sensor classes) """
@@ -96,7 +96,7 @@ class SensedComp(Component, Sensor):
 
     def reset(self):
         """ Reset the sensed component to initial state (same objects as before, new histories) """
-        self.extendedHistory = self.extendedHistory + self.comp.extendedHistory
+        self.extendedHistory += self.extendedHistory + self.comp.history
         self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory
         self.comp.reset()
         for sensor in self.sensors:
@@ -105,6 +105,19 @@ class SensedComp(Component, Sensor):
         self.sensedHistory = [self.comp.state]             # reset the sensed history of the sensed component and store initial state
         self.state = self.comp.state                       # reset the ground truth state of the component
 
+
+    def copyHistory(self) -> None:
+        """ Copy the history of the component and sensors to the extended histories """
+        self.extendedHistory += self.extendedHistory + self.comp.history
+        self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory
+        for sensor in self.sensors:
+            sensor.extendedHistory += sensor.history  # Append the history to the extended history
+            sensor.extendedReadings += sensor.sensorReadings  # Append the sensor readings to the extended readings
+            
+        # remove history before maintenance, but dont reset the component or sensors
+            sensor.sensorReadings = [self.comp.state]        
+        self.sensedHistory = [self.comp.state]             
+        self.state = self.comp.state                       
 
 # ---------------------- Plotting + Output ----------------------
 
@@ -192,7 +205,7 @@ class SensedComp(Component, Sensor):
                     addTruth(workbook, worksheet, i, truth_data)
 
                 # add sensed data after truth data
-                sensed_data = [self.extendedSensedHistory[i]] + [self.sensors[j].sensorReadings[i] for j in range(self.n)]
+                sensed_data = [self.extendedSensedHistory[i]] + [self.sensors[j].extendedReadings[i] for j in range(self.n)]
                 if i == 0:
                     sensor_readings_headers = ['Sensor ' + str(i+1) + ' Reading from Comp' for i in range(self.n)]
                     sensed_headers = ['Sensed State'] + sensor_readings_headers

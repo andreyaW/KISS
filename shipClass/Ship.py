@@ -82,6 +82,7 @@ class Ship:
         plt.show()
 
 
+
     def printHistory2Excel(self, filename: str, worksheet= None) -> None:
         """ Print the history of the ship and its systems to an excel file """
 
@@ -129,12 +130,15 @@ class Ship:
                 addUnsensedFailureFormula(workbook, worksheet, i, truth_col, sensed_col, f1_col, num_data)
 
             # add formating for parallel components
-            # if self.parallels is not None:
-            #     highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
+            if self.parallels is not None:
+                highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
             
-            finalFormatting(worksheet, self.n)       
+            # finalFormatting(worksheet, self.n)       
 
             # add each systems data to their own worksheet
             for i in range(self.n):
-                worksheet = workbook.add_worksheet(f'System {i+1} History')
-                self.systems[i].printHistory2Excel(filename, worksheet, False)
+                # create a new worksheet for each system
+                ws = workbook.add_worksheet(f'System {i+1} History')
+
+                # add the history of the system to the worksheet
+                self.systems[i].printHistory2Excel(filename, ws, False)

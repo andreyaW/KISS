@@ -15,7 +15,7 @@ class Component(MarkovChain):
 
         # declare component attributes
         self.name = name
-        self.extendedHistory = self.history  # array to keep track of the extended history of the component ( history ignoring resets )
+        self.extendedHistory = []  # array to keep track of the extended history of the component ( history ignoring resets )
 
 # ---------------------- Reliability Modelling ----------------------       
     def reset(self):

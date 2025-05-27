@@ -2,79 +2,69 @@
 This class is used to simulate a ship object subject to degradation over time and maintenance actions.
 """
 
-from shipClass import shipClass
-from shipClass.System import System
+from shipClass.Ship import Ship
+from shipClass.unmannedShip import unmannedShip
+from shipClass.mannedShip import mannedShip
 
+import numpy as np
 
-class shipSimulator():
+class ShipSimulator():
 
-    def __init__(self, shipType : str, systems: list[System] self.parallels, simulationLength: int) -> None:   
+    def __init__(self, ship: Ship, shipType:str, 
+                simulationLen : int = 100, PM_Interval: float = 10)-> None:
         
         '''
         param shipClass: The class of the ship object to be simulated. (manned or unmanned)
         param simulationLength: The length of the simulation in hours.
         '''
-        
-        self.shipType = shipType
-        self.simulationLength = simulationLength
-        self.systems = systems
-        
-        
-    def setupSimulation(self, ):
+
+        self.ship = self.setupSimulation(ship, shipType)
+        self.simulationLength = simulationLen
+        self.PM_Interval = PM_Interval          # how often periodic maintenance should be done
+
+
+    def setupSimulation(self, ship, shipType):
         
         '''
         This method sets up the simulation by creating an appropriate ship object based on the provided class.
         '''
-        
-        # Create the ship object using the provided class
-        if self.shipType == 'manned':
-            self.ship = shipClass.mannedShip(self.systems)
-
-        elif self.shipType == 'unmanned':
-            self.ship = shipClass.unmannedShip(self.systems)
+           
+        # Adding considerations to the ship based on its ship Type
+        if shipType == "unmanned":
+            ship = unmannedShip(ship.name, ship.systems, ship.parallels)
+        elif shipType == "manned":
+            ship = mannedShip(ship.name, ship.systems, ship.parallels)
         else:
-            raise ValueError("Invalid ship type. Please choose 'manned' or 'unmanned'.")
+            print(shipType)
+            raise ValueError("Invalid ship type. Please enter 'manned' or 'unmanned'.")
         
         # Initialize any other necessary variables or data structures here
         # self.simulationData = []
-       
-
+    
+        return ship
 
     
-    def simulate(self, num_hours: int) -> None:
+    def simulate(self) -> None:
         '''
         This method simulates the ship object by iterating through each system and performing maintenance actions as needed.
         '''
-        for i in range(num_hours): 
+        time_step = 0
+        ship = self.ship
+        while time_step < self.simulationLength:
             
-            # Update the state of all the systems
-            super().simulate(1) # call the parent class simulate method
-        
-            # Perform maintenance actions as needed
-            for system in self.systems:
+            time_step +=1       # add one immediately to avoid starting with PM at step 0
 
-                # perform periodic maintenance on the systems at the specified interval
-                if np.mod(len(system.history), self.perodic_maintenance_period) == 0:
-                    system = periodicMaintenance(system,self.maintenance_delay)
+            # update the transition matrices of the components using the time_step 
 
-            
-  
-       
-        
-        
-    def simulate(self, run_time: int):
-        """ sill simulate a manned or unmanned vessel and keep track of maintenane actions performed"""
-        
-        # simulation loop
-        time_step = 0          
-        while time_step != run_time:
-            
-            # simulate the ship's systems
-            for system in self.ship.systems:
-                system.simulate(1)  # simulate each system for 1 hour       
-            
-                # determine if maintenance is needed to bring the system back to a healthy state
-                if system.state == 0 :
-                    
-            time_step += 1          # each step = 1 hour
-    
+            # simulate the ship for one time step
+            ship.simulate(1)
+
+            # check if maintenance must be done
+            if np.mod(time_step,self.PM_Interval) ==0 :
+                for sys in ship.systems:
+                    if sys.state ==0:
+                        PM_period = ship.conductPM(sys)
+                        # add the maintenance time to the simulation history
+                        time_step += PM_period
+                    else:
+                        pass
