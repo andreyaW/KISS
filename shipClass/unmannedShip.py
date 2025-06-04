@@ -30,11 +30,11 @@ class unmannedShip(Ship):
         # determine which comps need to be fixed
         for comp in system.comps:
             if comp.comp.state == 0:
-            # making the components being repaired reflect repair time
+                # making the components being repaired reflect repair time
                 repair_time = [-1 for i in range(PM_Period)]
                 comp.comp.history += repair_time
                 comp.sensedHistory+= repair_time
-                comp.reset()                                    # good as new repair after repair period ends
+                comp.reset()                        # good as new repair after repair period ends
 
             # leave the component not being repaired in thier current state until PM is done
             else:
@@ -42,7 +42,7 @@ class unmannedShip(Ship):
                 comp.comp.history+= idle_time
                 comp.sensedHistory+= idle_time
                 comp.copyHistory()
-
+                
         return PM_Period
 
           

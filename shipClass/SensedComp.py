@@ -43,7 +43,7 @@ class SensedComp(Component, Sensor):
         sensors = []
         for i in range(self.n):
             sensor = Sensor('Sensor ' + str(i+1), sensor_states, sensor_transition_matrix)
-            sensor.sensorReadings.append(comp.state)    # each sensors keeps track of their individual readings from the comp
+            sensor.readings.append(comp.state)    # each sensors keeps track of their individual readings from the comp
             sensors.append(sensor)        
         self.sensors = sensors
         
@@ -51,11 +51,6 @@ class SensedComp(Component, Sensor):
         self.state = comp.state                         # ground truth state of the component       
         self.sensedState = comp.state                   # sensed states of the component
         self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
-       
-        # extended histories of the component and sensors (histories ignoring maintenance resets)
-        self.extendedHistory = self.comp.history  
-        self.extendedSensedHistory = self.sensedHistory  
-
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
     def senseState(self) -> None:
@@ -72,16 +67,16 @@ class SensedComp(Component, Sensor):
                 sensedState = self.comp.state
             else:                    
                 # broken sensor, assume no update is recieved and the readings remain unchanged
-                last_sensed_state = sensor.sensorReadings[-1]
+                last_sensed_state = sensor.readings[-1]
                 sensedState = last_sensed_state
 
-            sensor.sensorReadings.append(sensedState)       # update the sensor readings history
-            sensedStates[i] = sensor.sensorReadings[-1]     # store the sensed state of the sensor to array for solving
+            sensor.readings.append(sensedState)       # update the sensor readings history
+            sensedStates[i] = sensor.readings[-1]     # store the sensed state of the sensor to array for solving
             
         # the overall sensed state is the most common state sensed between the sensors
         self.sensedState  = int(find_mode(sensedStates))
-        self.sensedHistory.append(self.sensedState)         # update the sensed components sensed history
-        self.state = self.comp.state                        # update the ground truth to match the component state
+        self.sensedHistory.append(self.sensedState)   # update the sensed components sensed history
+        self.state = self.comp.state                  # update the ground truth to match the component state
         
 
     def simulate(self, number_of_steps: int = 1) -> None:
@@ -91,36 +86,15 @@ class SensedComp(Component, Sensor):
             self.comp.simulate()   # update the comp state
             for sensor in self.sensors:
                 sensor.simulate()  # update the sensor state
-            self.senseState()       # determines and stores the state of the sensed component
+            self.senseState()      # determines and stores the state of the sensed component
 
-
-    def reset(self):
-        """ Reset the sensed component to initial state (same objects as before, new histories) """
-        self.extendedHistory += self.extendedHistory + self.comp.history
-        self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory
-        self.comp.reset()
+# ---------------------- Resetting the Sensed Component ----------------------  
+    def reset(self) -> None:
+        self.comp.reset()  # reset the component to initial state
         for sensor in self.sensors:
-                sensor.reset()
-                sensor.sensorReadings = [self.comp.state]  # reset the sensor readings history and store initial state
-        self.sensedHistory = [self.comp.state]             # reset the sensed history of the sensed component and store initial state
-        self.state = self.comp.state                       # reset the ground truth state of the component
-
-
-    def copyHistory(self) -> None:
-        """ Copy the history of the component and sensors to the extended histories """
-        self.extendedHistory += self.extendedHistory + self.comp.history
-        self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory
-        for sensor in self.sensors:
-            sensor.extendedHistory += sensor.history  # Append the history to the extended history
-            sensor.extendedReadings += sensor.sensorReadings  # Append the sensor readings to the extended readings
-            
-        # remove history before maintenance, but dont reset the component or sensors
-            sensor.sensorReadings = [self.comp.state]        
-        self.sensedHistory = [self.comp.state]             
-        self.state = self.comp.state                       
+            sensor.reset()
 
 # ---------------------- Plotting + Output ----------------------
-
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
         """ Plot the ground truth and sensed history of the Markov Chain """
         # Create a figure and axis
@@ -141,7 +115,7 @@ class SensedComp(Component, Sensor):
         # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
         ax.set_xticks(range(0, len(self.comp.history), 5), [f'{i}h' for i in range(0, len(self.comp.history), 5)], rotation=45)   # make x ticks for every 5 hours
         ax.set_xlabel('Time Step')
-        ax.set_xlim(0, len(self.comp.history))
+        ax.set_xlim(0, len(self.comp.history) )
         ax.set_yticks(list(self.comp.states.keys()))
         ax.set_yticklabels(list(self.comp.states.values()))
         ax.set_ylabel('State')
@@ -189,14 +163,14 @@ class SensedComp(Component, Sensor):
                 worksheet = workbook.add_worksheet(self.name) 
 
             # loop through data points and add them to the worksheet
-            n_data = len(self.extendedHistory) # number of data points in the extended history
+            n_data = len(self.comp.history) # number of data points in the extended history
             for i in range(n_data):
-                
+
                 # add time step
                 addTimeSteps(workbook, worksheet, i)  # add time step to the first column
 
                 # add truth data starting at the second column
-                truth_data = [self.extendedHistory[i]] + [self.sensors[j].extendedHistory[i] for j in range(self.n)]
+                truth_data = [self.comp.history[i]] + [self.sensors[j].history[i] for j in range(self.n)]
                 if i == 0:
                     sensor_headers = ['Sensor ' + str(i+1) + ' Truth State' for i in range(self.n)]
                     truth_headers = ['Comp Truth State'] + sensor_headers
@@ -205,7 +179,7 @@ class SensedComp(Component, Sensor):
                     addTruth(workbook, worksheet, i, truth_data)
 
                 # add sensed data after truth data
-                sensed_data = [self.extendedSensedHistory[i]] + [self.sensors[j].extendedReadings[i] for j in range(self.n)]
+                sensed_data = [self.sensedHistory[i]] + [self.sensors[j].readings[i] for j in range(self.n)]
                 if i == 0:
                     sensor_readings_headers = ['Sensor ' + str(i+1) + ' Reading from Comp' for i in range(self.n)]
                     sensed_headers = ['Sensed State'] + sensor_readings_headers
@@ -221,4 +195,3 @@ class SensedComp(Component, Sensor):
             
             # format the sheet for better readability
             finalFormatting(worksheet, self.n) 
-                

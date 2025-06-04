@@ -25,11 +25,7 @@ class System():
         self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]
 
-        # extended histories of the system and its components (histories ignoring maintenance resets)
-        self.extendedHistory = self.history
-        self.extendedSensedHistory = self.sensedHistory  
-        
-# ---------------------- Simulation Functions ----------------------  
+  # ---------------------- Simulation Functions ----------------------  
       
     def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the system (uses simulate() from SensedComp class) """
@@ -47,28 +43,27 @@ class System():
 
             # determine and store the true state of the system
             self.state = SolveStructureFunction(self.comps, self.parallels, True)
-            self.history.append(self.state)                     # truth state
-
+            self.history.append(self.state)                      # truth state
     
-    def reset(self):
+    def reset(self, comp):
         """ Reset the system to initial state (same objects as before, new histories) """
-        
-        # add previous history to extended history
-        self.extendedHistory = self.extendedHistory + self.history[1:]
-        self.extendedSensedHistory = self.extendedSensedHistory + self.sensedHistory[1:]
-
-        # reset the state of all the components
-        for sc in self.comps:
-            sc.reset()
-            
-        # reset the histories of the system
-        self.state = self.SolveStructureFunction(True)  
-        self.history = [self.state]  
-        
-        self.sensedState = self.SolveStructureFunction()  
-        self.sensedHistory = [self.sensedState]
-
     
+        # reset the state of the fixed component
+        comp.reset()  # reset the component to its initial state
+        comp.comp.history.append(comp.comp.state)
+        comp.sensedHistory.append(comp.comp.state)
+
+        #repair attached sensors as well
+        for sensor in comp.sensors:
+            sensor.history.append(sensor.state)   #sensor health
+            sensor.readings.append(comp.comp.state)  #readings from component
+
+        # reset the state of the system
+        self.state = SolveStructureFunction(self.comps, self.parallels, True)          
+        self.history.append(self.state)  # append the new state to the history
+        self.sensedState = SolveStructureFunction(self.comps, self.parallels) 
+        self.sensedHistory.append(self.sensedState)  # append the new sensed state to the history
+
     def failureCheck(self):
         """ Check if the system has failed """
         if self.state == 0:  # if the system is in the failed state
@@ -150,7 +145,7 @@ class System():
         sys_diagram.drawConnections(self,comp_size, spacing)   # draw connections between series and parallel components
             
         # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
-        sys_diagram.displayDiagram()    # display the diagram
+        sys_diagram.displayDiagram()      # display the diagram
 
 # ---------------------- Excel Functions ----------------------
     def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:

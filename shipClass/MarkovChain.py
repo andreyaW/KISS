@@ -106,5 +106,6 @@ class MarkovChain:
        
     def reset(self):
         """ Reset the Markov Chain to its initial state and delete its history """
-        self.state = list(self.states.keys())[-1]       # reset the state to the working state (initial state)
-        self.history = [self.state]                     # save initial state to history
+        self.state = self.history[0]
+        self.history.append(self.state)
+        print(f"Resetting Markov Chain to initial state: {self.state}")

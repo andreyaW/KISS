@@ -15,13 +15,6 @@ class Sensor(MarkovChain):
 
         # declare sensor attributes        
         self.name = name
-        self.sensorReadings = [] # list of sensor readings from the component it is sensing
-        self.extendedHistory = self.history
-        self.extendedReadings = self.sensorReadings        
-
+        self.readings = [] # list of sensor readings from the component it is sensing
 
 # ---------------------- Useful Methods  ----------------------
-    def reset(self):
-        self.extendedHistory = self.extendedHistory + self.history[1:]  # Append the history to the extended history
-        self.extendedReadings = self.extendedReadings + self.sensorReadings[1:]  # Append the sensor readings to the extended readings
-        super().reset()  # Call the reset method of the parent class

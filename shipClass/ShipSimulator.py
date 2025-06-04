@@ -59,12 +59,12 @@ class ShipSimulator():
             # simulate the ship for one time step
             ship.simulate(1)
 
-            # check if maintenance must be done
-            if np.mod(time_step,self.PM_Interval) ==0 :
-                for sys in ship.systems:
-                    if sys.state ==0:
-                        PM_period = ship.conductPM(sys)
-                        # add the maintenance time to the simulation history
-                        time_step += PM_period
-                    else:
-                        pass
+            # # check if maintenance must be done
+            # if np.mod(time_step,self.PM_Interval) ==0 :
+            for sys in ship.systems:
+                if sys.state ==0:
+                    PM_period = ship.conductPM(sys)
+                    # add the maintenance time to the simulation history
+                    #     time_step += PM_period
+                    # else:
+                    #     pass
