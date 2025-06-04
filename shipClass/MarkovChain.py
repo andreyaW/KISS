@@ -108,4 +108,3 @@ class MarkovChain:
         """ Reset the Markov Chain to its initial state and delete its history """
         self.state = self.history[0]
         self.history.append(self.state)
-        print(f"Resetting Markov Chain to initial state: {self.state}")

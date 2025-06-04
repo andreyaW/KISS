@@ -48,15 +48,15 @@ class System():
     def reset(self, comp):
         """ Reset the system to initial state (same objects as before, new histories) """
     
-        # reset the state of the fixed component
-        comp.reset()  # reset the component to its initial state
-        comp.comp.history.append(comp.comp.state)
-        comp.sensedHistory.append(comp.comp.state)
+        # # reset the state of the fixed component
+        # comp.reset()  # reset the component to its initial state
+        # comp.comp.history.append(comp.comp.state)
+        # comp.sensedHistory.append(comp.comp.state)
 
-        #repair attached sensors as well
-        for sensor in comp.sensors:
-            sensor.history.append(sensor.state)   #sensor health
-            sensor.readings.append(comp.comp.state)  #readings from component
+        # #repair attached sensors as well
+        # for sensor in comp.sensors:
+        #     sensor.history.append(sensor.state)   #sensor health
+        #     sensor.readings.append(comp.comp.state)  #readings from component
 
         # reset the state of the system
         self.state = SolveStructureFunction(self.comps, self.parallels, True)          

@@ -90,9 +90,12 @@ class SensedComp(Component, Sensor):
 
 # ---------------------- Resetting the Sensed Component ----------------------  
     def reset(self) -> None:
-        self.comp.reset()  # reset the component to initial state
+        self.comp.reset()       # reset the component to initial state
+        self.sensedHistory.append(self.comp.state)  # reset the sensed history to initial state
+        
         for sensor in self.sensors:
             sensor.reset()
+            sensor.readings.append(self.comp.state)  # reset the sensor readings to initial state
 
 # ---------------------- Plotting + Output ----------------------
     def plotHistory(self, plot_sensor_history: bool = False) -> None:
