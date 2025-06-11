@@ -45,24 +45,15 @@ class System():
             self.state = SolveStructureFunction(self.comps, self.parallels, True)
             self.history.append(self.state)                      # truth state
     
-    def reset(self, comp):
+    def reset(self):
         """ Reset the system to initial state (same objects as before, new histories) """
     
-        # # reset the state of the fixed component
-        # comp.reset()  # reset the component to its initial state
-        # comp.comp.history.append(comp.comp.state)
-        # comp.sensedHistory.append(comp.comp.state)
-
-        # #repair attached sensors as well
-        # for sensor in comp.sensors:
-        #     sensor.history.append(sensor.state)   #sensor health
-        #     sensor.readings.append(comp.comp.state)  #readings from component
-
         # reset the state of the system
         self.state = SolveStructureFunction(self.comps, self.parallels, True)          
         self.history.append(self.state)  # append the new state to the history
         self.sensedState = SolveStructureFunction(self.comps, self.parallels) 
         self.sensedHistory.append(self.sensedState)  # append the new sensed state to the history
+
 
     def failureCheck(self):
         """ Check if the system has failed """

@@ -1,63 +1,65 @@
 # Maintenance.py
 # This module contains functions for performing maintenance on a system.
 # It includes both preventative and corrective maintenance functions.
-from utils.helperFunctions import SolveStructureFunction
 
-def periodicMaintenance(system, maintenance_delay):
-    """
-    Perform preventative maintenance on a system.
-    
-    Parameters:
-    
-    Returns:
-    str: A message indicating the result of the maintenance.
-    """
+def determine_maintenance_period():
+    """ Determine the maintenance period for the system. """
+    # This function can be customized to determine the 
 
-    for sc in system.comps:
+def maintenance(system. MTTR=10):
 
-        # If any component is not in a working state, perform maintenance on it
-        working_state = list(sc.comp.states.keys())[-1]
-        if sc.state != working_state: 
-            # add maintenance delay to the component history
-            maintenance_period = [-1] * maintenance_delay
-            sc.comp.history += maintenance_period
-            sc.sensedHistory += maintenance_period
-            sc.extendedHistory += maintenance_period
-            sc.extendedSensedHistory += maintenance_period
+    maintenance_period = determine_maintenance_period()
 
-            # reset the component to its initial state
-            sc.reset()
+    # determine which comps need to be fixed
+    for comp in system.comps:
+        if comp.comp.state == 0:
+            
+            # making the components being repaired reflect repair time
+            repair_time = [-1 for i in range(maintenance_period-1)]
+            comp.comp.history += repair_time
+            comp.sensedHistory+= repair_time
 
-    # Update the system state after maintenance
-    system.state = SolveStructureFunction(system.comps, system.parallels)
-    print( "Periodic maintenance successfully performed.")
+            #repair attached sensors as well
+            for sensor in comp.sensors:
+                sensor.history += repair_time   #sensor health
+                sensor.readings += repair_time  #readings from component
 
-    return system
+            # reset the sensed comp to working state after PM
+            comp.reset()
+
+            # add the repair history to system history
+            if len(system.history) < len(comp.comp.history):
+                system.history += comp.comp.history[len(system.history):-2]
+                system.sensedHistory += comp.sensedHistory[len(system.sensedHistory):-2]
+
+        # leave the component not being repaired in thier current state until PM is done
+        else:
+            idle_time = [comp.comp.state for i in range(maintenance_period)]
+            comp.comp.history+= idle_time
+            comp.sensedHistory+= idle_time    
+
+            # leave sensors in their current state
+            for sensor in comp.sensors:
+                idle_time = [sensor.state for i in range(maintenance_period)]
+                sensor.history += idle_time
+                idle_readings = [sensor.readings[-1] for i in range(maintenance_period)]
+                sensor.readings += idle_readings        
+
+    # update the system history to reflect the PM period
+    system.reset()
+    return maintenance_period
 
 
-        
-def correctiveMaintenance(system, maintenance_delay):
-    """
-    Perform corrective maintenance on a system.
-    """
-    # if the system is in a failed state
-    if system.state == 0:  
-        
-        # Perform corrective maintenance on any components not in a useable state
-        for comp in system.comps:
-            failed_state = list(comp.comp.states.keys())[0]  # get the failed state of the component
-            if comp.state == failed_state:
-                # add maintenance delay to the component history
-                maintenance_period = [-1] * maintenance_delay
-                comp.history += maintenance_period
-                comp.sensedHistory += maintenance_period
-                comp.extendedHistory += maintenance_period
-                comp.extendedSensedHistory += maintenance_period
+def corrective_maintenance(system, time_step, MTTR=10):
+    """ Perform corrective maintenance on the system. """
+    CM_period = maintenance(system)
+    return time_step + CM_period
 
-                comp.reset()
 
-    # Update the system state after maintenance
-    system.state = system.SolveStructureFunction()
+def periodic_maintenance(system, time_step, PM_interval):
+    """ Perform preventative maintenance on the system. """
+    if time_step % PM_interval == 0:
+        PM_period = maintenance(system)
+        return time_step + PM_period
+    return time_step
 
-    return "Corrective maintenance performed successfully."
-    
