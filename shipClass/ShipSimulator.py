@@ -10,37 +10,33 @@ import numpy as np
 
 class ShipSimulator():
 
-    def __init__(self, ship: Ship, shipType:str, 
-                simulationLen : int = 100, PM_Interval: float = 10)-> None:
+    def __init__(self, ship: Ship, # intialized ship with systems of components 
+                 vesselType:str, # unmanned or manned 
+                 simulationLen : int = 100)-> None:
         
         '''
         param shipClass: The class of the ship object to be simulated. (manned or unmanned)
         param simulationLength: The length of the simulation in hours.
         '''
-
-        self.ship = self.setupSimulation(ship, shipType)
+        self.shipType = vesselType.lower()
+        self.vessel = self.setupSimulation(ship, vesselType)
         self.simulationLength = simulationLen
-        self.PM_Interval = PM_Interval          # how often periodic maintenance should be done
-
-
-    def setupSimulation(self, ship, shipType):
+ 
+    def setupSimulation(self, ship, vesselType):
         
         '''
         This method sets up the simulation by creating an appropriate ship object based on the provided class.
         '''
-           
+          
         # Adding considerations to the ship based on its ship Type
-        if shipType == "unmanned":
-            ship = unmannedShip(ship.name, ship.systems, ship.parallels)
-        elif shipType == "manned":
-            ship = mannedShip(ship.name, ship.systems, ship.parallels)
+        if vesselType == "unmanned":
+            ship = unmannedShip(ship)
+
+        elif vesselType == "manned":
+            ship = mannedShip(ship)
         else:
-            print(shipType)
-            raise ValueError("Invalid ship type. Please enter 'manned' or 'unmanned'.")
-        
-        # Initialize any other necessary variables or data structures here
-        # self.simulationData = []
-    
+            print(vesselType)
+            raise ValueError("Invalid vessel type. Please enter 'manned' or 'unmanned'.")
         return ship
 
     
@@ -48,23 +44,37 @@ class ShipSimulator():
         '''
         This method simulates the ship object by iterating through each system and performing maintenance actions as needed.
         '''
+        # Start the simulation at time step 0; ship initial state = working
         time_step = 0
-        ship = self.ship
+        ship = self.vessel
+
         while time_step < self.simulationLength:
             
-            time_step +=1       # add one immediately to avoid starting with PM at step 0
-
             # update the transition matrices of the components using the time_step 
+            for sys in ship.systems:
+                for comp in sys.comps:
+                    comp.updateTransitionMatrix(time_step)
 
             # simulate the ship for one time step
             ship.simulate(1)
 
-            # # check if maintenance must be done
-            # if np.mod(time_step,self.PM_Interval) ==0 :
-            for sys in ship.systems:
-                if sys.state ==0:
-                    PM_period = ship.conductPM(sys)
-                    # add the maintenance time to the simulation history
-                    #     time_step += PM_period
-                    # else:
-                    #     pass
+            # check if periodic maintenance must be done
+            if np.mod(time_step,self.PM_Interval) ==0 :
+                for sys in ship.systems:
+                    if sys.state ==0:
+                        PM_period = ship.conductPM(sys)
+                        # add the maintenance time to the simulation history
+                        time_step += PM_period
+                    else:
+                        pass
+
+            # if manned ship, check for corrective maintenance
+            if self.vesselType == "manned":
+                for sys in ship.systems:
+                    if sys.state == 0:
+                        CM_period = ship.conductCM(sys, time_step)   
+                    else:
+                        pass
+                
+
+            time_step +=1       # add one immediately to avoid starting with PM at step 0

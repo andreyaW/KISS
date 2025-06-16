@@ -1,14 +1,26 @@
 # Maintenance.py
-# This module contains functions for performing maintenance on a system.
+# This file contains functions used for conducting maintenance on a system.
 # It includes both preventative and corrective maintenance functions.
 
-def determine_maintenance_period():
-    """ Determine the maintenance period for the system. """
-    # This function can be customized to determine the 
+import scipy as sp
 
-def maintenance(system. MTTR=10):
+def determineMaintenancePeriod(mean=10, std_dev=5/6.28):
+    ''' Determine the maintenance period for the system. '''
+    
+    # Generate a random maintenance period based on a normal distribution of times
+    maintenance_time_dist = sp.stats.norm(loc=mean, scale=std_dev)
+    maintenance_period = maintenance_time_dist.rvs(size=1)[0]
 
-    maintenance_period = determine_maintenance_period()
+    # Ensure the maintenance period is a positive integer greater than or equal to 1
+    maintenance_period = max(1, int(round(maintenance_period)))
+            
+    return maintenance_period
+
+
+def maintenance(system, MTTR=10, TTR_var=5/6.28):
+    """ Perform maintenance on the system. """
+
+    maintenance_period = determineMaintenancePeriod(MTTR, TTR_var)
 
     # determine which comps need to be fixed
     for comp in system.comps:
@@ -50,13 +62,13 @@ def maintenance(system. MTTR=10):
     return maintenance_period
 
 
-def corrective_maintenance(system, time_step, MTTR=10):
+def correctiveMaintenance(system, time_step, MTTR=10):
     """ Perform corrective maintenance on the system. """
     CM_period = maintenance(system)
     return time_step + CM_period
 
 
-def periodic_maintenance(system, time_step, PM_interval):
+def periodicMaintenance(system, time_step, PM_interval):
     """ Perform preventative maintenance on the system. """
     if time_step % PM_interval == 0:
         PM_period = maintenance(system)
