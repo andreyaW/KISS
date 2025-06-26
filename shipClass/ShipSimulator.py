@@ -76,5 +76,7 @@ class ShipSimulator():
                     else:
                         pass
                 
+            time_step +=1       # add one time step to the simulation
 
-            time_step +=1       # add one immediately to avoid starting with PM at step 0
+    
+    

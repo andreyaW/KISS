@@ -24,3 +24,5 @@ class unmannedShip():
         # Conduct periodic maintenance on each system
         for sys in self.vessel.systems:
             periodicMaintenance(sys)
+
+        
