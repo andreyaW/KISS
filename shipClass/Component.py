@@ -6,7 +6,7 @@ class Component(MarkovChain):
     def __init__(self, 
                  name: str, 
                  states: dict[int: str], 
-                 MTTF )-> None:      
+                 MTTF=50 )-> None:      
         
         """ Initialize the component as a Markov Chain object """
         
@@ -16,7 +16,9 @@ class Component(MarkovChain):
         self.states = states
         self.name = name
 
-        transition_matrix = self.create_mttf_markov_chain_n_states()
+        # transition_matrix = self.create_mttf_markov_chain_n_states()
+        transition_matrix = [[1, 0],
+                             [0.5, 0.5]]
         super().__init__(states, transition_matrix)  
 
         # declare component attributes
@@ -24,46 +26,10 @@ class Component(MarkovChain):
 
 # ---------------------- Reliability Modelling ----------------------       
 
-    def create_mttf_markov_chain_n_states(self, time_step=1):
+    def create_mttf_markov_chain_n_states(self, sim_duration=100):
         """
-        Creates an (n+1)-state Markov chain transition matrix that meets a specified MTTF.
-
-        The states are assumed to be 'Operational_0', 'Operational_1', ...,
-        'Operational_{n-1}' and 'Failed' (state n).
-        ** Assumes transitions are only from an Operational state to the Failed state.
-        All Operational states are assumed to have the same probability of transitioning
-        to the Failed state per time step to achieve the desired MTTF.
-        The Failed state is an absorbing state.
-
-        The Mean Time To Failure (MTTF) from any Operational state is the expected
-        time to reach the Failed state.
-        MTTF = time_step / P(transition to Failed from any operational state)
-        
-        # The probability of staying in the operational state cluster (or transitioning
-        # between operational states) is 1 - prob_to_failed for each operational state.
-        # For this simplified model, we assume all remaining probability is for staying
-        # within the operational states (e.g., equally distributed among other operational
-        # states including the current one, or just staying in the current one if no
-        # transitions between operational states are modeled explicitly).
-        # We'll assume for this simple model that the remaining probability is distributed
-        # among the *other* operational states and potentially staying in the current one.
-        # A simple way to distribute this is equally among all operational states, including the current one.
-        # Let's simplify further: assume the remaining probability (1 - prob_to_failed)
-        # is distributed among the 'num_operational_states' operational states.
-        # A common pattern is to assume the system stays in the same operational state
-        # with probability (1 - prob_to_failed) and transitions to failed with prob_to_failed.
-        # Or, if states represent progressive degradation, the probability might be
-        # of moving to the *next* operational state.
-        # Let's implement the simple case: from any operational state, you either stay
-        # in that state or transition to failed. This implies no transitions *between*
-        # operational states. This still gives MTTF = time_step / prob_to_failed
-        # from any operational state as long as state 0 is the starting state.
-
-        # If states represent a sequence 0 -> 1 -> ... -> n-1 -> n (Failed),
-        # then from state i (i < n-1), prob to i+1 is p, prob to n (Failed) is q.
-        # From state n-1, prob to n (Failed) is r.
-        # This makes the MTTF calculation more complex.
-
+        Creates a Markov chain transition matrix for a component with multiple operational states
+        and a single failed state, based on a specified Mean Time To Failure (MTTF).
 
         Args:
         mttf: The desired Mean Time To Failure in the same time units as time_step.
@@ -76,6 +42,7 @@ class Component(MarkovChain):
         Returns None if a valid transition matrix cannot be created (e.g., mttf <= time_step).
         
         """
+
         # grab necessary parameters
         mttf = self.MTTF
         total_states = len(self.states)
@@ -85,7 +52,7 @@ class Component(MarkovChain):
         transition_matrix = np.zeros((total_states, total_states))
 
         # determine relevant probabilities at this time step
-        prob_to_failed = time_step / mttf
+        prob_to_failed = sim_duration / mttf
 
         if prob_to_failed > 1:
             prob_stay_operational = 1- prob_to_failed
@@ -105,21 +72,32 @@ class Component(MarkovChain):
         transition_matrix[num_operational_states, num_operational_states] = 1.0
 
         # # print the transition matrix for debugging
-        print(f"Transition matrix for {self.name} at time step {time_step}:\n{transition_matrix}")
+        # print(f"Transition matrix for {self.name} at time step {time_step}:\n{transition_matrix}")
         return transition_matrix
 
 
-    def simulate(self, time_step: int):
-        """
-        Simulates the component's Markov chain for a given time step.
-        Args:
-        time_step: The current time step for the simulation.
-        """
-        # Update the transition matrix based on the current time step
-        self.transitionMatrix = self.create_mttf_markov_chain_n_states(time_step)
-        super().simulate()
+    # def simulate(self, time_step: int):
+    #     """
+    #     Simulates the component's Markov chain for a given time step.
+    #     Args:
+    #     time_step: The current time step for the simulation.
+    #     """
+    #     # Update the transition matrix based on the current time step
+    #     # self.transitionMatrix = self.create_mttf_markov_chain_n_states(time_step)
+    #     super().simulate()
 
 
+    def determineFailureStep(self):
+        """
+        Determines the step at which the component fails based on its history. 
+        If the component has not failed then this method returns None.
+        """
+
+        # determine the failure index
+        states = list(self.states.keys())
+        failure_state_index = states[0]     # first state in matrix is the failed state
+        failure_step = self.history.index(failure_state_index) if failure_state_index in self.history else None
+        return failure_step
 
     '''
     #   if mttf <= time_step:
