@@ -98,7 +98,7 @@ class Component(MarkovChain):
     #     return transition_matrix
 
 
-    def createWeibullLikeTransitionMatrix(self, beta=2.0, step_size=1, tolerance=1e-2):
+    def createWeibullLikeTransitionMatrix(self, beta=1.0, step_size=1, tolerance=1e-2):
         """
         Create a degradation-based Markov transition matrix with Weibull-like hazard
         and calibrated to match the given MTTF.
