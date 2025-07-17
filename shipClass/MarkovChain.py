@@ -36,9 +36,17 @@ class MarkovChain:
         return self.failure_time
 
 
-    def drawChain(self):
+    def drawChain(self, name:str= None):
         """ Draw the Markov Chain as a directed graph """
-        G = nx.DiGraph() # Directed graph G
+        # create a figure for the drawing and give it a title if necessary
+        plt.figure(figsize=(10,5))
+
+        if name != None:
+            ax = plt.gca()
+            ax.set_title(name)
+
+        # initialize a nx directed graph
+        G = nx.DiGraph() 
 
         # Add edges to G based on transition matrix
         for i in range(len(self.states)):
@@ -47,10 +55,8 @@ class MarkovChain:
 
         # Define positions for states (arranged in a straight line)
         pos = {self.states[i]: (i, 0) for i in range(len(self.states))}
-        pos[self.states[0]] = (i+1, -1)  # Position the first state lower then others
+        pos[self.states[0]] = (i+1, -1)  # Position the first state (failure) lower then others
         
-        # pos = nx.circular_layout(G)  # Position nodes in a circle
-
         # Draw the graph with the defined positions
         nx.draw(G, pos, with_labels=True, node_size=2000, node_color='skyblue', alpha=0.3,
                                           arrowsize=60, arrowstyle = '-', 
@@ -97,10 +103,13 @@ class MarkovChain:
             # randomly select and update the next state using probabilities from the transition matrix
             next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
             
-            if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
-                print(f"There has been an error in simulation.")
-                break
-                
+
+
+                # code to catch self improving states
+                # if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
+                #     print(f"There has been an error in simulation.")
+                #     break
+                    
             self.state = next_state
             self.history.append(next_state)     # append the new state to the history
        
