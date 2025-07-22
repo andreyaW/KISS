@@ -4,7 +4,7 @@ This class is used to simulate an unmanned ship subject to degradation over time
 
 from shipClass.Ship import Ship
 from shipClass.System import System
-from shipClass.Maintenance import periodicMaintenance
+from utils.maintenanceFunctions import periodicMaintenance
 
 class unmannedShip():
             

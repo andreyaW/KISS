@@ -9,14 +9,30 @@ import xlsxwriter
 class System():
     ''' a simple model of a system composed of many sensed components'''
 
-    def __init__(self, name, comps: list[SensedComp], parallels = None)-> None:
+    def __init__(self, name, comps: list[SensedComp], parallels = None, unmanned:bool = False)-> None:
         self.name = name
         self.comps = comps
         self.parallels = parallels
         self.states = self.comps[0].comp.states
         self.n = len(self.comps)                                         # number of total components in the system
         self.nPar = len(self.parallels) if parallels is not None else 0  # number of parallel components in the system
-                
+        # self.unmanned = unmanned
+
+        self.initializeSystem(unmanned)
+
+  # ---------------------- Simulation Functions ----------------------  
+    def initializeSystem(self, unmanned): 
+        for sc in self.comps: 
+            sc.initializeSensedComp()
+
+        # true state of the system
+        self.state = SolveStructureFunction(self.comps, self.parallels)  
+        self.history = [self.state]  
+        
+        # sensed state of the system
+        self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
+        self.sensedHistory = [self.sensedState]
+        
         # true state of the system
         self.state = SolveStructureFunction(self.comps, self.parallels)  
         self.history = [self.state]  
@@ -25,8 +41,7 @@ class System():
         self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]
 
-  # ---------------------- Simulation Functions ----------------------  
-      
+
     def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the system (uses simulate() from SensedComp class) """
         

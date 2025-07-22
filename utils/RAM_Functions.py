@@ -21,3 +21,24 @@ def drawRelCurve(failure_times):
     plt.grid()
     plt.legend()
     plt.show()
+
+
+def periodic_Maintenance(PM_interval: float, PM_period: float, current_time_step: int, system):
+
+    # skip maintenance if not time for periodic maintenance
+    if np.mod(current_time_step, PM_interval) != 0:
+        pass    
+
+    # if the simulation is at the periodic maintenance interval, do maintenance on the system
+    else: 
+
+        for comp in system.comps: 
+            pass
+            # check if the comp is functional
+            
+            # complete maintenance on comp if it is not functional
+
+            
+        print("add system maintenance functionality here")
+    
+    return system
