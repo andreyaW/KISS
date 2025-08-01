@@ -34,6 +34,7 @@ class SensedComp():
             comp_name = 'Component'
         self.name = comp.name.capitalize() + ' Sensed'           
 
+        '''
         # initialize sensors to be attached to the component
         self.n = num_sensors
         sensors = []
@@ -47,8 +48,33 @@ class SensedComp():
         self.state = comp.state                         # ground truth state of the component       
         self.sensedState = comp.state                   # sensed states of the component
         self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
+        '''
 
+        self.n = num_sensors 
+        self.sensor_accuracy = sensor_accuracy              
+
+        
 # ---------------------- Monte Carlo Simulation  ----------------------       
+    
+    def initializeSensedComp(self, unmanned: bool = False):
+
+        # initialize the component
+        self.comp.initialize(unmanned)  # setups an appropriate Markov chain for the component and sets initial state
+
+        # initialize sensors to be attached to the component
+        sensors = []
+        for i in range(self.n):
+            sensor = Sensor('Sensor ' + str(i+1), self.sensor_accuracy)
+            sensor.readings.append(self.comp.state)     # each sensors keeps track of their individual readings from the comp
+            sensors.append(sensor)        
+        self.sensors = sensors
+        
+        # sensed component attributes
+        self.state = self.comp.state                    # ground truth state of the component       
+        self.sensedState = self.comp.state              # sensed states of the component
+        self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
+
+    
     def senseState(self) -> None:
         """ Sense the state of the component """
               
