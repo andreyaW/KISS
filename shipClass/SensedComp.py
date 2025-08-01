@@ -1,13 +1,13 @@
 from shipClass.Component import Component
 from shipClass.Sensor import Sensor
-from utils.helperFunctions import find_mode
+from utils.helperFunctions import find_mode, set_x_ticks
 from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, addSensorFailureFormula, finalFormatting
 
 import matplotlib.pyplot as plt
 import numpy as np
 import xlsxwriter
 
-class SensedComp(Component, Sensor):
+class SensedComp():
 
     """ Sensed component class that inherits from Component and Sensor classes """
 
@@ -18,11 +18,7 @@ class SensedComp(Component, Sensor):
     #             comp : Component, 
     #             sensors : list[Sensor])-> None:
         
-    def __init__(self, comp_name= None, 
-                 comp_states: dict[int: str] = {0: 'Failed', 
-                                                      1: 'Working'}, 
-                 comp_transition_matrix: list[list[float]]=[[1.0, 0.0], 
-                                                            [0.02, 0.98]],  
+    def __init__(self, comp: Component,   
                  sensor_states: dict[int: str] = {0: 'Failed', 
                                                   1: 'Working'}, 
                  sensor_transition_matrix: list[list[float]] = [[1, 0],
@@ -32,11 +28,11 @@ class SensedComp(Component, Sensor):
         """ Initialize the sensed component """     
         
         # initialize the component object
+        self.comp = comp
+        comp_name = comp.name
         if comp_name is None:
             comp_name = 'Component'
-        comp = Component(comp_name, comp_states, comp_transition_matrix)
-        self.comp = comp
-        self.name = 'Sensed ' + comp.name.capitalize()               
+        self.name = comp.name.capitalize() + ' Sensed'           
 
         # initialize sensors to be attached to the component
         self.n = num_sensors
@@ -115,9 +111,8 @@ class SensedComp(Component, Sensor):
             
         # Set the title and labels
         ax.set_title( self.name + ' History')
-        # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
-        ax.set_xticks(range(0, len(self.comp.history), 5), [f'{i}h' for i in range(0, len(self.comp.history), 5)], rotation=45)   # make x ticks for every 5 hours
         ax.set_xlabel('Time Step')
+        set_x_ticks(ax, len(self.comp.history))  # set x limits based on the history length
         ax.set_xlim(0, len(self.comp.history) )
         ax.set_yticks(list(self.comp.states.keys()))
         ax.set_yticklabels(list(self.comp.states.values()))

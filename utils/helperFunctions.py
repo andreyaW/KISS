@@ -127,5 +127,35 @@ def generate_centered_list(center, num_values, min_spacing=1.0) -> list:
     values = np.linspace(start, end, num_values)
     return values.tolist()
 
+def round_to_nearest_base(x, base):
+    return base * round(x / base)
 
+def set_x_ticks(ax, history_len, max_ticks=10):
+    """
+    Limit the number of x-axis ticks to clean, rounded intervals (multiples of 5 or 10).
 
+    Parameters:
+    - ax: matplotlib axis object
+    - history_len: int, length of the data series being plotted
+    - max_ticks: int, maximum number of ticks to display
+    """
+    if history_len <= 1:
+        ax.set_xticks([0])
+        return
+
+    raw_step = history_len / (max_ticks)
+
+    # Round to nearest clean interval
+    step = round_to_nearest_base(raw_step, 10) if raw_step >= 10 else round_to_nearest_base(raw_step, 5)
+    step = max(1, step)
+
+    ticks = np.arange(0, history_len, step)
+
+    # Only append the last point if it's not too close to the last tick
+    if (history_len - 1) - ticks[-1] >= step / 2:
+        ticks = np.append(ticks, history_len - 1)
+
+    ax.set_xticks(ticks)
+
+    # ax.set_xticks(range(0, len(self.history), 5), [f'{i}h' for i in range(0, len(self.history), 5)], rotation=45)   # make x ticks for every 5 hours
+    # ax.set_xlim(0, len(self.history))

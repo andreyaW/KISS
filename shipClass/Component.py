@@ -6,7 +6,8 @@ class Component(MarkovChain):
     def __init__(self, 
                  name: str, 
                  states: dict[int: str], 
-                 MTTF=50 )-> None:      
+                 MTTF=50 , 
+                 MTTR= 0)-> None:      
         
         """ Initialize the component as a Markov Chain object """
         

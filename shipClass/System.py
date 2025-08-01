@@ -1,5 +1,5 @@
 from shipClass.SensedComp import SensedComp
-from utils.helperFunctions import SolveStructureFunction
+from utils.helperFunctions import SolveStructureFunction, set_x_ticks
 from utils.SystemDiagram import SystemDiagram
 from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 import matplotlib.pyplot as plt
@@ -89,16 +89,17 @@ class System():
         ax.plot(self.sensedHistory, marker=',', label='Sensed')
         
         ax.set_title('Sensed System History')
-        # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
-        ax.set_xticks(range(0, len(self.history), 5), [f'{i}h' for i in range(0, len(self.history), 5)], rotation=45)   # make x ticks for every 5 hours
-        ax.set_xlabel('Time Step')
-        ax.set_xlim(0, len(self.history))
         ax.set_ylabel('State')
         ax.set_yticks(list(self.states.keys()))  
         ax.set_yticklabels(list(self.states.values()))
+        
+        ax.set_xlabel('Time Step')
+        # ax.xticks(range(len(self.history)), [f'{i}h' for i in range(len(self.history))], rotation=45) # make x ticks for every hour
+        set_x_ticks(ax, len(self.history))  # set x limits based on the history length
+
+        ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-        ax.grid()
         
         # add a marker for unsensed failures
         for i in range(len(self.history)):
