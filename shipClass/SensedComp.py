@@ -10,20 +10,14 @@ import xlsxwriter
 class SensedComp():
 
     """ Sensed component class that inherits from Component and Sensor classes """
-
-    # possibly need to remake the __init__ method to initialize the sensor and components
-    # can have comp_states, comp_transition_matrix, sensor_states, sensor_transition_matrix as inputs
-
-    # def __init__(self, 
-    #             comp : Component, 
-    #             sensors : list[Sensor])-> None:
         
     def __init__(self, comp: Component,   
                  sensor_states: dict[int: str] = {0: 'Failed', 
                                                   1: 'Working'}, 
                  sensor_transition_matrix: list[list[float]] = [[1, 0],
                                                                 [0.15, 0.85]], 
-                 num_sensors: int = 3)-> None:
+                 num_sensors: int = 3, 
+                 sensor_accuracy: float = 0.9)-> None:
 
         """ Initialize the sensed component """     
         
