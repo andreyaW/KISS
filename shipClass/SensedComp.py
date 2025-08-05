@@ -23,11 +23,12 @@ class SensedComp():
         
         # initialize the component object
         self.comp = comp
-        comp_name = comp.name
-        if comp_name is None:
-            comp_name = 'Component'
-        self.name = comp.name.capitalize() + ' Sensed'           
+        self.name = 'Sensed ' + comp.name.capitalize()            
 
+        # initialize the sensors and attach them to the component
+        self.n = num_sensors 
+        self.sensor_accuracy = sensor_accuracy              
+        
         '''
         # initialize sensors to be attached to the component
         self.n = num_sensors
@@ -43,9 +44,6 @@ class SensedComp():
         self.sensedState = comp.state                   # sensed states of the component
         self.sensedHistory = [self.sensedState]         # array to keep track of the sensed states of this object          
         '''
-
-        self.n = num_sensors 
-        self.sensor_accuracy = sensor_accuracy              
 
         
 # ---------------------- Monte Carlo Simulation  ----------------------       

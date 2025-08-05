@@ -5,9 +5,9 @@ class Component(MarkovChain):
 
     def __init__(self, 
                  name: str, 
-                 states: dict[int: str] = {0 : 'failed', 1: 'working'}, 
                  MTTF:float=50,
-                 MTTR = 'NR')-> None:      
+                 MTTR = 'NR',
+                 states: dict[int: str] = {0 : 'failed', 1: 'working'})-> None:      
                 # comp_transition_matrix: list[list[float]]=[[1.0, 0.0], 
                 #                                            [0.02, 0.98]]
                 
@@ -23,11 +23,6 @@ class Component(MarkovChain):
         
 
 # ---------------------- Reliability Modelling ----------------------           
-
-    def initialize(self, unmanned:bool = False):
-        self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
-        super().__init__(self.states, self.transition_matrix) 
-
 
     def defineTwoStateTransitionMatrix(self, unmanned: bool = False):
         
@@ -51,6 +46,12 @@ class Component(MarkovChain):
         transition_matrix = np.array([[1-repair_rate, repair_rate], [fail_rate, 1-fail_rate]])
         return transition_matrix
         
+    def initialize(self, unmanned:bool = False):
+            self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
+            super().__init__(self.states, self.transition_matrix) 
+
+
+# ----------------------------------- Useful Functions ------------------
 
     def grabFailureTime(self):
         """ from the component history, determine when the component failed,
