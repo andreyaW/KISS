@@ -180,7 +180,7 @@ class System():
                 # add truth states of the system and each sensed component to the row           
                 truth_data = [self.history[i]] + [self.comps[j].comp.history[i] for j in range(self.n)]
                 if i == 0: 
-                    sys_truth_headers = ['Sys Truth State'] + ['Comp ' + str(i+1) + ' Truth State' for i in range(self.n)]
+                    sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + 'Truth State' for comp in self.comps]
                     addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
                 else:
                     addTruth(workbook, worksheet, i, truth_data)
@@ -188,7 +188,7 @@ class System():
                 # add the sensed states of te system and each sensed component to the row
                 sensed_data = [self.sensedHistory[i]] + [self.comps[j].sensedHistory[i] for j in range(self.n)]
                 if i == 0:
-                    sys_sensed_headers = ['Sys Sensed State'] + ['Comp ' + str(i+1) + ' Sensed State' for i in range(self.n)]
+                    sys_sensed_headers = ['Sys Sensed State'] + [comp.name.capitalize() + ' Sensed State' for comp in self.comps]
                     addSensed(workbook, worksheet, i, sensed_data, sys_sensed_headers)
                 else:
                     addSensed(workbook, worksheet, i, sensed_data)
@@ -206,7 +206,7 @@ class System():
             if addComps:
                 for i in range(self.n):
                     # create a new worksheet for each component
-                    comp_name = self.comps[i].name.capitalize() + ' History'
+                    comp_name = self.comps[i].name.capitalize()
                     ws= workbook.add_worksheet(comp_name)
 
                     # add the history of the component to the worksheet
