@@ -24,29 +24,32 @@ class Component(MarkovChain):
 
 # ---------------------- Reliability Modelling ----------------------           
 
-    # def initialize(self, unmanned:bool = False):
-    #     self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned)
-    #     super().__init__(self.states, self.transition_matrix) 
+    def initialize(self, unmanned:bool = False):
+        self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
+        super().__init__(self.states, self.transition_matrix) 
 
 
-    # def defineTwoStateTransitionMatrix(self, unmanned: bool = False):
+    def defineTwoStateTransitionMatrix(self, unmanned: bool = False):
         
-    #     # grab the failure and repair rates
-    #     fail_rate = 1/self.MTTF
+        # grab the failure and repair rates
+        fail_rate = 1/self.MTTF
 
-    #     if unmanned: 
-    #         repair_rate = 0  # i.e. failure  is an absorbing state, maintenance can only be done during port or when ship is boarded
+        # check 1: is the vessel unmanned?
+        if unmanned: 
+            repair_rate = 0  # i.e. failure  is an absorbing state, 
+                             # maintenance can only be done during port or when people board the ship or in dock
         
-    #     elif type(self.MTTR) is str: 
-    #         repair_rate = 0  # i.e. failure is an absorbing state and component must be replaced since it is non-repairable
+        # check 2: can the component be repaired? 
+        elif type(self.MTTR) is str: 
+            repair_rate = 0  # i.e. failure is an absorbing state 
+                             # component cannot be repaired, it must be completly replaced since it is non-repairable
 
-    #     else:
-    #         repair_rate = 1/ self.MTTR  # component is repairable and will repair (assumes people are onboard)
+        else:
+            repair_rate = 1/ self.MTTR  # component is repairable and will repair (assumes people are onboard)
 
-    #     # set the transition matrix up and store
-    #     transition_matrix = np.array([[1-repair_rate, repair_rate], [fail_rate, 1-fail_rate]])
-        
-    #     return transition_matrix
+        # set up transition matrix up and return it
+        transition_matrix = np.array([[1-repair_rate, repair_rate], [fail_rate, 1-fail_rate]])
+        return transition_matrix
         
 
     def grabFailureTime(self):
