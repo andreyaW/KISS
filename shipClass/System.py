@@ -13,15 +13,18 @@ class System():
         self.name = name
         self.comps = comps
         self.parallels = parallels
-        self.states = self.comps[0].comp.states
-        self.n = len(self.comps)                                         # number of total components in the system
-        self.nPar = len(self.parallels) if parallels is not None else 0  # number of parallel components in the system
-        # self.unmanned = unmanned
-
         self.initializeSystem(unmanned)
+        
+        # self.states = self.comps[0].comp.states
+        # self.n = len(self.comps)                                         # number of total components in the system
+        # self.nPar = len(self.parallels) if parallels is not None else 0  # number of parallel components in the system
+        # # self.unmanned = unmanned
+
+        
 
   # ---------------------- Simulation Functions ----------------------  
     def initializeSystem(self, unmanned): 
+        
         for sc in self.comps: 
             sc.initializeSensedComp()
 

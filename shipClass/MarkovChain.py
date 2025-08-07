@@ -18,8 +18,7 @@ class MarkovChain:
         self.states = states
         self.transitionMatrix = transition_matrix
         
-        # setting initial state
-        self.state = list(self.states.keys())[-1]               
+        self.state = list(self.states.keys())[-1]       # setting initial state           
         self.history = [self.state]                     # array to keep track of the history of states
 
 # ---------------------- Useful Methods  ----------------------       

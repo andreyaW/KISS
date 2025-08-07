@@ -4,32 +4,83 @@ Different types of ships (manned and unmanned) will inherit from this class.
 """
 
 from shipClass.System import System
+from shipClass.SensedComp import SensedComp
+from shipClass.Component import Component
 from utils.helperFunctions import SolveStructureFunction
 from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import xlsxwriter
+import ast
 
 class Ship:
 
-    def __init__(self, name, systems: list[System], parallels=None) -> None:
-        '''
-        param systems: A list of System objects representing the systems on the ship.
-        '''
+    def __init__(self, name, excel_file):
         self.name = name
-        self.systems = systems
-        self.parallels = parallels
-        self.n = len(self.systems)
-        self.nPar = len(parallels) if parallels is not None else 0
-        self.states = self.systems[0].states  # states of the ship (same as the states of the systems)
+        self.ship_data_file= excel_file
+        self.systems = self.initializeShipSystemsfromExcel()
 
-        self.sensedState = SolveStructureFunction(self.systems, parallels)  # sensed state of the ship
-        self.sensedHistory = [self.sensedState]
-        self.extendedSensedHistory = self.sensedHistory
+# ------------------------------- Initialization ------------------------
+    def initializeShipSystemsfromExcel(self):
 
-        self.state = SolveStructureFunction(self.systems, parallels, True)  # true state of the ship
-        self.history = [self.state]
-        self.extendedHistory = self.history
+        # read in data from excel file
+        excel_file = self.ship_data_file    
+        rel_data= pd.read_excel(excel_file, sheet_name = 'machinery reliability data')
+        sys_structure_data = pd.read_excel(excel_file, sheet_name='system structure data')
+
+        # go through each system and set it up according to the given structure
+        ship_systems = {}
+
+        for i, sys_struct in enumerate(sys_structure_data.Structure):
+            sys_struct = ast.literal_eval(sys_struct) # convert structure description from str to list
+            sys_comps = {}
+
+            for comp in sys_struct:
+                
+                # single component in series, can  easily
+                if type(comp) is int:
+
+                    # intialize it as a SensedComp
+                    comp_name = rel_data.Component[comp]
+                    comp_MTTF = rel_data.MTBF[comp]
+                    comp_MTTR = rel_data.MTTR[comp]
+                    sensed_comp = SensedComp(Component(comp_name, comp_MTTF, comp_MTTR))
+
+                    # add it directly to the dictionary of system comps
+                    sys_comps[comp_name] = sensed_comp
+
+                # if tuple, component is in parallel/ parallel set, check how it should be added
+                elif type(comp) is tuple:
+                    print('adding this functionality next')
+                    print('need to define sys parallels')
+
+            # add the system components to a system object
+            sys_name = sys_structure_data.System[i]
+            ship_systems[sys_name] = System(sys_name, list(sys_comps.values()))  
+        
+        return ship_systems
+
+
+    # def __init__(self, name, systems: list[System], parallels=None) -> None:
+    #     '''
+    #     param systems: A list of System objects representing the systems on the ship.
+    #     '''
+    #     self.name = name
+    #     self.systems = systems
+    #     self.parallels = parallels
+    #     self.n = len(self.systems)
+    #     self.nPar = len(parallels) if parallels is not None else 0
+    #     self.states = self.systems[0].states  # states of the ship (same as the states of the systems)
+
+    #     self.sensedState = SolveStructureFunction(self.systems, parallels)  # sensed state of the ship
+    #     self.sensedHistory = [self.sensedState]
+    #     self.extendedSensedHistory = self.sensedHistory
+
+    #     self.state = SolveStructureFunction(self.systems, parallels, True)  # true state of the ship
+    #     self.history = [self.state]
+    #     self.extendedHistory = self.history
+
 
 # ------------------------- Simulation Functions ----------------------     
 
@@ -53,6 +104,7 @@ class Ship:
             # Determine and store the true state of the ship
             self.state = SolveStructureFunction(self.systems, self.parallels, True)
             self.history.append(self.state)
+
 
 # ------------------------- Plotting Functions ----------------------     
         
@@ -142,3 +194,4 @@ class Ship:
 
                 # add the history of the system to the worksheet
                 self.systems[i].printHistory2Excel(filename, ws, False)
+
