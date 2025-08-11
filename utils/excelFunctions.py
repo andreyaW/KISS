@@ -1,4 +1,18 @@
+from wsgiref import headers
 from utils.helperFunctions import idx2letter
+
+def grabTruthData(system, i):
+    """
+    Grab the truth data from the system for a specific time step.
+    """
+    truth_data = [system.history[i]]  # start with the system state at time step i
+    for comp in system.comps:
+        try:
+            truth_data.append(comp.comp.history[i])
+        except AttributeError:
+            truth_data.append(comp.history[i])
+    return truth_data
+
 
 def headerFormat(workbook) -> None:
     """
@@ -174,3 +188,4 @@ def highlightParallels(workbook, worksheet, parallels, data_len, num_objects) ->
             worksheet.conditional_format(f'{col}2:{col}{last_row}',
                                         {'type': 'no_blanks',
                                          'format': workbook.add_format({'bg_color': list_of_colors[i]})})
+            

@@ -5,6 +5,7 @@ Different types of ships (manned and unmanned) will inherit from this class.
 
 from shipClass.System import System
 from shipClass.SensedComp import SensedComp
+from shipClass.SeriesSensedComps import SeriesSensedComps
 from shipClass.Component import Component
 from utils.helperFunctions import SolveStructureFunction
 from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
@@ -21,66 +22,103 @@ class Ship:
         self.ship_data_file= excel_file
         self.systems = self.initializeShipSystemsfromExcel()
 
+# ---------------------------Useful Functions ---------------------------
+    def print_comp_names(self, system_name = None):
+        if system_name is None:
+            for sys_name, sys in self.systems.items():
+                print(f"System: {sys_name}")
+                for comp in sys.comps:
+                    print(f"  Component {comp.name}")
+        else:
+            sys = self.systems.get(system_name)
+            if sys:
+                print(f"System: {system_name}")
+                for comp in sys.comps:
+                    print(f"  Component {comp.name}")
+
 # ------------------------------- Initialization ------------------------
-    def initializeShipSystemsfromExcel(self):
+    def initializeShipSystemsfromExcel(self, unmanned: bool = False):
 
         # read in data from excel file
         excel_file = self.ship_data_file    
-        rel_data= pd.read_excel(excel_file, sheet_name = 'machinery reliability data')
-        sys_structure_data = pd.read_excel(excel_file, sheet_name='system structure data')
-
+        rel_df= pd.read_excel(excel_file, sheet_name = 'machinery reliability data')
+        sys_structure_df = pd.read_excel(excel_file, sheet_name='system structure data')
+        sys_structure_df['Structure']= sys_structure_df['Structure'].apply(ast.literal_eval) # convert structure description from str to list
         # go through each system and set it up according to the given structure
         ship_systems = {}
-
-        for i, sys_struct in enumerate(sys_structure_data.Structure):
-            sys_struct = ast.literal_eval(sys_struct) # convert structure description from str to list
-            sys_comps = {}
+        sys_parallels = []
+        for i, sys_struct in enumerate(sys_structure_df.Structure):
+            # sys_struct = ast.literal_eval(sys_struct) # convert structure description from str to list
+            
+            sys_comps = []
 
             for comp in sys_struct:
-                
-                # single component in series, can  easily
+
+                # single component in series, added easily
                 if type(comp) is int:
 
                     # intialize it as a SensedComp
-                    comp_name = rel_data.Component[comp]
-                    comp_MTTF = rel_data.MTBF[comp]
-                    comp_MTTR = rel_data.MTTR[comp]
+                    comp_name = rel_df.Component[comp]
+                    comp_MTTF = rel_df.MTBF[comp]
+                    comp_MTTR = rel_df.MTTR[comp]
                     sensed_comp = SensedComp(Component(comp_name, comp_MTTF, comp_MTTR))
 
                     # add it directly to the dictionary of system comps
-                    sys_comps[comp_name] = sensed_comp
+                    sys_comps.append( sensed_comp )
 
-                # if tuple, component is in parallel/ parallel set, check how it should be added
+                # if tuple, component is in a parallel set, add it to the systems list of parallels before adding it to the system
                 elif type(comp) is tuple:
-                    print('adding this functionality next')
-                    print('need to define sys parallels')
+                    parallel_set = list(comp)
+                    print(f'Parallel set: {parallel_set}')
+
+                    # add the individual comps from the parallel sets to the system
+                    for j,idx in enumerate(parallel_set):
+                        
+                        # if the index in the tuple is an int, it is a single component
+                        if type(idx) is int: 
+                            comp_name = rel_df.Component[idx]
+                            comp_MTTF = rel_df.MTBF[idx]
+                            comp_MTTR = rel_df.MTTR[idx]
+                            sensed_comp = SensedComp(Component(comp_name, comp_MTTF, comp_MTTR))
+                            
+                            # add it directly to the dictionary of system comps
+                            sys_comps.append( sensed_comp)
+                            parallel_set[j] = sensed_comp 
+                    
+                        
+                        #if the index in the tuple is a list, it is a group of series components
+                        elif type(idx) is list: 
+                            series_set = idx
+                            series_set_comps = []
+                            print(series_set)
+
+                            for k,idx in enumerate(series_set):
+
+                                if type(idx) is int: # if the index is an int, it is a single component
+                                    comp_name = rel_df.Component[idx]
+                                    comp_MTTF = rel_df.MTBF[idx]
+                                    comp_MTTR = rel_df.MTTR[idx]
+                                    sensed_comp = SensedComp(Component(comp_name, comp_MTTF, comp_MTTR))
+                                    series_set_comps.append( sensed_comp )  # add the sensed component to the series set
+                                
+                            # define the series set as a seriesSensedComp
+                            series_set = SeriesSensedComps(components=series_set_comps)
+                            sys_comps.append( series_set )
+                            parallel_set[j] = series_set
+                   
+                    # replace parallel_set with their locations within the system
+                    parallel_set = tuple([sys_comps.index(comp)+1 for comp in parallel_set])
+                    sys_parallels.append(parallel_set) # add the index of the parallel set to the list of parallels for the system     
 
             # add the system components to a system object
-            sys_name = sys_structure_data.System[i]
-            ship_systems[sys_name] = System(sys_name, list(sys_comps.values()))  
-        
+            sys_name = sys_structure_df.System[i]
+            if sys_parallels == []:
+                ship_systems[sys_name] = System(sys_name, sys_comps, unmanned=unmanned)  
+            else: 
+                print(sys_parallels)
+                ship_systems[sys_name] = System(sys_name, sys_comps, sys_parallels, unmanned=unmanned)  
+
         return ship_systems
-
-
-    # def __init__(self, name, systems: list[System], parallels=None) -> None:
-    #     '''
-    #     param systems: A list of System objects representing the systems on the ship.
-    #     '''
-    #     self.name = name
-    #     self.systems = systems
-    #     self.parallels = parallels
-    #     self.n = len(self.systems)
-    #     self.nPar = len(parallels) if parallels is not None else 0
-    #     self.states = self.systems[0].states  # states of the ship (same as the states of the systems)
-
-    #     self.sensedState = SolveStructureFunction(self.systems, parallels)  # sensed state of the ship
-    #     self.sensedHistory = [self.sensedState]
-    #     self.extendedSensedHistory = self.sensedHistory
-
-    #     self.state = SolveStructureFunction(self.systems, parallels, True)  # true state of the ship
-    #     self.history = [self.state]
-    #     self.extendedHistory = self.history
-
 
 # ------------------------- Simulation Functions ----------------------     
 

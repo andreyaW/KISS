@@ -148,7 +148,7 @@ class SystemDiagram():
         # return locations
     
 
-    def drawConnections(self, system, compsize, spacing) -> None:
+    def drawConnections(self, system, compsize) -> None:
         """draws a connection between two boxes"""
         
         # define the connection points based on the locations of the components
@@ -160,8 +160,22 @@ class SystemDiagram():
                 for j in range(len(system.parallels)):
                     comp_idx = i+1
                     if comp_idx in system.parallels[j]:
-                        print("need to draw connection between parallel components")
-                        pass
+                                    
+                        x1,y1 = self.comp_locations[comp]   # get the x,y coordinates of the current component
+                        x1 = x1 + compsize                  # adjust the x coordinate to the right side of the box
+                        y1 = y1 + compsize/2                # adjust the y coordinate to the center of the box
+                        x2 = x1 + compsize/4                # draw half the spacing line
+                        plt.plot([x1, x2], [y1, y1], color='black', lw=2, linestyle='--')
+
+                        print("draw parallels goes here")
+
+                        # draw a vertical line connecting the components in the parallel group
+                        y_min = min([self.comp_locations[system.comps[k]][1] for k in system.parallels[j]])  # get the minimum y coordinate of the parallel group
+                        y_max = max([self.comp_locations[system.comps[k]][1] for k in system.parallels[j]])  # get the maximum y coordinate of the parallel group
+                        y_max = y_max + 3*compsize/2  # adjust the maximum y coordinate to the center of the box
+                        y_min = y_min + compsize/2  # adjust the minimum y coordinate to the center of the box
+                        plt.plot([x2, x2], [y_min, y_max], color='black', lw=2, linestyle='--')
+
                     else:
                         # if index is not in any parallel groups, draw a straight line to the next component
                         self.drawSeriesConnections(system, comp, compsize, i)
@@ -183,7 +197,16 @@ class SystemDiagram():
             y1, y2 = y1 + compsize/2, y2 + compsize/2
             plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
 
-    
+
+    def drawParallelConnections(self, system, comp, compsize, i, j) -> None: 
+        # get the x,y coordinates of the current component
+        x1, y1 = self.comp_locations[comp]
+        x2, y2 = self.comp_locations[system.comps[i+1]]
+        x1 = x1 + compsize
+        # y1, y2 = y1 + compsize/4, y2 + compsize/4
+
+        # plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
+
     def displayDiagram(self): 
         """final touches then displays the diagram"""
         

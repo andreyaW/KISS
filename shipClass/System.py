@@ -1,7 +1,7 @@
 from shipClass.SensedComp import SensedComp
 from utils.helperFunctions import SolveStructureFunction, set_x_ticks
 from utils.SystemDiagram import SystemDiagram
-from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
+from utils.excelFunctions import grabTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 import matplotlib.pyplot as plt
 import xlsxwriter
 
@@ -15,18 +15,17 @@ class System():
         self.parallels = parallels
         self.initializeSystem(unmanned)
         
-        # self.states = self.comps[0].comp.states
-        # self.n = len(self.comps)                                         # number of total components in the system
-        # self.nPar = len(self.parallels) if parallels is not None else 0  # number of parallel components in the system
         # # self.unmanned = unmanned
 
         
 
   # ---------------------- Simulation Functions ----------------------  
     def initializeSystem(self, unmanned): 
+        """ Initialize the system and its components """
         
         for sc in self.comps: 
-            sc.initializeSensedComp()
+            if type(sc) is SensedComp:
+                sc.initializeSensedComp()
 
         # true state of the system
         self.state = SolveStructureFunction(self.comps, self.parallels)  
@@ -44,6 +43,11 @@ class System():
         self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]
 
+
+        # define the states of the system based on the components
+        self.states = self.comps[0].comp.states if type(self.comps[0]) is SensedComp else self.comps[0].states  # Assuming all components have the same states
+        self.n = len(self.comps)                                         # number of total components in the system
+        self.nPar = len(self.parallels) if self.parallels is not None else 0  # number of parallel components in the system
 
     def simulate(self, number_of_steps: int = 1) -> None:
         """ Simulate the system (uses simulate() from SensedComp class) """
@@ -81,18 +85,33 @@ class System():
         # if all components are in the working state, return false
         return False   
 
-# ---------------------- Plotting Functions ----------------------  
+# ---------------------- Visualization Functions ----------------------  
+    
+    def check4DuplicateNames(self):
+        """ Check for duplicate component names, and update the duplicates to have unique names """
+        seen = set()
+        for comp in self.comps:
+            if comp.name in seen:
+                # update this component to have a number
+                i = 1
+                new_name = f"{comp.name} {i+1}"
+                while new_name in seen:
+                    i += 1
+                    new_name = f"{comp.name} {i+1}"
+                comp.name = new_name
+            seen.add(comp.name)
+             
 
     def outputSystemStates(self):
         ''' output the states of the system '''
         
         # Print the header
-        print("{:<10} {:<5} {:<10}".format("Component", "State", "Sensed State"))
+        print("{:<15} {:<10} {:<10}".format("Component", "State", "Sensed State"))
         
         # Print the states of each component
         for i, comp in enumerate(self.comps):
-            print("{:<10} {:<5} {:<10}".format(comp.name, comp.state, comp.sensedState))        
-        print("{:<10} {:<5} {:<10}".format(self.name, self.state, self.sensedState))        
+            print("{:<15} {:<10} {:<10}".format(comp.name, comp.state, comp.sensedState))
+        print("{:<15} {:<10} {:<10}".format(self.name, self.state, self.sensedState))
         
 
     def plotHistory(self, plot_comp_history: bool = False) -> None:
@@ -152,12 +171,12 @@ class System():
             x,y = sys_diagram.comp_locations[comp]
             sys_diagram.drawComp(comp, x, y, comp_size)
         
-        sys_diagram.drawConnections(self,comp_size, spacing)   # draw connections between series and parallel components
+        sys_diagram.drawConnections(self,comp_size)   # draw connections between series and parallel components
             
         # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
         sys_diagram.displayDiagram()      # display the diagram
 
-# ---------------------- Excel Functions ----------------------
+# ---------------------- Data Tracking Functions ----------------------
     def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
         """ Print the history of the system and its sensed components to an excel file """
 
@@ -165,7 +184,9 @@ class System():
         truth_col =2
         sensed_col = 3 + self.n
         f1_col = 4 + self.n*2
-                
+        
+        self.check4DuplicateNames()  # check for duplicate component names and update them to be unique
+
         # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
 
@@ -181,7 +202,8 @@ class System():
                 addTimeSteps(workbook, worksheet, i)
 
                 # add truth states of the system and each sensed component to the row           
-                truth_data = [self.history[i]] + [self.comps[j].comp.history[i] for j in range(self.n)]
+                truth_data = grabTruthData(self, i)
+                
                 if i == 0: 
                     sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + 'Truth State' for comp in self.comps]
                     addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
@@ -214,3 +236,4 @@ class System():
 
                     # add the history of the component to the worksheet
                     self.comps[i].printHistory2Excel(filename, worksheet=ws)
+

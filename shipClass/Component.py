@@ -1,10 +1,12 @@
 from shipClass.MarkovChain import MarkovChain
 import numpy as np
 
+
 class Component(MarkovChain):
+    i = 0   # class variable to keep track of component instances
 
     def __init__(self, 
-                 name: str, 
+                 name: str=f"Component_{i}", 
                  MTTF:float=50,
                  MTTR = 'NR',
                  states: dict[int: str] = {0 : 'failed', 1: 'working'})-> None:      
@@ -12,7 +14,7 @@ class Component(MarkovChain):
                 #                                            [0.02, 0.98]]
                 
         """ Initialize the component as a Markov Chain object """
-
+        
         # inheriting from MarkovChain class 
         # (super() holds self.state, self.history, and simulate(), plotHistory() and other methods)
         self.MTTF = MTTF
@@ -20,7 +22,8 @@ class Component(MarkovChain):
         self.states = states
         self.name = name 
 
-        
+        # increment the class variable i to keep track of component instances
+        Component.i += 1
 
 # ---------------------- Reliability Modelling ----------------------           
 
@@ -46,9 +49,12 @@ class Component(MarkovChain):
         transition_matrix = np.array([[1-repair_rate, repair_rate], [fail_rate, 1-fail_rate]])
         return transition_matrix
         
+
     def initialize(self, unmanned:bool = False):
             self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
             super().__init__(self.states, self.transition_matrix) 
+
+
 
 
 # ----------------------------------- Useful Functions ------------------
@@ -72,61 +78,6 @@ class Component(MarkovChain):
 
 
 
-
-
-
-
-'''
- def createWeibullLikeTransitionMatrix(self, beta=1.0, step_size=1, tolerance=1e-2):
-        """
-        Create a degradation-based Markov transition matrix with Weibull-like hazard
-        and calibrated to match the given MTTF.
-        """
-
-        MTTF = self.MTTF
-        n_states = len(self.states)
-        num_transient = n_states - 1  # All except failed state (state 0)
-
-        # Precompute weights
-        weights = np.array([i ** (beta - 1) for i in range(1, n_states)])
-
-        def build_matrix(base_p):
-            T = np.zeros((n_states, n_states))
-            T[0, 0] = 1.0  # failed state absorbing
-            for i in range(1, n_states):
-                p = base_p * weights[i - 1]
-                p = min(p, 1.0)
-                T[i, i - 1] = p
-                T[i, i] = 1 - p
-            return T
-
-        def expected_time_to_failure(T):
-            Q = T[1:, 1:]  # exclude absorbing state
-            I = np.eye(num_transient)
-            N = np.linalg.inv(I - Q)  # fundamental matrix
-            t = N @ np.ones((num_transient, 1))
-            return t[-1, 0] * step_size  # assume starting from healthiest state
-
-        # Binary search to calibrate base_p
-        low, high = 1e-6, 1.0
-        best_p = None
-        for _ in range(100):
-            mid = (low + high) / 2
-            T = build_matrix(mid)
-            etf = expected_time_to_failure(T)
-            if abs(etf - MTTF) < tolerance:
-                best_p = mid
-                break
-            elif etf > MTTF:
-                low = mid
-            else:
-                high = mid
-
-        if best_p is None:
-            best_p = mid  # best guess
-
-        return build_matrix(best_p)
-'''
 
 
 '''

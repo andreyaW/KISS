@@ -16,17 +16,28 @@ class unmannedShip(Ship):
         '''
         param systems: A list of System objects representing the systems on the ship.
         '''
-        super.vesselType = "unmanned"
+        self.unmanned = False # This ship is manned
+        super().__init_subclass__(unmanned=self.unmanned) # initialize the ship and its systems as unmanned
 
-        # super.__init_subclass__()
-        
-    def conductPM(self, timeStep)-> None:
-        '''
-        This method conducts periodic maintenance on the ship's systems.
-        It iterates through each system and performs maintenance actions as needed.
-        '''
-        # Conduct periodic maintenance on each system
-        for sys in self.vessel.systems:
-            periodicMaintenance(sys)
+
+
+
+
+
+
+
+
+
+
+
+
+    # def conductPM(self, timeStep)-> None:
+    #     '''
+    #     This method conducts periodic maintenance on the ship's systems.
+    #     It iterates through each system and performs maintenance actions as needed.
+    #     '''
+    #     # Conduct periodic maintenance on each system
+    #     for sys in self.vessel.systems:
+    #         periodicMaintenance(sys)
 
         

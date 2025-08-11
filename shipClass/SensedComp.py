@@ -11,7 +11,7 @@ class SensedComp():
 
     """ Sensed component class that inherits from Component and Sensor classes """
         
-    def __init__(self, comp: Component,   
+    def __init__(self, comp: Component= Component(),   
                  sensor_states: dict[int: str] = {0: 'Failed', 
                                                   1: 'Working'}, 
                  sensor_transition_matrix: list[list[float]] = [[1, 0],
@@ -23,7 +23,9 @@ class SensedComp():
         
         # initialize the component object
         self.comp = comp
-        self.name = 'Sensed ' + comp.name.capitalize()            
+        # self.name = 'Sensed ' + comp.name.capitalize()            
+        self.name = comp.name.capitalize()            
+
 
         # initialize the sensors and attach them to the component
         self.n = num_sensors 

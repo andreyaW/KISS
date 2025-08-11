@@ -6,10 +6,12 @@ from shipClass.Ship import Ship
 
 class mannedShip(Ship):
 
-    def __init__(self) -> None:
+    def __init__(self)-> None:
         '''
         param systems: A list of System objects representing the systems on the ship.
         '''
-        unmanned = False
+        self.unmanned = False # This ship is manned
+        super().__init_subclass__(unmanned=self.unmanned) # initialize the ship and its systems as unmanned
 
-                
+
+    
