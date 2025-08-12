@@ -46,7 +46,6 @@ class SystemDiagram():
         self.adjustAxes(x,y, box_size)
 
 
-
     def drawComp(self, comp, x, y, box_size = 2) -> None:
         """draws a component at the given coordinates"""
         
@@ -151,44 +150,42 @@ class SystemDiagram():
     def drawConnections(self, system, compsize) -> None:
         """draws a connection between two boxes"""
         
-        # define the connection points based on the locations of the components
-        for i, comp in enumerate(self.comp_locations.keys()):
-            
-            if system.parallels != None:
+        # determine if what indices, if any are in parallel
+        all_parallel_idx = []
+        if system.parallels == None : 
+            pass
+        else: 
+            for parallel_set in system.parallels: 
+                all_parallel_idx += [i-1 for i in parallel_set]
+        
+        # draw parallel connections first
+        if system.parallels != None:
+            # draw parallel connections first
+            for parallel_set in system.parallels: # go through each parallel group
+                self.drawParallelConnections(system, parallel_set, compsize, all_parallel_idx)
 
-                # draw connections between components in parallel groups
-                for j in range(len(system.parallels)):
-                    comp_idx = i+1
-                    if comp_idx in system.parallels[j]:
-                                    
-                        x1,y1 = self.comp_locations[comp]   # get the x,y coordinates of the current component
-                        x1 = x1 + compsize                  # adjust the x coordinate to the right side of the box
-                        y1 = y1 + compsize/2                # adjust the y coordinate to the center of the box
-                        x2 = x1 + compsize/4                # draw half the spacing line
-                        plt.plot([x1, x2], [y1, y1], color='black', lw=2, linestyle='--')
-
-                        print("draw parallels goes here")
-
-                        # draw a vertical line connecting the components in the parallel group
-                        y_min = min([self.comp_locations[system.comps[k]][1] for k in system.parallels[j]])  # get the minimum y coordinate of the parallel group
-                        y_max = max([self.comp_locations[system.comps[k]][1] for k in system.parallels[j]])  # get the maximum y coordinate of the parallel group
-                        y_max = y_max + 3*compsize/2  # adjust the maximum y coordinate to the center of the box
-                        y_min = y_min + compsize/2  # adjust the minimum y coordinate to the center of the box
-                        plt.plot([x2, x2], [y_min, y_max], color='black', lw=2, linestyle='--')
-
-                    else:
-                        # if index is not in any parallel groups, draw a straight line to the next component
-                        self.drawSeriesConnections(system, comp, compsize, i)
-
-            else:
+        # draw all series connections second
+        for i, comp in enumerate(system.comps):
+            if i not in all_parallel_idx:
                 # draw connections between components in series
-                self.drawSeriesConnections(system, comp, compsize, i)
+                self.drawSeriesConnections(system, comp, compsize, i, all_parallel_idx)
+
                 
 
-    def drawSeriesConnections(self, system, comp, compsize, i) -> None:
+    def drawSeriesConnections(self, system, comp, compsize, i, all_parallel_idx) -> None:
         # get the x,y coordinates of the current component
-        if i == len(system.comps) - 1:
+        if comp == system.comps[-1]:
             pass
+
+        elif i+1 in all_parallel_idx:
+            # if the next component is in a parallel set: 
+            x1, y1 = self.comp_locations[comp]
+            x2= self.comp_locations[system.comps[i+1]][0] - compsize/4
+            # y2= compsize/2
+            x1 = x1 + compsize
+            y1 = y1 + compsize/2
+            plt.plot([x1, x2], [y1, compsize/2], color='black', lw=2, linestyle='--')
+
         else:
             # if the current component is not the last one, draw a line to the next component
             x1, y1 = self.comp_locations[comp]
@@ -198,14 +195,49 @@ class SystemDiagram():
             plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
 
 
-    def drawParallelConnections(self, system, comp, compsize, i, j) -> None: 
-        # get the x,y coordinates of the current component
-        x1, y1 = self.comp_locations[comp]
-        x2, y2 = self.comp_locations[system.comps[i+1]]
-        x1 = x1 + compsize
-        # y1, y2 = y1 + compsize/4, y2 + compsize/4
+    def drawParallelConnections(self, system, parallel_set, compsize, all_parallel_idx) -> None: 
 
-        # plt.plot([x1, x2], [y1, y2], color='black', lw=2, linestyle='--')
+        # replace the idx values with the components 
+        next_comp_idx = max(parallel_set)
+        parallel_set = [system.comps[j-1] for j in parallel_set]
+
+        # draw each components connection on the left
+        y_min = 0 
+        y_max = 0
+        for comp in parallel_set : 
+
+            # draw right side connecitons
+            x1,y1 = self.comp_locations[comp]   # get the x,y coordinates of the current component
+            x1 = x1 + compsize                  # adjust the x coordinate to the right side of the box
+            y1 = y1 + compsize/2                # adjust the y coordinate to the center of the box
+            x2 = x1 + compsize/4                
+            plt.plot([x1, x2], [y1, y1], color='black', lw=2, linestyle='--')   # draw half the spacing line
+
+            # check if this is the lowest or highest component vertically
+            y_max = max(y_max, y1)
+            y_min = min(y_min, y1)
+
+        # plot the vertical connection between the parallel parts and a horizontal line across on right
+        plt.plot([x2, x2], [y_min, y_max], color='black', lw=2, linestyle='--')
+        
+        # if the comp is not the last in the system draw the connection to the right
+        if system.comps[-1] in parallel_set: 
+            pass 
+        elif next_comp_idx in all_parallel_idx:
+            pass
+        else: 
+            plt.plot([x2, x2+compsize/4], [compsize/2, compsize/2], color='black', lw=2, linestyle='--')
+
+        # draw left side connections
+        for comp in parallel_set : 
+            x1,y1 = self.comp_locations[comp]   # get the x,y coordinates of the current component
+            x2=  x1 - compsize/4                # adjust the x coordinate to the right side of the box
+            y1 = y1 + compsize/2                # adjust the y coordinate to the center of the box
+            plt.plot([x1, x2], [y1, y1], color='black', lw=2, linestyle='--')   # draw half the spacing line
+
+        # plot the vertical connection between the parallel parts and a horizontal line across
+        plt.plot([x2, x2], [y_min, y_max], color='black', lw=2, linestyle='--')
+    
 
     def displayDiagram(self): 
         """final touches then displays the diagram"""
