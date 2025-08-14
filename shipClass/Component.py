@@ -48,7 +48,33 @@ class Component(MarkovChain):
         # set up transition matrix up and return it
         transition_matrix = np.array([[1-repair_rate, repair_rate], [fail_rate, 1-fail_rate]])
         return transition_matrix
+
+
+
+
+
+    def defineThreeStateMatrix(self, repairable: bool = False):
+        """ sets up a transition matrix for the component which considers it in one of three states, working, minor failure, or major failure"""
         
+        # determine the failure rate of the component from the MTTF
+        failure_rate = 1/self.MTTF
+
+        # determine the failure rate for minor and major failures
+        minor_fail_prob = failure_rate * np.random.rand()    # some probability that the fail is minor
+        major_fail_prob = failure_rate - minor_fail_prob        # some probability that the failure is major
+       
+        # setup the transition matrix (assuming no repairabilty)
+        transition_matrix = np.zeros((3,3)) 
+        transition_matrix[0,0] = 1      # major fialure is an absorbing state
+        transition_matrix[1,0] = failure_rate   
+        transition_matrix[1,1] = 1-failure_rate
+        transition_matrix[2,0] = major_fail_prob
+        transition_matrix[2,1] = minor_fail_prob
+        transition_matrix[2,2] = 1- failure_rate
+    
+        self.transition_matrix = transition_matrix
+        super().__init__(self.states, self.transition_matrix) 
+
 
     def initialize(self, unmanned:bool = False):
             self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
