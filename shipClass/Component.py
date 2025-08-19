@@ -3,45 +3,48 @@ import numpy as np
 
 
 class Component(MarkovChain):
-    i = 0   # class variable to keep track of component instances
+    # i = 0   # class variable to keep track of component instances
 
     def __init__(self, 
-                 name: str=f"Component_{i}", 
+                 name: str=f"Component", 
                  MTTF:float=50,
                  MTTR = 'NR',
-                 states: dict[int: str] = {0 : 'failed', 1: 'working'})-> None:      
-                # comp_transition_matrix: list[list[float]]=[[1.0, 0.0], 
-                #                                            [0.02, 0.98]]
-                
-        """ Initialize the component as a Markov Chain object """
-        
-        # inheriting from MarkovChain class 
-        # (super() holds self.state, self.history, and simulate(), plotHistory() and other methods)
+                 states: dict[int: str] = {0 : 'major failure', 1: 'minor failure/alert', 2: 'working'})-> None:      
+
+        """ Three-state component model: 0=major failure, 1=minor failure/alert, 2=working. Non-repairable by default 
+
+            Parameters
+            ----------
+            name: str
+                The name of the component.
+            MTTF: float
+                Mean Time To Failure for the component.
+            MTTR: float or str
+                Mean Time To Repair for the component (can be non-repairable).
+            states: dict[int: str]
+                Mapping of state indices to state names.
+        """
         self.MTTF = MTTF
         self.MTTR = MTTR    # can be a float or a string (NR = non-repairable)
         self.states = states
         self.name = name 
 
+        # (super() holds self.state, self.history, and simulate(), plotHistory() and other methods)
+
         # increment the class variable i to keep track of component instances
-        Component.i += 1
+        # Component.i += 1
 
 # ---------------------- Reliability Modelling ----------------------           
 
-    def defineTwoStateTransitionMatrix(self, unmanned: bool = False):
+    def defineTwoStateTransitionMatrix(self, repairable: bool = False):
         
-        # grab the failure and repair rates
+        # determine the failure rate of the component from the MTTF
         fail_rate = 1/self.MTTF
 
-        # check 1: is the vessel unmanned?
-        if unmanned: 
-            repair_rate = 0  # i.e. failure  is an absorbing state, 
-                             # maintenance can only be done during port or when people board the ship or in dock
-        
-        # check 2: can the component be repaired? 
-        elif type(self.MTTR) is str: 
+        # check: can the component be repaired / is vessel unmanned? 
+        if repairable is False : 
             repair_rate = 0  # i.e. failure is an absorbing state 
                              # component cannot be repaired, it must be completly replaced since it is non-repairable
-
         else:
             repair_rate = 1/ self.MTTR  # component is repairable and will repair (assumes people are onboard)
 
@@ -51,60 +54,66 @@ class Component(MarkovChain):
 
 
 
-
-
     def defineThreeStateMatrix(self, repairable: bool = False):
         """ sets up a transition matrix for the component which considers it in one of three states, working, minor failure, or major failure"""
-        
         # determine the failure rate of the component from the MTTF
-        failure_rate = 1/self.MTTF
+        lambda_ = 1/self.MTTF # failure rate
 
-        # determine the failure rate for minor and major failures
-        minor_fail_prob = failure_rate * np.random.rand()    # some probability that the fail is minor
-        major_fail_prob = failure_rate - minor_fail_prob        # some probability that the failure is major
-       
-        # setup the transition matrix (assuming no repairabilty)
+        # establish a minor and major failure rate schocastically
+        lambda_d = lambda_ * np.random.rand()    # some probability that the fail is minor
+        lambda_f = lambda_ - lambda_d            # some probability that the failure is major
+
+        # check: can the component be repaired / is vessel unmanned? 
+        if repairable is False:
+            repair_rate = 0
+        else: 
+            repair_rate = 1/self.MTTR    # component is repairable and will repair (assumes people are onboard)        
+        
+        # setup the transition matrix 
         transition_matrix = np.zeros((3,3)) 
-        transition_matrix[0,0] = 1      # major fialure is an absorbing state
-        transition_matrix[1,0] = failure_rate   
-        transition_matrix[1,1] = 1-failure_rate
-        transition_matrix[2,0] = major_fail_prob
-        transition_matrix[2,1] = minor_fail_prob
-        transition_matrix[2,2] = 1- failure_rate
-    
-        self.transition_matrix = transition_matrix
-        super().__init__(self.states, self.transition_matrix) 
+        transition_matrix[0,0] = 1      # major failure is an absorbing state
+        transition_matrix[1,1] = 1
+        transition_matrix[2,0] = lambda_f
+        transition_matrix[2,1] = lambda_d
+        transition_matrix[2,2] = 1- lambda_
+
+        return transition_matrix
 
 
-    def initialize(self, unmanned:bool = False):
-            self.transition_matrix = self.defineTwoStateTransitionMatrix(unmanned) # (all repair rates = 0 if unmanned = True)
+    def initialize(self, repairable:bool = False):
+            num_states = len(self.states)
+            if num_states == 3:
+                self.transition_matrix = self.defineThreeStateMatrix(repairable)
+            else:
+                self.transition_matrix = self.defineTwoStateTransitionMatrix(repairable) # (all repair rates = 0 if unmanned = True)
+            
+            # inheriting from MarkovChain class 
             super().__init__(self.states, self.transition_matrix) 
-
-
 
 
 # ----------------------------------- Useful Functions ------------------
 
-    def grabFailureTime(self):
-        """ from the component history, determine when the component failed,
-            return None if not failed"""
+    # def grabFailureTime(self):
+    #     """ from the component history, determine when the component failed,
+    #         return None if not failed"""
         
-        failure_state = list(self.states.keys())[0]
+    #     failure_state = list(self.states.keys())[0]
 
-        try: 
-            failure_time= self.history.index(failure_state)
-        except ValueError:
-            print(f"Component {self.name} has not failed yet.")
-            failure_time="not failed"
+    #     try: 
+    #         failure_time= self.history.index(failure_state)
+    #     except ValueError:
+    #         print(f"Component {self.name} has not failed yet.")
+    #         failure_time="not failed"
         
-        return failure_time
+    #     return failure_time
     
-
-
-
-
-
-
+    def grabFailureTime(self):
+        """ from the component history, determine when the component transitions from a working state"""
+        working_state = list(self.states.keys())[-1]
+        for i,state in enumerate(self.history):
+            if state < working_state:
+                return i
+        return None
 
 '''
     def createWeibullLikeTransitionMatrix(self, beta=2.0, step_size=1):

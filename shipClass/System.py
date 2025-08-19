@@ -35,15 +35,6 @@ class System():
         self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
         self.sensedHistory = [self.sensedState]
         
-        # true state of the system
-        self.state = SolveStructureFunction(self.comps, self.parallels)  
-        self.history = [self.state]  
-        
-        # sensed state of the system
-        self.sensedState = SolveStructureFunction(self.comps, self.parallels)  
-        self.sensedHistory = [self.sensedState]
-
-
         # define the states of the system based on the components
         self.states = self.comps[0].comp.states if type(self.comps[0]) is SensedComp else self.comps[0].states  # Assuming all components have the same states
         self.n = len(self.comps)                                         # number of total components in the system
@@ -123,9 +114,9 @@ class System():
         
         # Plot the true and sensed history of the system
         ax.plot(self.history, marker=',', label='Truth')
-        ax.plot(self.sensedHistory, marker=',', label='Sensed')
+        # ax.plot(self.sensedHistory, marker=',', label='Sensed')
         
-        ax.set_title('Sensed System History')
+        # ax.set_title('Sensed System History')
         ax.set_ylabel('State')
         ax.set_yticks(list(self.states.keys()))  
         ax.set_yticklabels(list(self.states.values()))
@@ -139,11 +130,11 @@ class System():
                   fancybox=True, shadow=True, ncol=5)
         
         # add a marker for unsensed failures
-        for i in range(len(self.history)):
-            if self.history[i] != self.sensedHistory[i]:
-                ax.plot(i, self.sensedHistory[i], marker='x',  color='red', markersize=10, label="Unsensed Failure")
-                break
-        
+            # for i in range(len(self.history)):
+            #     if self.history[i] != self.sensedHistory[i]:
+            #         ax.plot(i, self.sensedHistory[i], marker='x',  color='red', markersize=10, label="Unsensed Failure")
+            #         break
+            
         # If bool is true, plot the history of each component on additonal subplots
         if plot_comp_history:
             for i, comp in enumerate(self.comps):

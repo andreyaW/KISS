@@ -42,16 +42,16 @@ def getStates(list_of_objs, bool = False) -> list:
     
     states = []  # list to store all states       
     
-    # if bool is True, get the TRUE states of the objects
+    # if bool is True, get the SENSED states of the objects
     if bool: 
         for i, obj in enumerate(list_of_objs):
-            states.append(obj.state)   
+            states.append(obj.sensedState)   
         return states
     
-    # if bool is False, get the SENSED states of the components 
+    # if bool is False, get the TRUE states of the components 
     else: 
         for i,obj in enumerate(list_of_objs):
-            states.append(obj.sensedState)         
+            states.append(obj.state)         
         return states
 
 
