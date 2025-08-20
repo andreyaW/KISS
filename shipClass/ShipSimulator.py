@@ -2,7 +2,7 @@
 This class is used to simulate a ship object subject to degradation over time and maintenance actions.
 """
 
-from shipClass.Ship import Ship
+from shipClass.old_Model.Ship_old import Ship
 from shipClass.unmannedShip import unmannedShip
 from shipClass.mannedShip import mannedShip
 

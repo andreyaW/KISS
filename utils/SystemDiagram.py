@@ -31,68 +31,6 @@ class SystemDiagram():
         self.comp_locations = {}  # dictionary to store the locations of the components in the system
 
 # ---- functions to draw the system on the axis ----
-    def drawBox(self, x:float = 0 ,y:float = 0, box_size = 1) -> None:
-        """draws a square box at the given coordinates"""
-
-        # grab the current axis if not provided
-        ax = self.ax
-
-        # draw a box at the given coordinates
-        plt.gca().add_patch(Rectangle((x, y), box_size, box_size, fill=None, edgecolor='black', lw=2))
-
-        # adjust the axes to accommodate the new box
-        self.drawing_width = self.drawing_width + box_size + 1
-        self.drawing_height = self.drawing_height + box_size
-        self.adjustAxes(x,y, box_size)
-
-
-    def drawComp(self, comp, x, y, box_size = 2) -> None:
-        """draws a component at the given coordinates"""
-        
-        # draw a box at the given coordinates
-        self.drawBox(x, y, box_size)
-    
-        # add comp name to the box 
-        text = comp.name
-        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
-        self.ax.text(x + (box_size / 2), 
-                        (y + 2*box_size / 3), 
-                        wrapped_text, 
-                        ha='center', va='center', fontsize=fontsize, color='black')
-
-        # add comp true state to the box
-        if comp.state == max(list(comp.comp.states)):
-            state_color = "green"
-        elif comp.state != 0: 
-            state_color = "blue"
-        if comp.state == 0:
-            state_color = "red"
-        comp_state = comp.comp.states[comp.state]  # get the state of the component
-        text = f"Truth: {comp_state}"
-        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
-        self.ax.text(x + (box_size / 2), 
-                        (y + box_size / 3), 
-                        wrapped_text, 
-                        ha='center', va='center', fontsize=fontsize, color=state_color)
-
-        # add comp sensed state to the box
-        if comp.sensedState == max(list(comp.comp.states)):
-            sensed_state_color = "green"
-        elif comp.sensedState != 0:
-            sensed_state_color = "blue"
-        if comp.sensedState == 0:
-            sensed_state_color = "red"
-        
-        comp_sensed_state = comp.comp.states[comp.sensedState]  # get the state of the component
-        text = f"Sensed: {comp_sensed_state}"
-        wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
-        self.ax.text(x + (box_size / 2),
-                    (y + box_size / 3) - 0.25, 
-                    wrapped_text, 
-                    ha='center', va='center', fontsize=fontsize, color=sensed_state_color)
-                     
-
-
     def defineLocations(self, system, compsize = 2, spacing=1) -> dict:
         """ defines a x,y tuple for each component in the system"""
         
@@ -100,7 +38,7 @@ class SystemDiagram():
         locations = {}
         x = 0           # initial x coordinate of the first component
         for i, comp in enumerate(system.comps):
-            
+
             # if there are parallels, their locations are defined more specifically
             if system.parallels != None: 
                 
@@ -109,7 +47,6 @@ class SystemDiagram():
                     comp_idx = i+1
                     if comp_idx in system.parallels[j]:
                         # if the component is in a parallel group, set the x coordinate to be the same as the first component in the group
-                        # print(f"{comp.name} is in parallel group {j+1}")
                         
                         # define the x coordinate of the first component in the group
                         if comp_idx == system.parallels[j][0]:
@@ -146,6 +83,80 @@ class SystemDiagram():
         self.comp_locations = locations  # store the locations of the components in the system
         # return locations
     
+    
+    def drawBox(self, x:float = 0 ,y:float = 0, box_size = 1) -> None:
+        """draws a square box at the given coordinates"""
+
+        # grab the current axis if not provided
+        ax = self.ax
+
+        # draw a box at the given coordinates
+        plt.gca().add_patch(Rectangle((x, y), box_size, box_size, fill=None, edgecolor='black', lw=2))
+
+        # adjust the axes to accommodate the new box
+        self.drawing_width = self.drawing_width + box_size + 1
+        self.drawing_height = self.drawing_height + box_size
+        self.adjustAxes(x,y, box_size)
+
+
+    def drawComp(self, comp, x, y, box_size = 2) -> None:
+        """draws a component at the given coordinates"""
+        
+        # draw a box at the given coordinates
+        self.drawBox(x, y, box_size)
+    
+        # add comp name to the box 
+        name = comp.name
+        wrapped_text, fontsize= wrap_text_in_box(self.ax, name, box_size, self.xlims, self.ylims)
+        self.ax.text(x + (box_size / 2), 
+                        (y + 2*box_size / 3), 
+                        wrapped_text, 
+                        ha='center', va='center', fontsize=fontsize, color='black')
+
+        # add the component's state information
+        self.addState2Box(comp, box_size, x, y)
+
+    def addState2Box(self, comp, box_size, x, y, truth: bool = True) -> None:
+        if truth:
+            # add comp true state to the box
+            comp_state = comp.state  # get the state of the component
+            if comp_state == max(list(comp.states)):
+                state_color = "green"
+            elif comp_state != 0: 
+                state_color = "blue"
+            if comp_state == 0:
+                state_color = "red"
+            wrapped_text, fontsize= wrap_text_in_box(self.ax, f"Truth: {comp.states[comp_state]}", box_size, self.xlims, self.ylims)
+            self.ax.text(x + (box_size / 2), (y + box_size / 3), wrapped_text, 
+                            ha='center', va='center', fontsize=fontsize, color=state_color)
+        else: 
+            # add comp sensed state to the box
+            pass
+            # if comp.sensedState == max(list(comp.comp.states)):
+            #     sensed_state_color = "green"
+            # elif comp.sensedState != 0:
+            #     sensed_state_color = "blue"
+            # if comp.sensedState == 0:
+            #     sensed_state_color = "red"
+            
+            # comp_sensed_state = comp.comp.states[comp.sensedState]  # get the state of the component
+            # text = f"Sensed: {comp_sensed_state}"
+            # wrapped_text, fontsize= wrap_text_in_box(self.ax, text, box_size, self.xlims, self.ylims)
+            # self.ax.text(x + (box_size / 2),
+            #             (y + box_size / 3) - 0.25, 
+            #             wrapped_text, 
+            #             ha='center', va='center', fontsize=fontsize, color=sensed_state_color)
+
+
+    def drawSeriesComps(self, seriesComp, x,y) -> None:  
+        """ draws a series comp object """
+        seriesComp.drawSys(self.ax, x, y)
+
+        # update the locations to reflect the space the series comp took up
+        # self.comp_locations[seriesComp] = (x, y)
+        # x += 2  # move x to the right for the next component
+        # self.drawing_width = max(self.drawing_width, x)
+        # self.drawing_height = max(self.drawing_height, y + 2)
 
     def drawConnections(self, system, compsize) -> None:
         """draws a connection between two boxes"""
@@ -171,7 +182,6 @@ class SystemDiagram():
                 self.drawSeriesConnections(system, comp, compsize, i, all_parallel_idx)
 
                 
-
     def drawSeriesConnections(self, system, comp, compsize, i, all_parallel_idx) -> None:
         # get the x,y coordinates of the current component
         if comp == system.comps[-1]:
@@ -240,7 +250,7 @@ class SystemDiagram():
     
 
     def displayDiagram(self): 
-        """final touches then displays the diagram"""
+        """final touches before displaying the diagram"""
         
         # remove the axes for better visualization
         self.ax.axis('off')

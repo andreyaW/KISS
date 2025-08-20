@@ -37,25 +37,32 @@ def find_mode(data):
     return modes[0] # If there are multiple modes, return the first only
 
 
-def getStates(list_of_objs, bool = False) -> list:     
-    """gets the states of the systems components """
+# def getStates(list_of_objs, bool = False) -> list:     
+#     """gets the states of the systems components """
     
-    states = []  # list to store all states       
+#     states = []  # list to store all states       
     
-    # if bool is True, get the SENSED states of the objects
-    if bool: 
-        for i, obj in enumerate(list_of_objs):
-            states.append(obj.sensedState)   
-        return states
+#     # if bool is True, get the SENSED states of the objects
+#     if bool: 
+#         for i, obj in enumerate(list_of_objs):
+#             states.append(obj.sensedState)   
+#         return states
     
-    # if bool is False, get the TRUE states of the components 
-    else: 
-        for i,obj in enumerate(list_of_objs):
-            states.append(obj.state)         
-        return states
+#     # if bool is False, get the TRUE states of the components 
+#     else: 
+#         for i,obj in enumerate(list_of_objs):
+#             states.append(obj.state)         
+#         return states
+
+def getStates(list_of_objs) -> list:
+    """Gets the states of the systems components."""
+    states = []
+    for obj in list_of_objs:
+        states.append(obj.state)
+    return states
 
 
-def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -> int:
+def SolveStructureFunction(objects:list, parallels: list[tuple]) -> int:
     ''' calculate the structure function of either a system of sensed components or a ship of systems '''
 
     Xi_overall = []     # overall state vector
@@ -68,7 +75,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
             # subtract 1 from each value to get the idx
             parallel_sets = [i-1 for i in parallel_sets]
             parallel_objs = [objects[i] for i in parallel_sets]  # get the objects in the parallel set
-            Xi_temp = getStates(parallel_objs,bool)          
+            Xi_temp = getStates(parallel_objs)          
             Xi_overall.append(max(Xi_temp))                      # add the state of the parallel sets to overall system list
 
     # determine the state of the series components
@@ -76,7 +83,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
     if parallels is None: 
         series_comps_idx = list(range(len(objects)))
         series_objs = [objects[i] for i in series_comps_idx]  # get the objects in the series set
-        Xi_temp = getStates(series_objs,bool)
+        Xi_temp = getStates(series_objs)
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
     
     # if parallels is not None, get the idx of the series components
@@ -87,7 +94,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], bool = False) -
             if i not in objects_in_parallel:
                 series_comp_idxs.append(i)
         series_objs = [objects[i] for i in series_comp_idxs]  # get the objects in the series set
-        Xi_temp = getStates(series_objs,bool)  # get the states of the series components
+        Xi_temp = getStates(series_objs)  # get the states of the series components
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
 
     # final consideration of all states in overall system state vector

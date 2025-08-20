@@ -1,6 +1,6 @@
 from shipClass.MarkovChain import MarkovChain
-import numpy as np
 
+import numpy as np
 
 class Component(MarkovChain):
     # i = 0   # class variable to keep track of component instances
@@ -9,9 +9,11 @@ class Component(MarkovChain):
                  name: str=f"Component", 
                  MTTF:float=50,
                  MTTR = 'NR',
-                 states: dict[int: str] = {0 : 'major failure', 1: 'minor failure/alert', 2: 'working'})-> None:      
+                 states: dict[int: str] = {0 : 'major failure', 
+                                           1: 'incipient failure/alert', 
+                                           2: 'working'})-> None:      
 
-        """ Three-state component model: 0=major failure, 1=minor failure/alert, 2=working. Non-repairable by default 
+        """ Three-state component model: 0=major failure, 1=incipient failure/alert, 2=working. Non-repairable by default
 
             Parameters
             ----------
@@ -29,13 +31,7 @@ class Component(MarkovChain):
         self.states = states
         self.name = name 
 
-        # (super() holds self.state, self.history, and simulate(), plotHistory() and other methods)
-
-        # increment the class variable i to keep track of component instances
-        # Component.i += 1
-
 # ---------------------- Reliability Modelling ----------------------           
-
     def defineTwoStateTransitionMatrix(self, repairable: bool = False):
         
         # determine the failure rate of the component from the MTTF
@@ -53,8 +49,8 @@ class Component(MarkovChain):
         return transition_matrix
 
 
-
     def defineThreeStateMatrix(self, repairable: bool = False):
+
         """ sets up a transition matrix for the component which considers it in one of three states, working, minor failure, or major failure"""
         # determine the failure rate of the component from the MTTF
         lambda_ = 1/self.MTTF # failure rate
@@ -65,17 +61,40 @@ class Component(MarkovChain):
 
         # check: can the component be repaired / is vessel unmanned? 
         if repairable is False:
-            repair_rate = 0
+            mu_ = 0  # i.e. unmanned, so even minor failures go unrepaired
+
+            # REPAIR MODEL 1:
+            # mu_d = 0
+            # mu_f = 0
         else: 
-            repair_rate = 1/self.MTTR    # component is repairable and will repair (assumes people are onboard)        
-        
-        # setup the transition matrix 
-        transition_matrix = np.zeros((3,3)) 
-        transition_matrix[0,0] = 1      # major failure is an absorbing state
-        transition_matrix[1,1] = 1
-        transition_matrix[2,0] = lambda_f
-        transition_matrix[2,1] = lambda_d
-        transition_matrix[2,2] = 1- lambda_
+            #REPAIR MODEL 2: 
+            mu_ = 1/self.MTTR  # i.e. can conduct minor repair
+
+            #REPAIR MODEL 1:
+            # mu_ = 1/self.MTTR    # component is repairable and will repair (assumes people are onboard)        
+            # mu_d = mu_ * np.random.rand()  # some probability that the repair is minor
+            # mu_f = mu_ - mu_d              # some probability that the repair is major
+
+
+        #REPAIR MODEL 2:
+        transition_matrix = np.zeros((3,3))
+        transition_matrix[0,0] = 1           # major failure is absorbing state
+        transition_matrix[1,1] = 1-mu_       # stays in incipient failure
+        transition_matrix[1,2] = mu_         # incipient failure to working (minor repair)
+        transition_matrix[2,0] = lambda_f    # working to major failure
+        transition_matrix[2,1] = lambda_d    # working to incipient failure
+        transition_matrix[2,2] = 1- (lambda_d+lambda_f)   #stays working    
+
+        # REPAIR MODEL 1: 
+        # # setup the transition matrix 
+        # transition_matrix = np.zeros((3,3)) 
+        # transition_matrix[0,0] = 1 - mu_f   # stays in major failure
+        # transition_matrix[0,2] = mu_f       # major failure to working
+        # transition_matrix[1,1] = 1 - mu_d   # stays in incipient failure
+        # transition_matrix[1,2] = mu_d       # incipient failure to working
+        # transition_matrix[2,0] = lambda_f   # working to major failure
+        # transition_matrix[2,1] = lambda_d   # working to incipient failure
+        # transition_matrix[2,2] = 1- (lambda_d+lambda_f)   #stays working
 
         return transition_matrix
 
