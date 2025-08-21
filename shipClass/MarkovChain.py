@@ -34,7 +34,7 @@ class MarkovChain:
                 break       
         return self.failure_time
 
-
+# ---------------------- Plotting Functions -----------------------------
     def drawChain(self, name:str= None):
         """ Draw the Markov Chain as a directed graph """
         # create a figure for the drawing and give it a title if necessary
@@ -75,8 +75,8 @@ class MarkovChain:
         fig, ax = plt.subplots()
         
         # Plot the history
-        ax.plot(self.history, marker='o')
-                
+        ax.plot(self.history, marker='o', label='Truth State')
+
         # Set the title and labels
         ax.set_title('Markov Chain History')
         ax.set_xlabel('Time Step')
@@ -85,9 +85,10 @@ class MarkovChain:
         y_labels = [self.states[i] for i in y_ticks]
         ax.set_yticks(y_ticks)
         ax.set_yticklabels(y_labels)
-        
-        # Show the plot
-        plt.show()
+
+        # Return the axis for further customization
+        return ax
+
 
 # ---------------------- Monte Carlo Simulation  ----------------------       
 
@@ -101,14 +102,6 @@ class MarkovChain:
                        
             # randomly select and update the next state using probabilities from the transition matrix
             next_state = int(np.random.choice(states, p=self.transitionMatrix[currentState_idx]))       
-            
-
-
-                # code to catch self improving states
-                # if next_state > currentState_idx:   # if the next state is higher than the current state, it means a failure has occurred
-                #     print(f"There has been an error in simulation.")
-                #     break
-                    
             self.state = next_state
             self.history.append(next_state)     # append the new state to the history
        
