@@ -16,12 +16,18 @@ class Ship:
         self.initializeShipSystemsfromExcel(excel_file, repairable)
 
     def initializeShipSystemsfromExcel(self, excel_file, repairable: bool):
+        # read in machinery reliability data from first sheet
+        rel_df= pd.read_excel(excel_file, sheet_name = 0)
 
-        # read in data from excel file
-        # excel_file = self.ship_data_file    
-        rel_df= pd.read_excel(excel_file, sheet_name = 0) #read in machinery reliability data from first sheet
-        sys_structure_df = pd.read_excel(excel_file, sheet_name=1) # read in system structure data from second sheet
-        sys_structure_df['Structure']= sys_structure_df['Structure'].apply(ast.literal_eval) # convert structure description from str to list
+        # read in each system structure from second sheet
+        sys_structure_df = pd.read_excel(excel_file, sheet_name=1) 
+        sys_structure_df['Structure']= sys_structure_df['Structure'].apply(ast.literal_eval) # convert from str to list
+
+        # read in overall ship structure (list of parallel systems) from third sheet
+        ship_structure_df = pd.read_excel(excel_file, sheet_name=2) 
+        ship_structure_df['ship structure'] = ship_structure_df['ship structure'].apply(ast.literal_eval) # convert from str to list 
+        self.parallels = ship_structure_df.iat[0,0] #store ship parallels to self
+
         # go through each system and set it up according to the given structure
         ship_systems = {}
         sys_parallels = []
@@ -95,7 +101,6 @@ class Ship:
         # setting necessary ship parameters
         self.systems = ship_systems
         self.n = len(self.systems)  # number of total systems in the ship
-        self.parallels = []
         self.states = ship_systems[sys_name].states  # Assuming all systems have the same states
         self.state = max(self.states.keys())
         self.history = [self.state]
@@ -133,9 +138,9 @@ class Ship:
         """ Print the history of the ship and its systems to an excel file """
 
         # determine the columns for adding formulas to the sheet
-        truth_col = 2
-        sensed_col = 2 + self.n + 1
-        f1_col = 2 + self.n + 1 + self.n + 1
+        # truth_col = 2
+        # sensed_col = 2 + self.n + 1
+        # f1_col = 2 + self.n + 1 + self.n + 1
 
         # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
@@ -146,16 +151,20 @@ class Ship:
             
             # add data to the worksheet
             num_data = len(self.history)
+            systems = list(self.systems.values())
             for i in range(num_data):
 
                 # add the time steps to the first column
                 addTimeSteps(workbook, worksheet,i)
 
-                # add truth data from the ship and its systems
-                 truth_data = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)] 
-                if i==0:
+                # grab data for step i 
+                truth_data = [self.history[i]] + [systems[j].history[i] for j in range(self.n)] 
+
+                # on step zero add headers to the top row then first row of data
+                if i==0: 
                     ship_truth_headers = [f'Ship Truth State'] + [f'System {i+1} Truth State' for i in range(self.n)]
                     addTruth(workbook, worksheet, i, truth_data, ship_truth_headers)
+                # for remaining steps add data to the row
                 else: 
                     addTruth(workbook, worksheet, i, truth_data)
 
@@ -165,10 +174,10 @@ class Ship:
             
             finalFormatting(worksheet, self.n)       
 
-            # add each systems data to their own worksheet
-            for i in range(self.n):
-                # create a new worksheet for each system
-                ws = workbook.add_worksheet(f'System {i+1} History')
+            # # add each systems data to their own worksheet
+            # for i in range(self.n):
+            #     # create a new worksheet for each system
+            #     ws = workbook.add_worksheet(f'System {i+1} History')
 
-                # add the history of the system to the worksheet
-                self.systems[i].printHistory2Excel(filename, ws, False)
+            #     # add the history of the system to the worksheet
+            #     self.systems[i].printHistory2Excel(filename, ws, False)
