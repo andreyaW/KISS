@@ -14,9 +14,9 @@ class SensedComp():
 # -------------------- Simulation Functions -----------------------------
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
-            self.component.simulate(1)
             for sensor in self.sensors:
-                sensor.read(self.component.state) # allow the sensor to read the component state
+                sensor.read(self.component.state, len(self.component.history)) # allow the sensor to read the component state
+            self.component.simulate(1)
 
 # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self):
@@ -28,3 +28,18 @@ class SensedComp():
         plt.legend()
         plt.show()
         
+
+    def summaryOfReadings(self):
+        """
+        Check for any incorrect sensor readings compared to the true health state of the component.
+        Types of wrong readings: 
+            1. Sensor Malfunction (SM): Sensor reading is incorrect 
+            2. False Negatives (FN): Sensor indicates "Major Fail" but true state is "Working"
+            3. False Positives (FP): Sensor indicates "Working" but true state is "Major Fail"
+            4. False Alarms (FA): Sensor indicates "Minor Fail" but true state is "Working"
+            5. Missed Alarms (MA): Sensor indicates "Working" but true state is "Minor Fail"
+        """
+
+        for sensor in self.sensors:
+            SM_count, FN_count, FP_count, FA_count, MA_count = sensor.checkReadings(self.comp)
+
