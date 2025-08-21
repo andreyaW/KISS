@@ -94,6 +94,7 @@ class Ship:
         
         # setting necessary ship parameters
         self.systems = ship_systems
+        self.n = len(self.systems)  # number of total systems in the ship
         self.parallels = []
         self.states = ship_systems[sys_name].states  # Assuming all systems have the same states
         self.state = max(self.states.keys())
@@ -151,7 +152,7 @@ class Ship:
                 addTimeSteps(workbook, worksheet,i)
 
                 # add truth data from the ship and its systems
-                truth_data = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)] 
+                 truth_data = [self.history[i]] + [self.systems[j].history[i] for j in range(self.n)] 
                 if i==0:
                     ship_truth_headers = [f'Ship Truth State'] + [f'System {i+1} Truth State' for i in range(self.n)]
                     addTruth(workbook, worksheet, i, truth_data, ship_truth_headers)
