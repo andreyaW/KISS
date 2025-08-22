@@ -13,7 +13,7 @@ class Sensor:
         self.quality = quality
         self.history = []
         self.setObservationProbs()
-        self.sensing_interval = 5  # seconds
+        self.sensing_interval = 30  # seconds
 
     def setObservationProbs(self):
         """ set the observation probabilities based on sensor quality """
@@ -50,7 +50,7 @@ class Sensor:
 # ---------------------- Plotting Functions -----------------------------
     def plotReadings(self, ax):
         # Plot the sensor readings over time on a given axis
-        ax.plot(self.history, marker= '*',label=f"Sensor (Quality: {self.quality})")
+        ax.plot(self.history, marker= '*',linestyle='', label=f"Sensor (Quality: {self.quality})")
 
 
 

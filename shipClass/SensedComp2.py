@@ -1,8 +1,8 @@
 from shipClass.Component import Component
 from shipClass.Sensor2 import Sensor
+from utils.helperFunctions import find_mode
 
 from tabulate import tabulate
-
 
 import matplotlib.pyplot as plt
 
@@ -13,12 +13,19 @@ class SensedComp():
     def __init__(self, component: Component, sensors: list[Sensor]):
         self.component = component
         self.sensors = sensors
+        self.history = []
 
 # -------------------- Simulation Functions -----------------------------
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
-            for sensor in self.sensors:
+            sensor_readings = [None for _ in self.sensors]  # store the sensor readings
+            for j, sensor in enumerate(self.sensors):
                 sensor.read(self.component.state, len(self.component.history)) # allow the sensor to read the component state
+                sensor_readings[j] = sensor.history[-1]  # append the latest sensor reading to the list
+
+            # aggregate the sensor readings
+            aggregated_reading = find_mode(sensor_readings)
+            self.history.append(aggregated_reading)
             self.component.simulate(1)
 
 # ---------------------- Plotting Functions -----------------------------
@@ -28,7 +35,7 @@ class SensedComp():
         for sensor in self.sensors:
            sensor.plotReadings(ax)  
         
-        plt.legend()
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5)) # Place legend to the right, centered vertically
         plt.show()
         
 
@@ -56,6 +63,35 @@ class SensedComp():
             FA_counts[i] = FA_count
             MA_counts[i] = MA_count
 
+        SM_aggregate = 0
+        FN_aggregate = 0
+        FP_aggregate = 0
+        FA_aggregate = 0
+        MA_aggregate = 0
+
+        for i in range(len(self.component.history)-1):
+            # Overall Sensor Malfunction
+            if self.history[i] != self.component.history[i]:
+                SM_aggregate += 1
+
+            # Overall False Negatives
+            if self.history[i] == 0 and self.component.history[i] == 2:
+                FN_aggregate += 1
+
+            # Overall False Positives
+            if self.history[i] == 2 and self.component.history[i] == 0:
+                FP_aggregate += 1
+
+            # Overall False Alarms
+            if self.history[i] == 1 and self.component.history[i] == 2:
+                FA_aggregate += 1
+
+            # Overall Missed Alarms
+            if self.history[i] == 2 and self.component.history[i] == 1:
+                MA_aggregate += 1
+
+
         headers = ["Sensor", "SM", "FN", "FP", "FA", "MA"]
         rows = zip(sensor_num, SM_counts, FN_counts, FP_counts, FA_counts, MA_counts)
-        print(tabulate([headers] + list(rows), headers="firstrow"))
+        aggregate_row = ["Aggregate", SM_aggregate, FN_aggregate, FP_aggregate, FA_aggregate, MA_aggregate]
+        print(tabulate([headers] + list(rows) + [aggregate_row], headers="firstrow"))
