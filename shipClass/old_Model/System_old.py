@@ -1,4 +1,4 @@
-from shipClass.SensedComp import SensedComp
+from shipClass.old_Model.SensedComp_old import SensedComp
 from utils.helperFunctions import SolveStructureFunction, set_x_ticks
 from utils.SystemDiagram import SystemDiagram
 from utils.excelFunctions import grabTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting

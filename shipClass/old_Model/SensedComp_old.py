@@ -1,5 +1,5 @@
 from shipClass.Component import Component
-from shipClass.Sensor import Sensor
+from shipClass.old_Model.Sensor_old import Sensor
 from utils.helperFunctions import find_mode, set_x_ticks
 from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, addSensorFailureFormula, finalFormatting
 

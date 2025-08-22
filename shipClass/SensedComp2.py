@@ -1,6 +1,9 @@
 from shipClass.Component import Component
 from shipClass.Sensor2 import Sensor
 
+from tabulate import tabulate
+
+
 import matplotlib.pyplot as plt
 
 class SensedComp():
@@ -39,7 +42,20 @@ class SensedComp():
             4. False Alarms (FA): Sensor indicates "Minor Fail" but true state is "Working"
             5. Missed Alarms (MA): Sensor indicates "Working" but true state is "Minor Fail"
         """
+        sensor_num = [i+1 for i in range(len(self.sensors))]
+        SM_counts = [0 for _ in self.sensors]
+        FN_counts = [0 for _ in self.sensors]
+        FP_counts = [0 for _ in self.sensors]
+        FA_counts = [0 for _ in self.sensors]
+        MA_counts = [0 for _ in self.sensors]
+        for i, sensor in enumerate(self.sensors):
+            SM_count, FN_count, FP_count, FA_count, MA_count = sensor.checkReadings(self.component)
+            SM_counts[i] = SM_count
+            FN_counts[i] = FN_count
+            FP_counts[i] = FP_count
+            FA_counts[i] = FA_count
+            MA_counts[i] = MA_count
 
-        for sensor in self.sensors:
-            SM_count, FN_count, FP_count, FA_count, MA_count = sensor.checkReadings(self.comp)
-
+        headers = ["Sensor", "SM", "FN", "FP", "FA", "MA"]
+        rows = zip(sensor_num, SM_counts, FN_counts, FP_counts, FA_counts, MA_counts)
+        print(tabulate([headers] + list(rows), headers="firstrow"))

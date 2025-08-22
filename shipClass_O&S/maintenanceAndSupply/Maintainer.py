@@ -1,6 +1,6 @@
 from shipClass.Component import Component
-from shipClass.Sensor import Sensor
-from shipClass.SensedComp import SensedComp
+from shipClass.old_Model.Sensor_old import Sensor
+from shipClass.old_Model.SensedComp_old import SensedComp
 
 import numpy as np
 

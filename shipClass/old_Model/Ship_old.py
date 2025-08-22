@@ -4,7 +4,7 @@ Different types of ships (manned and unmanned) will inherit from this class.
 """
 
 from shipClass.old_Model.System_old import System
-from shipClass.SensedComp import SensedComp
+from shipClass.old_Model.SensedComp_old import SensedComp
 from shipClass.SeriesComps import SeriesSensedComps
 from shipClass.Component import Component
 from utils.helperFunctions import SolveStructureFunction
