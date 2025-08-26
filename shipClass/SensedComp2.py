@@ -13,20 +13,26 @@ class SensedComp():
     def __init__(self, component: Component, sensors: list[Sensor]):
         self.component = component
         self.sensors = sensors
-        self.history = []
+        self.sensedState = self.senseState()
+        self.history =[self.sensedState]  # history of the sensed states
 
 # -------------------- Simulation Functions -----------------------------
+    def senseState (self): 
+        sensor_readings = [None for _ in self.sensors]  # store the sensor readings
+        for j, sensor in enumerate(self.sensors):
+            sensor.read(self.component.state, len(self.component.history)) # allow the sensor to read the component state
+            sensor_readings[j] = sensor.history[-1]  # append the latest sensor reading to the list
+
+        aggregated_reading = find_mode(sensor_readings) # aggregate the sensor readings
+        sensedState = aggregated_reading
+        return sensedState
+
+
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
-            sensor_readings = [None for _ in self.sensors]  # store the sensor readings
-            for j, sensor in enumerate(self.sensors):
-                sensor.read(self.component.state, len(self.component.history)) # allow the sensor to read the component state
-                sensor_readings[j] = sensor.history[-1]  # append the latest sensor reading to the list
-
-            # aggregate the sensor readings
-            aggregated_reading = find_mode(sensor_readings)
-            self.history.append(aggregated_reading)
             self.component.simulate(1)
+            self.history.append(self.senseState())
+
 
 # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self):
