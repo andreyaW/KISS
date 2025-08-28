@@ -47,12 +47,14 @@ class Sensor:
             reading = np.random.choice([0, 1, 2], p=probs)
             self.history.append(reading)
 
+    def reset(self):
+        """Resets the sensor to its initial state."""
+        self.history = []
+
 # ---------------------- Plotting Functions -----------------------------
     def plotReadings(self, ax):
         # Plot the sensor readings over time on a given axis
         ax.plot(self.history, marker= '*',linestyle='', label=f"Sensor (Quality: {self.quality})")
-
-
 
 # ------------------ Simulation Functions -----------------------------
     def checkReadings(self, component):

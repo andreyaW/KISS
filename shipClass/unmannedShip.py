@@ -16,25 +16,3 @@ class unmannedShip(Ship):
     
         self.repairable = False # This ship is unmanned so minor failures cannot be repaired
         super().__init__(name, excel_file=ship_data_file, repairable=self.repairable)
-        # super().initializeShipSystemsfromExcel()
-
-
-
-
-
-
-
-
-
-
-
-    # def conductPM(self, timeStep)-> None:
-    #     '''
-    #     This method conducts periodic maintenance on the ship's systems.
-    #     It iterates through each system and performs maintenance actions as needed.
-    #     '''
-    #     # Conduct periodic maintenance on each system
-    #     for sys in self.vessel.systems:
-    #         periodicMaintenance(sys)
-
-        

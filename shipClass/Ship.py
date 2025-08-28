@@ -16,6 +16,8 @@ class Ship:
         self.name = name
         self.initializeShipSystemsfromExcel(excel_file, repairable)
 
+# ------------ Simulation Functions -------------------
+
     def initializeShipSystemsfromExcel(self, excel_file, repairable: bool):
         # read in machinery reliability data from first sheet
         rel_df= pd.read_excel(excel_file, sheet_name = 0)
@@ -106,17 +108,27 @@ class Ship:
         self.state = max(self.states.keys())
         self.history = [self.state]
 
-# ------------ Simulation Functions -------------------
-    def simulate(self, num_steps):
+    def simulate(self, num_steps:int):
         systems = list(self.systems.values())
         for _ in range(num_steps):
             for sys in systems:
                 sys.simulate(1)
-            self.state = SolveStructureFunction(systems, self.parallels)  
-            self.history.append(self.state)
+            self.update_state()
 
+    def update_state(self):
+        ''' Update the state of the ship based on the current state of its systems '''
+        self.state = SolveStructureFunction(list(self.systems.values()), self.parallels)
+        self.history.append(self.state)
+
+    def reset(self):
+        ''' Reset the ship and all its systems to their initial states '''
+        self.state = self.history[0]
+        self.history = [self.state]
+        for sys in self.systems.values():
+            sys.reset()
+    
 # ------------ Plotting Functions -------------------
-    def plotHistory(self, show=True):
+    def plotHistory(self, return_ax=False):
 
         # Create a figure and axis
         fig, ax = plt.subplots()
@@ -133,6 +145,9 @@ class Ship:
         ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
+
+        if return_ax:
+            return ax
 
 # ------------ Excel Functions --------------------
     def printHistory2Excel(self, filename: str, worksheet= None) -> None:

@@ -33,6 +33,13 @@ class SensedComp():
             self.component.simulate(1)
             self.history.append(self.senseState())
 
+    def reset(self):
+        """Resets the sensed component to its initial state."""
+        self.component.reset()
+        for sensor in self.sensors:
+            sensor.reset()
+        self.sensedState = self.senseState()
+        self.history = [self.sensedState]
 
 # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self):

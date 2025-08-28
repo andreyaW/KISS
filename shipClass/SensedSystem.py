@@ -9,14 +9,16 @@ class SensedSystem(System):
     ''' a class which holds the system class and also attaches sensors to each component of the system to get readings 
     '''
     def __init__(self, system: System, number_of_sensors: list[int] = None):
-        self.system = system
-        self.sensedComps = []
+        self.system = system        
         self.sensedState = self.system.state
         self.history = [self.sensedState]
-        
+        self.sensedComps = []
+
         # if the number of sensors per component is not specified, add defualts
         if number_of_sensors is None:
             self.number_of_sensors = [3 for comp in self.system.comps]
+        else: 
+            self.number_of_sensors = number_of_sensors
         self.attach_sensors()
 
     def attach_sensors(self):

@@ -1,7 +1,6 @@
 import textwrap
 import numpy as np
 
-
 def get_key_by_value(my_dict, value):
         """
         Returns the key associated with the given value in the dictionary.
@@ -12,7 +11,6 @@ def get_key_by_value(my_dict, value):
             if val == value:
                 return key
         return None
-    
     
 def find_mode(data):
     counts = {}
@@ -37,23 +35,6 @@ def find_mode(data):
     return modes[0] # If there are multiple modes, return the first only
 
 
-# def getStates(list_of_objs, bool = False) -> list:     
-#     """gets the states of the systems components """
-    
-#     states = []  # list to store all states       
-    
-#     # if bool is True, get the SENSED states of the objects
-#     if bool: 
-#         for i, obj in enumerate(list_of_objs):
-#             states.append(obj.sensedState)   
-#         return states
-    
-#     # if bool is False, get the TRUE states of the components 
-#     else: 
-#         for i,obj in enumerate(list_of_objs):
-#             states.append(obj.state)         
-#         return states
-
 def getStates(list_of_objs, sensed: bool = False) -> list:
     """Gets the states of the systems components."""
     states = []
@@ -63,6 +44,12 @@ def getStates(list_of_objs, sensed: bool = False) -> list:
         else:
             states.append(obj.state)
     return states
+
+
+def reset(obj):
+    """Resets the component to its initial state and deletes its history."""
+    obj.state = obj.history[0]
+    obj.history = [obj.state]
 
 
 def SolveStructureFunction(objects:list, parallels: list[tuple], sensed: bool = False) -> int:
@@ -105,7 +92,6 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], sensed: bool = 
     
     return phi
 
-
 def idx2letter(idx):
     """ Convert an index to a letter (1 -> A, 2 -> B, etc.) """
     if idx < 1:
@@ -119,8 +105,6 @@ def wrap_text_in_box(ax, text, box_size, xlims, ylims):
     wrapped_text = '\n'.join(textwrap.wrap(text, width=int(box_size * fontsize), break_long_words=False)) # 8 letters per box size
 
     return wrapped_text, fontsize
-
-import numpy as np
 
 def generate_centered_list(center, num_values, min_spacing=1.0) -> list:
     """Evenly spaces values around a center point, with a minimum spacing."""
@@ -167,5 +151,5 @@ def set_x_ticks(ax, history_len, max_ticks=10):
 
     ax.set_xticks(ticks)
 
-    # ax.set_xticks(range(0, len(self.history), 5), [f'{i}h' for i in range(0, len(self.history), 5)], rotation=45)   # make x ticks for every 5 hours
-    # ax.set_xlim(0, len(self.history))
+
+

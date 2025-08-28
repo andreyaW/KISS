@@ -20,4 +20,3 @@ class mannedShip(Ship):
         
         self.repairable = True # This ship is manned so minor failures can be repaired
         super().__init__(name, excel_file=ship_data_file, repairable=self.repairable)
-        # super().initializeShipSystemsfromExcel()
