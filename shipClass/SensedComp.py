@@ -1,5 +1,5 @@
 from shipClass.Component import Component
-from shipClass.Sensor2 import Sensor
+from shipClass.old_Model.Sensor2 import Sensor
 from utils.helperFunctions import find_mode
 
 from tabulate import tabulate

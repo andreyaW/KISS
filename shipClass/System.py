@@ -46,11 +46,14 @@ class System():
         for _ in range(num_steps):
             for comp in self.comps:
                 comp.simulate(1)
+            self.update_state()
+
+    def update_state(self):
             self.state = SolveStructureFunction(self.comps, self.parallels)  
             self.history.append(self.state)
 
 # -------------- Functions for Plotting --------------------------
-    def plotHistory(self, plot_comp_history: bool = False) -> None:
+    def plotHistory(self, plot_comp_history: bool = False, return_ax = False) -> None:
         
         """ Plot the ground truth and sensed history of the system of sensed components """
             
@@ -69,7 +72,9 @@ class System():
         ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-       
+    
+        if return_ax:
+            return ax
 
     def drawSystem(self, ax=None):
         """ Draw the system on the given axis """

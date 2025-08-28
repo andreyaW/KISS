@@ -11,7 +11,8 @@ import ast
 
 class Ship:
 
-    def __init__(self, name, excel_file, repairable: bool):
+    def __init__(self, name, excel_file, repairable: bool = True):
+        ''' initializes the ship object with its name, excel file, and repairable status (default repairable) '''
         self.name = name
         self.initializeShipSystemsfromExcel(excel_file, repairable)
 
@@ -32,9 +33,9 @@ class Ship:
         ship_systems = {}
         sys_parallels = []
         for i, sys_struct in enumerate(sys_structure_df.Structure):
-            # sys_struct = ast.literal_eval(sys_struct) # convert structure description from str to list
-            
+
             sys_comps = []
+            sys_parallels = []    # assume series system by default
 
             for comp in sys_struct:
 

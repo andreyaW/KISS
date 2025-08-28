@@ -1,5 +1,5 @@
 from shipClass.MarkovChain import MarkovChain
-from shipClass.Sensor2 import Sensor
+from shipClass.old_Model.Sensor2 import Sensor
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -69,8 +69,11 @@ class Component(MarkovChain):
             # mu_d = 0
             # mu_f = 0
         else: 
-            #REPAIR MODEL 2: 
-            mu_ = 1/self.MTTR  # i.e. can conduct minor repair
+            #REPAIR MODEL 2:
+            if self.MTTR == 'NR':
+                mu_ = 0
+            else:
+                mu_ = 1/self.MTTR  # i.e. can conduct minor repair
 
             #REPAIR MODEL 1:
             # mu_ = 1/self.MTTR    # component is repairable and will repair (assumes people are onboard)        

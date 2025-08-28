@@ -60,7 +60,6 @@ def getStates(list_of_objs, sensed: bool = False) -> list:
     for obj in list_of_objs:
         if sensed:
             states.append(obj.sensedState)
-            print(obj.sensedState)
         else:
             states.append(obj.state)
     return states
