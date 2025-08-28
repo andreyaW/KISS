@@ -54,15 +54,19 @@ def find_mode(data):
 #             states.append(obj.state)         
 #         return states
 
-def getStates(list_of_objs) -> list:
+def getStates(list_of_objs, sensed: bool = False) -> list:
     """Gets the states of the systems components."""
     states = []
     for obj in list_of_objs:
-        states.append(obj.state)
+        if sensed:
+            states.append(obj.sensedState)
+            print(obj.sensedState)
+        else:
+            states.append(obj.state)
     return states
 
 
-def SolveStructureFunction(objects:list, parallels: list[tuple]) -> int:
+def SolveStructureFunction(objects:list, parallels: list[tuple], sensed: bool = False) -> int:
     ''' calculate the structure function of either a system of sensed components or a ship of systems '''
 
     Xi_overall = []     # overall state vector
@@ -75,7 +79,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple]) -> int:
             # subtract 1 from each value to get the idx
             parallel_sets = [i-1 for i in parallel_sets]
             parallel_objs = [objects[i] for i in parallel_sets]  # get the objects in the parallel set
-            Xi_temp = getStates(parallel_objs)          
+            Xi_temp = getStates(parallel_objs, sensed)          
             Xi_overall.append(max(Xi_temp))                      # add the state of the parallel sets to overall system list
 
     # determine the state of the series components
@@ -83,7 +87,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple]) -> int:
     if parallels is None: 
         series_comps_idx = list(range(len(objects)))
         series_objs = [objects[i] for i in series_comps_idx]  # get the objects in the series set
-        Xi_temp = getStates(series_objs)
+        Xi_temp = getStates(series_objs, sensed)
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
     
     # if parallels is not None, get the idx of the series components
@@ -94,7 +98,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple]) -> int:
             if i not in objects_in_parallel:
                 series_comp_idxs.append(i)
         series_objs = [objects[i] for i in series_comp_idxs]  # get the objects in the series set
-        Xi_temp = getStates(series_objs)  # get the states of the series components
+        Xi_temp = getStates(series_objs, sensed)  # get the states of the series components
         Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
 
     # final consideration of all states in overall system state vector

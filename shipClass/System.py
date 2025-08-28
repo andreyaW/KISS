@@ -3,7 +3,6 @@ from utils.helperFunctions import SolveStructureFunction, set_x_ticks
 from utils.excelFunctions import grabTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 from utils.SystemDiagram import SystemDiagram
 
-
 import xlsxwriter
 import matplotlib.pyplot as plt
 
@@ -24,7 +23,6 @@ class System():
             repairable: bool
                 A flag indicating whether the system is repairable (default is False).
         """
-
         self.name = name
         self.comps = comps
         self.parallels = parallels
