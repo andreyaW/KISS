@@ -54,11 +54,7 @@ class Q1_Simulator():
         freq_fail_parts = {}
         for system in systems:
             for comp in system.comps:
-                # if type(comp) is SeriesComps:
-                #     for comps in comp.comps:
-                #         freq_fail_parts[comps] = (comp.name, comps.MTTF)
-                # else:
-                freq_fail_parts[comp] = (comp.name, comp.MTTF)
+                freq_fail_parts[comp] = comp.MTTF
 
         # Sort the failure times dictionary from lowest to highest
         sorted_fails = sorted(freq_fail_parts.items(), key=lambda item: item[1])
