@@ -31,7 +31,8 @@ class SensedComp():
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
             self.component.simulate(1)
-            self.history.append(self.senseState())
+            self.sensedState = self.senseState()
+            self.history.append(self.sensedState)
 
     def reset(self):
         """Resets the sensed component to its initial state."""

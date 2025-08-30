@@ -39,6 +39,7 @@ class SensedShip():
             self.sensedState = SolveStructureFunction(self.sensedSystems, self.ship.parallels, sensed=True)
             self.history.append(self.sensedState)
 
+
     def plotHistory(self):
         # Plot the true history of the ship
         ax = self.ship.plotHistory(return_ax=True)
