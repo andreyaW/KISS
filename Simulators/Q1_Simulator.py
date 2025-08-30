@@ -113,7 +113,6 @@ class Q1_Simulator():
                         break
             else: 
                 updated_parallels.append((comp_index+1, comp_index+2))
-                print(updated_parallels)
 
             # initialize a new system with the updated comps
             new_system = System(name=sys.name, 
@@ -121,15 +120,17 @@ class Q1_Simulator():
                                 parallels=updated_parallels, 
                                 repairable=self.sensed_ship.ship.repairable)
 
-            # replace the old system and save it to a new ship variation
+            # create a new ship variation
             shipVariation = copy.deepcopy(self.sensed_ship.ship)
+            shipVariation.reset()
+
+            # replace the old system and save it to the new ship variation
             shipVariation.systems[sys.name] = new_system
             self.shipVariations.append(SensedShip(shipVariation))
 
             # replace the system (sys) with the new system and move to the next part
             sys = new_system
             low_rel_parts_idx.pop(0)
-
 
 
     def increase_ship_redundancy(self):
@@ -145,23 +146,47 @@ class Q1_Simulator():
 
         # add redundancy to the identified systems
         for part, sys in low_rel_parts_systems.items():
-            print('\n Adding', part.name, 'in:', sys.name)
+            print('Adding', part.name, 'in:', sys.name)
             self.increase_sys_redundancy(sys, 1)
 
 
-    def increase_sensor_accuracy(self):
-        self.identify_freq_fail_parts()
 
-        # Implement sensor accuracy increase logic here
-        pass
+    def determineVariationReliability(self, n: int=1000):
+        '''
+        Determine the reliability of each ship variation by simulating
+        a number of missions and recording the failure times.
 
-    # def vary_mission_length(self, mission_lengths):
+        Parameters:
+        -----------
+        n : int
+            The number of simulation runs to perform for each variation.
+        '''
+        
+        for i, variation in enumerate(self.shipVariations):
+            # print(f"Variation {i+1} reliability:")
+            
+            n = 1000    # number of runs of for Variation
+            failure_times = []
 
-    #     # Simulate the ship for various mission lengths
+            for _ in range(n):
+                variation.simulate(10000)
+                failure_times.append(variation.determineFailureTime())
+                variation.reset()
+
+            # Calculate and print the average failure time for this variation
+            avg_failure_time = sum(failure_times) / len(failure_times) if failure_times else 0
+            print(f"Variation {i+1} average failure time: {avg_failure_time}")
+
+
     #     for length in mission_lengths:
     #         print(f"Simulating mission length: {length}")
     #         self.run_simulation(mission_length=length)
 
-
     # def run_simulation(self, mission_length):
     #     pass 
+
+    # def increase_sensor_accuracy(self):
+    # self.identify_freq_fail_parts()
+
+    # # Implement sensor accuracy increase logic here
+    # pass

@@ -39,6 +39,11 @@ class SensedShip():
             self.history.append(self.sensedState)
 
 
+    def determineFailureTime(self):
+        # Determine the failure time of the ship
+        # first time the state = 0
+        return self.ship.history.index(0)
+
     def plotHistory(self):
         # Plot the true history of the ship
         ax = self.ship.plotHistory(return_ax=True)
