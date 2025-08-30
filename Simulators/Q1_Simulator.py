@@ -32,6 +32,8 @@ from shipClass.SeriesComps import SeriesComps
 from shipClass.SensedShip import SensedShip
 from shipClass.System import System
 
+import copy
+
 class Q1_Simulator(): 
 
     '''
@@ -64,22 +66,88 @@ class Q1_Simulator():
         return freq_fail_parts
 
 
-    def increase_redundancy(self, obj):
+    def increase_sys_redundancy(self, sys, num_parts_to_add: int= 3):
 
         # identify the lowest reliability parts
-        low_rel_parts = self.identify_freq_fail_parts(obj)
+        low_rel_parts = list(self.identify_freq_fail_parts(sys))
 
-        # Increase redundancy for the identified parts
-        
-        # system logic
-        if isinstance(obj, System):
-            pass
+        # identify the idx of the low rel parts in the original system
+        low_rel_parts_idx = [sys.comps.index(part) for part in low_rel_parts]
+
+        # stop when we have added the desired number of redundant parts
+        stop_case = len(low_rel_parts) - num_parts_to_add
+
+        # Increase redundancy for the identified parts and save each to a new ship variation
+        while len(low_rel_parts_idx) != stop_case:
+
+            # Create a deep copy of the systems components
+            updated_comps = copy.deepcopy(sys.comps)
+
+            # find the components location in the system 
+            comp_index = low_rel_parts_idx[0]
+
+            # add a copy of it to the components list
+            updated_comps.insert(comp_index+1, low_rel_parts[0])
+
+            # update the indices of the lowest rel parts
+            low_rel_parts_idx = [x+1 if x >= comp_index+1 else x for x in low_rel_parts_idx]
+
+            # update the indices present in the parallels list
+            if sys.parallels is not None: 
+                updated_parallels = copy.deepcopy(sys.parallels)
+                for i, tup in enumerate(updated_parallels):
+                    updated_parallels[i] = tuple(x+1 if x > comp_index+1 else x for x in tup)
+            else:
+                updated_parallels = []
+
+            # determine if the component was in a parallel set, and update parallels accordingly
+            parallels_flattened = [item for tup in updated_parallels for item in tup]
+            if comp_index+1 in parallels_flattened:
+
+                # determine which tuple the comp_index was in and add it again
+                for i,tup in enumerate(updated_parallels):
+                    if comp_index+1 in tup:
+                        addition = (comp_index+2, )
+                        tup = tup + addition
+                        updated_parallels[i] = tup
+                        break
+            else: 
+                updated_parallels.append((comp_index+1, comp_index+2))
+                print(updated_parallels)
+
+            # initialize a new system with the updated comps
+            new_system = System(name=sys.name, 
+                                comps=updated_comps, 
+                                parallels=updated_parallels, 
+                                repairable=self.sensed_ship.ship.repairable)
+
+            # replace the old system and save it to a new ship variation
+            shipVariation = copy.deepcopy(self.sensed_ship.ship)
+            shipVariation.systems[sys.name] = new_system
+            self.shipVariations.append(SensedShip(shipVariation))
+
+            # replace the system (sys) with the new system and move to the next part
+            sys = new_system
+            low_rel_parts_idx.pop(0)
 
 
 
+    def increase_ship_redundancy(self):
+        # identify the lowest reliability parts
+        low_rel_parts = list(self.identify_freq_fail_parts(self.sensed_ship))
 
+        # determine which systems the low reliability part is in
+        low_rel_parts_systems = {}
+        for part in low_rel_parts:
+            for sys in self.sensed_ship.ship.systems.values():
+                if part in sys.comps:
+                    low_rel_parts_systems[part] = sys
 
-    
+        # add redundancy to the identified systems
+        for part, sys in low_rel_parts_systems.items():
+            print('\n Adding', part.name, 'in:', sys.name)
+            self.increase_sys_redundancy(sys, 1)
+
 
     def increase_sensor_accuracy(self):
         self.identify_freq_fail_parts()

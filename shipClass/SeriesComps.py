@@ -15,7 +15,6 @@ class SeriesComps(System):
             """
 
         self.comps = components
-        self.name = "SeriesComps"
         self.name = str([comp.name for comp in components])
         self.states = components[0].states  # Assuming all components have the same states
 

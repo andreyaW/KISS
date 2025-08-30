@@ -14,7 +14,8 @@ class Ship:
     def __init__(self, name, excel_file, repairable: bool = True):
         ''' initializes the ship object with its name, excel file, and repairable status (default repairable) '''
         self.name = name
-        self.initializeShipSystemsfromExcel(excel_file, repairable)
+        self.repairable = repairable
+        self.initializeShipSystemsfromExcel(excel_file, self.repairable)
 
 # ------------ Simulation Functions -------------------
 

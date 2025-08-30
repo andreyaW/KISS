@@ -16,15 +16,14 @@ class SensedShip():
             self.number_of_sensors = [[3 for i in range((len(shipSystems.comps)))] for shipSystems in self.ship.systems.values()]
         else: 
             self.number_of_sensors = number_of_sensors
-        print(self.number_of_sensors)
-
         self.attach_sensors()
 
     def attach_sensors(self):
-        shipSystems = self.ship.systems.values()
+        shipSystems = list(self.ship.systems.values())
         for i, shipSystem in enumerate(shipSystems):
             sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i])
             self.sensedSystems.append(sensedSystem)
+            # print(f'Attached {self.number_of_sensors[i]} sensors to {shipSystem.name}.')
 
 
     def simulate(self, time_step):
