@@ -25,6 +25,7 @@ class SensedSystem(System):
         comps = self.system.comps
         for i, comp in enumerate(comps):
             sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
+            print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
             sensed_comp = SensedComp(comp, sensors)
             self.sensedComps.append(sensed_comp)
 
@@ -41,6 +42,10 @@ class SensedSystem(System):
             self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
             self.history.append(self.sensedState)
 
+    def reset(self):
+        self.history = [self.sensedState]
+        for sensed_comp in self.sensedComps:
+            sensed_comp.reset()
 
     def plotHistory(self, plot_comp_history = False, return_ax = False):
         ''' plot the history of the sensed system '''

@@ -21,10 +21,10 @@ class SensedShip():
     def attach_sensors(self):
         shipSystems = list(self.ship.systems.values())
         for i, shipSystem in enumerate(shipSystems):
+            print(f"The system has {len(shipSystem.comps)} components")
+            print(f"Attaching {len(self.number_of_sensors[i])} sets of sensors to system")
             sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i])
             self.sensedSystems.append(sensedSystem)
-            # print(f'Attached {self.number_of_sensors[i]} sensors to {shipSystem.name}.')
-
 
     def simulate(self, time_step):
         for i in range(time_step):
@@ -38,6 +38,11 @@ class SensedShip():
             self.sensedState = SolveStructureFunction(self.sensedSystems, self.ship.parallels, sensed=True)
             self.history.append(self.sensedState)
 
+
+    def reset(self):
+        self.history = [self.sensedState]
+        for sensedSystem in self.sensedSystems:
+            sensedSystem.reset()
 
     def determineFailureTime(self):
         # Determine the failure time of the ship
