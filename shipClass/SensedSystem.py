@@ -24,10 +24,20 @@ class SensedSystem(System):
     def attach_sensors(self):
         comps = self.system.comps
         for i, comp in enumerate(comps):
-            sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
-            print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
-            sensed_comp = SensedComp(comp, sensors)
-            self.sensedComps.append(sensed_comp)
+            
+            if isinstance(comp, System):
+                # if the component is a subsystem, recursively attach sensors to its components
+                # print(f"Component {comp.name} is a subsystem. Recursively attaching sensors.")
+                sensed_subsystem = SensedSystem(comp, number_of_sensors=[3 for _ in comp.comps])
+                self.sensedComps.append(sensed_subsystem)
+                continue
+            else: 
+                # if the component is a regular component, attach sensors to it
+                print(f"Component {comp.name} is a regular component. Attaching sensors.")
+                sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
+                print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
+                sensed_comp = SensedComp(comp, sensors)
+                self.sensedComps.append(sensed_comp)
 
     def simulate(self, time_step):
         sensedComps = self.sensedComps
