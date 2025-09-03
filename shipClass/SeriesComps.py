@@ -19,7 +19,8 @@ class SeriesComps(System):
         self.states = components[0].states  # Assuming all components have the same states
 
         # Initialize the parent System class 
-        super().__init__(name = self.name, comps= self.comps, parallels=None, repairable=repairable) 
+        super().__init__(name = self.name, comps= self.comps, parallels=None, repairable=repairable)     
+        # simulation functions inherited from System
 
         self.MTTF = self.series_mttf()
 

@@ -32,25 +32,27 @@ class SensedSystem(System):
                 self.sensedComps.append(sensed_subsystem)
                 continue
             else: 
-                # if the component is a regular component, attach sensors to it
-                print(f"Component {comp.name} is a regular component. Attaching sensors.")
+                # if the component is a individual component, attach sensors to it
+                # print(f"Component {comp.name} is a regular component. Attaching sensors.")
                 sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
-                print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
+                # print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
                 sensed_comp = SensedComp(comp, sensors)
                 self.sensedComps.append(sensed_comp)
 
     def simulate(self, time_step):
+
         sensedComps = self.sensedComps
+
+        # update the system sensed state
+        self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
+        self.history.append(self.sensedState)
+
         for i in range(time_step):
             for sensed_comp in sensedComps:
                 sensed_comp.simulate(1)
 
             # update the system truth state
             self.system.update_state()  
-
-            # update the system sensed state
-            self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
-            self.history.append(self.sensedState)
 
     def reset(self):
         self.history = [self.sensedState]
