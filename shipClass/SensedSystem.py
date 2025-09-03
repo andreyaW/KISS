@@ -33,9 +33,7 @@ class SensedSystem(System):
                 continue
             else: 
                 # if the component is a individual component, attach sensors to it
-                # print(f"Component {comp.name} is a regular component. Attaching sensors.")
                 sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
-                # print(f"Attaching {len(sensors)} sensors to component {comp.name}")      
                 sensed_comp = SensedComp(comp, sensors)
                 self.sensedComps.append(sensed_comp)
 
@@ -43,17 +41,24 @@ class SensedSystem(System):
 
         sensedComps = self.sensedComps
 
-        # update the system sensed state
-        self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
-        self.history.append(self.sensedState)
-
         for i in range(time_step):
+
             for sensed_comp in sensedComps:
                 sensed_comp.simulate(1)
 
             # update the system truth state
             self.system.update_state()  
+            
+            # update the system sensed state
+            self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
+            self.history.append(self.sensedState)
 
+            print(self.system.name)
+            print('sense system history is :', len(self.history))
+            # print('component 1 history is :', len(self.sensedComps[0].history)) 
+            # print('component 2 history is :', len(self.sensedComps[1].history))     
+            
+        
     def reset(self):
         self.history = [self.sensedState]
         for sensed_comp in self.sensedComps:
@@ -74,6 +79,7 @@ class SensedSystem(System):
 
         if return_ax:
             return ax
+        
 
     # def plotHistory(self, plot_comp_history = False):
     #     return super().plotHistory(plot_comp_history)
