@@ -1,9 +1,10 @@
 from shipClass.Component import Component
 from shipClass.old_Model.Sensor2 import Sensor
 from utils.helperFunctions import find_mode
-
 from tabulate import tabulate
+from utils.excelFunctions import addTimeSteps, grabTruthData, addTruth, finalFormatting
 
+import xlsxwriter
 import matplotlib.pyplot as plt
 
 class SensedComp():
@@ -14,7 +15,7 @@ class SensedComp():
         self.component = component
         self.sensors = sensors
         self.sensedState = self.senseState()
-        self.history =[self.sensedState]  # history of the sensed states
+        self.sensedHistory = [self.sensedState]  # history of the sensed states
 
 # -------------------- Simulation Functions -----------------------------
     def senseState (self): 
@@ -32,7 +33,8 @@ class SensedComp():
         for i in range(number_of_steps):
             self.component.simulate(1)
             self.sensedState = self.senseState()
-            self.history.append(self.sensedState)
+            self.sensedHistory.append(self.sensedState)
+
 
     def reset(self):
         """Resets the sensed component to its initial state."""
@@ -40,7 +42,7 @@ class SensedComp():
         for sensor in self.sensors:
             sensor.reset()
         self.sensedState = self.senseState()
-        self.history = [self.sensedState]
+        self.sensedHistory = [self.sensedState]
 
 # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self):
@@ -52,6 +54,43 @@ class SensedComp():
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5)) # Place legend to the right, centered vertically
         plt.show()
         
+
+    def printHistory2Excel(self, filename: str, sheet_name: str = None):
+        """ print the history of the sensed component and its sensors to an excel sheet """
+       
+        with xlsxwriter.Workbook(filename) as workbook:
+            if sheet_name is None:
+                if len(self.component.name) > 31:
+                    sheet_name = self.component.name[:31]
+                else: 
+                    sheet_name = self.component.name
+                worksheet = workbook.add_worksheet(sheet_name)
+
+            num_data = len(self.sensedHistory)
+            for i in range(num_data):
+                # add the time steps to the first column
+                addTimeSteps(workbook, worksheet, i)
+
+                # add truth states of the component and each sensor to the row
+                truth_data = grabTruthData(self, i)
+                ''' *** start updates from here ***'''
+                if i == 0:
+                    comp_truth_headers = ['Sensed Comp State']
+                    addTruth(workbook, worksheet, i, truth_data, comp_truth_headers)
+                else:
+                    addTruth(workbook, worksheet, i, truth_data)
+
+                # add sensor readings to the row
+                sensor_readings = [sensor.history[i] for sensor in self.sensors]
+                if i == 0:
+                    sensor_headers = [f'Sensor {j+1} Reading' for j in range(len(self.sensors))]
+                    addTruth(workbook, worksheet, i, sensor_readings, sensor_headers)
+                else:
+                    addTruth(workbook, worksheet, i, sensor_readings)
+
+            finalFormatting(worksheet, 1)
+
+
 
     def summaryOfReadings(self):
         """

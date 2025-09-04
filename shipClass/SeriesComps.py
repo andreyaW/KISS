@@ -15,7 +15,7 @@ class SeriesComps(System):
             """
 
         self.comps = components
-        self.name = str([comp.name for comp in components])
+        self.name = "_".join([comp.name for comp in components])
         self.states = components[0].states  # Assuming all components have the same states
 
         # Initialize the parent System class 

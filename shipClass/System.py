@@ -126,7 +126,9 @@ class System():
                 comp.name = new_name
             seen.add(comp.name)
 
-def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
+# --------------- Functions for Printing to Excel ----------------    
+
+    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
         """ Print the history of the system and its sensed components to an excel file """
 
         # determine important column letter numbers
@@ -141,8 +143,12 @@ def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=N
 
             # if no worksheet is provided, create a new workbook and worksheet
             if worksheet is None:
-                worksheet = workbook.add_worksheet(self.name) 
-                
+                if len(self.name) > 31:
+                    sheet_name = self.name[:31]
+                else: 
+                    sheet_name = self.name
+                worksheet = workbook.add_worksheet(sheet_name)
+
             # add data to the sheet 
             num_data = len(self.history)
             for i in range(num_data):
@@ -152,9 +158,8 @@ def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=N
 
                 # add truth states of the system and each sensed component to the row           
                 truth_data = grabTruthData(self, i)
-                
                 if i == 0: 
-                    sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + 'Truth State' for comp in self.comps]
+                    sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + ' Truth State' for comp in self.comps]
                     addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
                 else:
                     addTruth(workbook, worksheet, i, truth_data)

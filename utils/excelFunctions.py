@@ -1,16 +1,13 @@
 from wsgiref import headers
 from utils.helperFunctions import idx2letter
 
-def grabTruthData(system, i):
+def grabSysTruthData(system, i):
     """
     Grab the truth data from the system for a specific time step.
     """
     truth_data = [system.history[i]]  # start with the system state at time step i
     for comp in system.comps:
-        try:
-            truth_data.append(comp.comp.history[i])
-        except AttributeError:
-            truth_data.append(comp.history[i])
+        truth_data.append(comp.history[i])
     return truth_data
 
 

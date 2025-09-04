@@ -1,8 +1,10 @@
 from shipClass.MarkovChain import MarkovChain
 from shipClass.old_Model.Sensor2 import Sensor
+from utils.excelFunctions import addTimeSteps, grabTruthData, addTruth, finalFormatting
 
 import numpy as np
 import matplotlib.pyplot as plt
+import xlsxwriter
 
 class Component(MarkovChain):
     # i = 0   # class variable to keep track of component instances
@@ -84,7 +86,6 @@ class Component(MarkovChain):
 
         return transition_matrix
 
-
     def initialize(self, repairable:bool = False):
             num_states = len(self.states)
             if num_states == 3:
@@ -108,3 +109,29 @@ class Component(MarkovChain):
             if state < working_state:
                 return i
         return None
+    
+    def printHistory2Excel(self, filename: str, sheet_name: str = None):
+        """ print the history of the component to an excel sheet """
+       
+        with xlsxwriter.Workbook(filename) as workbook:
+            if sheet_name is None:
+                if len(self.name) > 31:
+                    sheet_name = self.name[:31]
+                else: 
+                    sheet_name = self.name
+                worksheet = workbook.add_worksheet(sheet_name)
+
+            num_data = len(self.history)
+            for i in range(num_data):
+                # add the time steps to the first column
+                addTimeSteps(workbook, worksheet, i)
+
+                # add truth states of the system and each sensed component to the row
+                truth_data = [self.history[i]]
+                if i == 0:
+                    comp_truth_headers = ['Comp Truth State']
+                    addTruth(workbook, worksheet, i, truth_data, comp_truth_headers)
+                else:
+                    addTruth(workbook, worksheet, i, truth_data)
+
+            finalFormatting(worksheet, 1)
