@@ -2,7 +2,7 @@ from shipClass.System import System
 from shipClass.Sensor_basic import Sensor
 from shipClass.SensedComp import SensedComp
 from utils.helperFunctions import SolveStructureFunction
-from utils.excelFunctions import addTimeSteps, grabTruthData, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
+from utils.excelFunctions import addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 
 import matplotlib.pyplot as plt
 import xlsxwriter

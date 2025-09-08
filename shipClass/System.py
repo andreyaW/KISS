@@ -1,6 +1,6 @@
 from shipClass.Component import Component
 from utils.helperFunctions import SolveStructureFunction, set_x_ticks
-from utils.excelFunctions import grabTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
+from utils.excelFunctions import grabSysTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 from utils.SystemDiagram import SystemDiagram
 
 import xlsxwriter
@@ -80,6 +80,13 @@ class System():
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
     
+        if plot_comp_history:
+            for comp in self.comps:
+                ax.plot(comp.history, marker='o', linestyle='', label=comp.name.capitalize())
+            # add updated legend
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
+                      fancybox=True, shadow=True, ncol=5)
+
         if return_ax:
             return ax
 
@@ -157,7 +164,7 @@ class System():
                 addTimeSteps(workbook, worksheet, i)
 
                 # add truth states of the system and each sensed component to the row           
-                truth_data = grabTruthData(self, i)
+                truth_data = grabSysTruthData(self, i)
                 if i == 0: 
                     sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + ' Truth State' for comp in self.comps]
                     addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
@@ -170,12 +177,12 @@ class System():
             
             finalFormatting(worksheet, self.n)
 
-            # add each sensed componet to its own worksheet
-            if addComps:
-                for i in range(self.n):
-                    # create a new worksheet for each component
-                    comp_name = self.comps[i].name.capitalize()
-                    ws= workbook.add_worksheet(comp_name)
+            # # add each sensed componet to its own worksheet
+            # if addComps:
+            #     for i in range(self.n):
+            #         # create a new worksheet for each component
+            #         comp_name = self.comps[i].name.capitalize()
+            #         ws= workbook.add_worksheet(comp_name)
 
-                    # add the history of the component to the worksheet
-                    self.comps[i].printHistory2Excel(filename, worksheet=ws)
+            #         # add the history of the component to the worksheet
+            #         self.comps[i].printHistory2Excel(filename, worksheet=ws)
