@@ -11,7 +11,9 @@ class Sensor:
             The quality of the sensor (e.g., 'Good', 'Moderate', or 'Bad').
         """
         self.quality = quality
-        self.history = []
+        self.state = 1  # 1 = working, 0 = faulty
+        self.history = []  # history of the current state of the sensor
+        self.sensedHistory = []  # history of the sensor readings
         self.setObservationProbs()
         self.sensing_interval = 30  # seconds
 
@@ -37,24 +39,32 @@ class Sensor:
         Simulates a sensor reading.
         Returns either the correct health reading or an incorrect one based on the observation probabilities
         """
-        if (step_num-1) % self.sensing_interval != 0:
-            self.history.append(self.history[-1])  # Maintain last reading if not sensing
-        else:
-            # Get the observation probabilities for the true health reading
-            probs = self.observation_probs[true_health_reading]
+        # if (step_num-1) % self.sensing_interval != 0:
+        #     self.sensed_history.append(self.sensed_history[-1])  # Maintain last reading if not sensing
+        # else:
+        # Get the observation probabilities for the true health reading
+        probs = self.observation_probs[true_health_reading]
 
-            # Simulate the sensor reading based on the probabilities
-            reading = np.random.choice([0, 1, 2], p=probs)
-            self.history.append(reading)
+        # Simulate the sensor reading based on the probabilities
+        reading = np.random.choice([0, 1, 2], p=probs)
+        self.sensedHistory.append(reading)
+
+        if self.sensedHistory[-1] != true_health_reading:
+            self.state = 0 # sensor is faulty
+        else:
+            self.state = 1 # sensor is working
+        self.history.append(self.state)
+
 
     def reset(self):
         """Resets the sensor to its initial state."""
         self.history = []
+        self.sensedHistory = []
 
 # ---------------------- Plotting Functions -----------------------------
     def plotReadings(self, ax):
         # Plot the sensor readings over time on a given axis
-        ax.plot(self.history, marker= '*',linestyle='', label=f"Sensor (Quality: {self.quality})")
+        ax.plot(self.sensedHistory, marker= '*',linestyle='', label=f"Sensor (Quality: {self.quality})")
 
 # ------------------ Simulation Functions -----------------------------
     def checkReadings(self, component):
@@ -72,8 +82,8 @@ class Sensor:
         FP_count = 0
         FA_count = 0
         MA_count = 0
-        
-        for i, reading in enumerate(self.history):
+
+        for i, reading in enumerate(self.sensedHistory):
             # Sensor Malfunction
             if reading != component.history[i]:
                 SM_count += 1

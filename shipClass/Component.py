@@ -1,6 +1,6 @@
 from shipClass.MarkovChain import MarkovChain
 from shipClass.old_Model.Sensor2 import Sensor
-from utils.excelFunctions import addTimeSteps, grabTruthData, addTruth, finalFormatting
+from utils.excelFunctions import addTimeSteps, addTruth, finalFormatting
 
 import numpy as np
 import matplotlib.pyplot as plt

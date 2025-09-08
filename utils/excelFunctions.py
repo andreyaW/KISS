@@ -1,14 +1,14 @@
 from wsgiref import headers
 from utils.helperFunctions import idx2letter
 
-def grabSysTruthData(system, i):
-    """
-    Grab the truth data from the system for a specific time step.
-    """
-    truth_data = [system.history[i]]  # start with the system state at time step i
-    for comp in system.comps:
-        truth_data.append(comp.history[i])
-    return truth_data
+# def grabSysTruthData(system, i):
+#     """
+#     Grab the truth data from the system for a specific time step.
+#     """
+#     truth_data = [system.history[i]]  # start with the system state at time step i
+#     for comp in system.comps:
+#         truth_data.append(comp.history[i])
+#     return truth_data
 
 
 def headerFormat(workbook) -> None:
