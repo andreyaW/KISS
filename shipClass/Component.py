@@ -110,11 +110,11 @@ class Component(MarkovChain):
                 return i
         return None
     
-    def printHistory2Excel(self, filename: str, sheet_name: str = None):
+    def printHistory2Excel(self, filename: str, worksheet: str = None):
         """ print the history of the component to an excel sheet """
        
         with xlsxwriter.Workbook(filename) as workbook:
-            if sheet_name is None:
+            if worksheet is None:
                 if len(self.name) > 31:
                     sheet_name = self.name[:31]
                 else: 

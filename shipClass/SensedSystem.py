@@ -26,13 +26,9 @@ class SensedSystem():
     def attach_sensors(self):
         comps = self.system.comps
         for i, comp in enumerate(comps):
-            print(type(comp))
-
             if isinstance(comp, System):
                 # if the component is a subsystem, recursively attach sensors to its components
-                num_sensors = [self.number_of_sensors[i] for _ in comp.comps]
-                print(f"({comp.name}) is a subsystem. Attaching {num_sensors}")
-                
+                num_sensors = [self.number_of_sensors[i] for _ in comp.comps]              
                 sensed_subsystem = SensedSystem(comp, number_of_sensors=num_sensors)
                 self.sensedComps.append(sensed_subsystem)
                 continue
@@ -80,7 +76,7 @@ class SensedSystem():
         if return_ax:
             return ax
         
-    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
+    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = False) -> None:
         """ Print the history of the system and its sensed components to an excel file """
 
         # determine important column letter numbers
@@ -109,7 +105,14 @@ class SensedSystem():
                 addTimeSteps(workbook, worksheet, i)
 
                 # add truth states of the system and each sensed component to the row
-                truth_data = grabTruthData(self.system, i)
+                sys_truth = [self.system.history[i]]
+                comps_truth = []
+                for comps in range(self.system.n):
+                    if isinstance(self.sensedComps[comps], SensedSystem):
+                        comps_truth.append(self.sensedComps[comps].system.history[i])
+                    else:
+                        comps_truth.append(self.sensedComps[comps].component.history[i])
+                truth_data = sys_truth + comps_truth
                 if i == 0:
                     sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + ' Truth State' for comp in self.system.comps]
                     addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
@@ -119,14 +122,7 @@ class SensedSystem():
                 # add the sensed states of te system and each sensed component to the row
                 sensed_data = [self.sensedHistory[i]] + [self.sensedComps[j].sensedHistory[i] for j in range(self.system.n)]
                 if i == 0:
-
-                    sensed_headers = []
-                    for sc in self.sensedComps:
-                        if isinstance(sc, SensedSystem):
-                            sensed_headers.append(f"{sc.system.name.capitalize()} Sensed State")
-                        else:
-                            sensed_headers.append(f"{sc.comp.name.capitalize()} Sensed State")
-                    sys_sensed_headers = ['Sys Sensed State'] + sensed_headers
+                    sys_sensed_headers = ['Sys Sensed State'] + [comp.name.capitalize() + ' Sensed State' for comp in self.system.comps]
                     addSensed(workbook, worksheet, i, sensed_data, sys_sensed_headers)
                 else:
                     addSensed(workbook, worksheet, i, sensed_data)
@@ -136,16 +132,35 @@ class SensedSystem():
 
             # add formating for parallel components
             if self.system.parallels is not None:
-                highlightParallels(workbook, worksheet, self.system.parallels, num_data, self.n)
+                highlightParallels(workbook, worksheet, self.system.parallels, num_data, self.system.n)
             
             finalFormatting(worksheet, self.system.n)
 
-            # # add each sensed componet to its own worksheet
-            # if addComps:
-            #     for i in range(self.n):
-            #         # create a new worksheet for each component
-            #         comp_name = self.comps[i].name.capitalize()
-            #         ws= workbook.add_worksheet(comp_name)
+            # add each sensed componet to its own worksheet
+            if addComps:
+                for comp in self.sensedComps:
 
-            #         # add the history of the component to the worksheet
-            #         self.comps[i].printHistory2Excel(filename, worksheet=ws)
+                    if type(comp) is SensedComp:
+                        # create a new worksheet for each component in the system (comp or seriesComps)
+                        comp_name = comp.component.name.capitalize()
+                        ws= workbook.add_worksheet(comp_name)
+
+                        # add the history of the component to the worksheet
+                        comp.printHistory2Excel(filename, worksheet=ws)
+
+                    else: 
+                        sub_sys= comp  # sensed subsystem
+                        # create a new worksheet for each subsystem in the system (comp or seriesComps)
+                        sub_sys_name = sub_sys.system.name.capitalize()
+                        ws= workbook.add_worksheet(sub_sys_name)
+
+                        # add the history of the subsystem to the worksheet
+                        sub_sys.printHistory2Excel(filename, worksheet=ws)
+
+                        # for the seriesComps object, add each component to its own worksheet
+                        for sub_comp in sub_sys.sensedComps:
+                            comp_name = sub_comp.component.name.capitalize()
+                            ws= workbook.add_worksheet(comp_name)
+
+                            # add the history of the component to the worksheet
+                            sub_comp.printHistory2Excel(filename, worksheet=ws)

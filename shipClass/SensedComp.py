@@ -54,11 +54,11 @@ class SensedComp():
         plt.show()
         
 
-    def printHistory2Excel(self, filename: str, sheet_name: str = None):
+    def printHistory2Excel(self, filename: str, worksheet: str = None):
         """ print the history of the sensed component and its sensors to an excel sheet """
        
         with xlsxwriter.Workbook(filename) as workbook:
-            if sheet_name is None:
+            if worksheet is None:
                 if len(self.component.name) > 31:
                     sheet_name = self.component.name[:31]
                 else: 

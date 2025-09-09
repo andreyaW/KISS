@@ -135,14 +135,9 @@ class System():
 
 # --------------- Functions for Printing to Excel ----------------    
 
-    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = True) -> None:
+    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = False) -> None:
         """ Print the history of the system and its sensed components to an excel file """
 
-        # determine important column letter numbers
-        truth_col =2
-        sensed_col = 3 + self.n
-        f1_col = 4 + self.n*2
-        
         self.check4DuplicateNames()  # check for duplicate component names and update them to be unique
 
         # add to the workbook using xlsxwriter
@@ -177,12 +172,31 @@ class System():
             
             finalFormatting(worksheet, self.n)
 
-            # # add each sensed componet to its own worksheet
-            # if addComps:
-            #     for i in range(self.n):
-            #         # create a new worksheet for each component
-            #         comp_name = self.comps[i].name.capitalize()
-            #         ws= workbook.add_worksheet(comp_name)
+            # add each sensed componet to its own worksheet
+            if addComps:
+                for comp in self.comps:
 
-            #         # add the history of the component to the worksheet
-            #         self.comps[i].printHistory2Excel(filename, worksheet=ws)
+                    if type(comp) is Component:
+                        # create a new worksheet for each component in the system (comp or seriesComps)
+                        comp_name = comp.name.capitalize()
+                        ws= workbook.add_worksheet(comp_name)
+
+                        # add the history of the component to the worksheet
+                        comp.printHistory2Excel(filename, worksheet=ws)
+
+                    else: 
+                        sub_sys = comp
+                        # create a new worksheet for each subsystem in the system (comp or seriesComps)
+                        sub_sys_name = sub_sys.name.capitalize()
+                        ws= workbook.add_worksheet(sub_sys_name)
+
+                        # add the history of the subsystem to the worksheet
+                        sub_sys.printHistory2Excel(filename, worksheet=ws, addComps=True)
+
+                        # for the seriesComps object, add each component to its own worksheet
+                        for sub_comp in comp.comps:
+                            comp_name = sub_comp.name.capitalize()
+                            ws= workbook.add_worksheet(comp_name)
+
+                            # add the history of the component to the worksheet
+                            sub_comp.printHistory2Excel(filename, worksheet=ws)

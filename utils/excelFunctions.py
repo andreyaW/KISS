@@ -19,7 +19,7 @@ def headerFormat(workbook) -> None:
     cell_format = workbook.add_format()            
     cell_format.set_bold()
     cell_format.set_text_wrap()             # wrap text to fit in cell better
-    cell_format.set_border(1)               # add a thin border around the cell    
+    # cell_format.set_border(1)               # add a thin border around the cell    
     
     return cell_format
 
@@ -27,7 +27,6 @@ def addTimeSteps(workbook, worksheet, i) -> None:
     """
     Add time steps to the worksheet.
     """
-
     # add time step headers to the first row
     if i == 0:
         time_header_format = headerFormat(workbook)  # add formatting to the headers
@@ -35,9 +34,8 @@ def addTimeSteps(workbook, worksheet, i) -> None:
         worksheet.write(0, 0, 'Time Step', time_header_format)         # add the header to the first row
 
     # add the time steps starting at the second row, first column
-    time_col_format = workbook.add_format({'align': 'center',
-                                           'right': 5})        # Add a thick right border
-    worksheet.write(i+1, 0, i, time_col_format)             # data starts in the second row
+    time_col_format = workbook.add_format({'align': 'center', 'right': 5})        # Add a thick right border
+    worksheet.write(i+1, 0, i, time_col_format)                                   # data starts in the second row
 
 
 def addTruth(workbook, worksheet, i, truth_data, truth_headers = None) -> None:
