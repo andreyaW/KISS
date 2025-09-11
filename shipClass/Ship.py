@@ -189,25 +189,27 @@ class Ship:
             if addComps:
                 # add each systems data to their own worksheet
                 for i in range(self.n):
+
+                    for comps in systems[i].comps: 
+                        if type(comps) is SeriesComps:
+                            # add the systems sub system to their own worksheet
+                            sheet_name = f'System {i+1}- ' + comps.name.capitalize()
+                            ws = workbook.add_worksheet(sheet_name[:31])
+                            comps.printHistory2Excel(filename, worksheet=ws, addComps=True)
+    
+                            # add each component in the series to their own worksheet                        
+                            for comp in comps.comps:
+                                sheet_name = f'System {i+1}- ' + comp.name.capitalize()
+                                ws = workbook.add_worksheet(sheet_name[:31])
+                                comp.printHistory2Excel(filename, worksheet=ws)
+                        else:
+                            # add the component to its own worksheet
+                            sheet_name = f'System {i+1}-' + comps.name.capitalize()
+                            ws = workbook.add_worksheet(sheet_name[:31])
+                            comps.printHistory2Excel(filename, worksheet=ws)
+
                     # create a new worksheet for each system
                     ws = workbook.add_worksheet(f'System {i+1} History')
 
                     # add the history of the system to the worksheet
                     systems[i].printHistory2Excel(filename, ws, addComps=True)
-
-                    # for comps in systems[i].comps:
-                    #     if type(comps) is SeriesComps:
-                    #         for sub_comp in comps.comps:
-                    #             # create a new worksheet for each component in the system (comp or seriesComps)
-                    #             comp_name = sub_comp.name.capitalize()
-                    #             ws= workbook.add_worksheet(comp_name)
-
-                    #             # add the history of the component to the worksheet
-                    #             sub_comp.printHistory2Excel(filename, worksheet=ws)
-                    #     elif type(comps) is Component:
-                    #         # create a new worksheet for each component in the system (comp or seriesComps)
-                    #         comp_name = comps.name.capitalize()
-                    #         ws= workbook.add_worksheet(comp_name)
-
-                    #         # add the history of the component to the worksheet
-                    #         comps.printHistory2Excel(filename, worksheet=ws)
