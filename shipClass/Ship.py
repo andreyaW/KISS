@@ -189,6 +189,7 @@ class Ship:
             if addComps:
                 # add each systems data to their own worksheet
                 for i in range(self.n):
+                    systems[i].check4DuplicateNames()
 
                     for comps in systems[i].comps: 
                         if type(comps) is SeriesComps:
@@ -196,8 +197,8 @@ class Ship:
                             sheet_name = f'System {i+1}- ' + comps.name.capitalize()
                             ws = workbook.add_worksheet(sheet_name[:31])
                             comps.printHistory2Excel(filename, worksheet=ws, addComps=True)
-    
-                            # add each component in the series to their own worksheet                        
+
+                            # add each component in the series to their own worksheet
                             for comp in comps.comps:
                                 sheet_name = f'System {i+1}- ' + comp.name.capitalize()
                                 ws = workbook.add_worksheet(sheet_name[:31])

@@ -12,7 +12,7 @@ class SensedComp():
     """ A collection of functions for a component with attached sensors"""
 
     def __init__(self, component: Component, sensors: list[Sensor]):
-        self.component = component
+        self.comp = component
         self.sensors = sensors
         self.sensedState = self.senseState()
         self.sensedHistory = [self.sensedState]  # history of the sensed states
@@ -21,7 +21,7 @@ class SensedComp():
     def senseState (self): 
         sensor_readings = [None for _ in self.sensors]  # store the sensor readings
         for j, sensor in enumerate(self.sensors):
-            sensor.read(self.component.state, len(self.component.history)) # allow the sensor to read the component state
+            sensor.read(self.comp.state, len(self.comp.history)) # allow the sensor to read the component state
             sensor_readings[j] = sensor.sensedHistory[-1]  # append the latest sensor reading to the list
 
         aggregated_reading = find_mode(sensor_readings) # aggregate the sensor readings
@@ -31,13 +31,13 @@ class SensedComp():
 
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
-            self.component.simulate(1)
+            self.comp.simulate(1)
             self.sensedState = self.senseState()
             self.sensedHistory.append(self.sensedState)
 
     def reset(self):
         """Resets the sensed component to its initial state."""
-        self.component.reset()
+        self.comp.reset()
         for sensor in self.sensors:
             sensor.reset()
         self.sensedState = self.senseState()
@@ -59,10 +59,10 @@ class SensedComp():
        
         with xlsxwriter.Workbook(filename) as workbook:
             if worksheet is None:
-                if len(self.component.name) > 31:
-                    sheet_name = self.component.name[:31]
+                if len(self.comp.name) > 31:
+                    sheet_name = self.comp.name[:31]
                 else: 
-                    sheet_name = self.component.name
+                    sheet_name = self.comp.name
                 worksheet = workbook.add_worksheet(sheet_name)
 
             num_data = len(self.sensedHistory)
@@ -71,7 +71,7 @@ class SensedComp():
                 addTimeSteps(workbook, worksheet, i)
 
                 # add true states of the component and each sensor to the row
-                truth_data = [self.component.history[i]] + [sensor.history[i] for sensor in self.sensors]
+                truth_data = [self.comp.history[i]] + [sensor.history[i] for sensor in self.sensors]
 
                 if i == 0:
                     comp_truth_headers = ['Comp Truth State'] + [f'Sensor {j+1} State' for j in range(len(self.sensors))]

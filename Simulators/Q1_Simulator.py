@@ -151,31 +151,31 @@ class Q1_Simulator():
 
 
 
-    def determineVariationReliability(self, n: int=1000):
-        '''
-        Determine the reliability of each ship variation by simulating
-        a number of missions and recording the failure times.
+    # def determineVariationReliability(self, n: int=1000):
+    #     '''
+    #     Determine the reliability of each ship variation by simulating
+    #     a number of missions and recording the failure times.
 
-        Parameters:
-        -----------
-        n : int
-            The number of simulation runs to perform for each variation.
-        '''
+    #     Parameters:
+    #     -----------
+    #     n : int
+    #         The number of simulation runs to perform for each variation.
+    #     '''
         
-        for i, variation in enumerate(self.shipVariations):
-            # print(f"Variation {i+1} reliability:")
+    #     for i, variation in enumerate(self.shipVariations):
+    #         # print(f"Variation {i+1} reliability:")
             
-            n = 1000    # number of runs of for Variation
-            failure_times = []
+    #         n = 1000    # number of runs of for Variation
+    #         failure_times = []
 
-            for _ in range(n):
-                variation.simulate(10000)
-                failure_times.append(variation.determineFailureTime())
-                variation.reset()
+    #         for _ in range(n):
+    #             variation.simulate(10000)
+    #             failure_times.append(variation.determineFailureTime())
+    #             variation.reset()
 
-            # Calculate and print the average failure time for this variation
-            avg_failure_time = sum(failure_times) / len(failure_times) if failure_times else 0
-            print(f"Variation {i+1} average failure time: {avg_failure_time}")
+    #         # Calculate and print the average failure time for this variation
+    #         avg_failure_time = sum(failure_times) / len(failure_times) if failure_times else 0
+    #         print(f"Variation {i+1} average failure time: {avg_failure_time}")
 
 
     #     for length in mission_lengths:

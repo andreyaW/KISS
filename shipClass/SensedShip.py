@@ -10,10 +10,11 @@ class SensedShip():
     def __init__(self, ship: Ship, number_of_sensors: list[int] = None):
         self.ship = ship
         self.sensedState = self.ship.state
-        self.history = [self.sensedState]
+        self.sensedHistory = [self.sensedState]
         self.sensedSystems = []
 
-    def attach_sensors(self, number_of_sensors: list[int] = None):
+    # ---------------------- Initialization Functions -----------------------------
+    def attach_sensors(self, number_of_sensors: list[int] = None, sensor_quality: str = 'Good'):
         """ Attach sensors to each system in the ship. """        
         self.number_of_sensors = number_of_sensors
         if self.number_of_sensors is None:
@@ -25,10 +26,11 @@ class SensedShip():
         for i, shipSystem in enumerate(shipSystems):
             print(f"The system has {len(shipSystem.comps)} components")
             print(f"Attaching {len(self.number_of_sensors[i])} sets of sensors to system")
-            sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i])
+            sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i], sensor_quality=sensor_quality)
             self.sensedSystems.append(sensedSystem)
         self.n = len(self.sensedSystems)
 
+    # -------------------- Simulation Functions -----------------------------
     def simulate(self, time_step):
         for i in range(time_step):
             for sensedSystem in self.sensedSystems:
@@ -39,25 +41,20 @@ class SensedShip():
 
             # determine the sensed state of the ship
             self.sensedState = SolveStructureFunction(self.sensedSystems, self.ship.parallels, sensed=True)
-            self.history.append(self.sensedState)
-
+            self.sensedHistory.append(self.sensedState)
 
     def reset(self):
-        self.history = [self.sensedState]
+        self.sensedHistory = [self.sensedState]
         for sensedSystem in self.sensedSystems:
             sensedSystem.reset()
 
-    def determineFailureTime(self):
-        # Determine the failure time of the ship
-        # first time the state = 0
-        return self.ship.history.index(0)
-
+    # ---------------------- Plotting and Printing Functions -----------------------------
     def plotHistory(self):
         # Plot the true history of the ship
         ax = self.ship.plotHistory(return_ax=True)
 
         # Plot the sensed history of the ship
-        ax.plot(self.history, marker=',', label='Sensed', linestyle='--', color='orange')
+        ax.plot(self.sensedHistory, marker=',', label='Sensed', linestyle='--', color='orange')
 
         # add updated legend and show fig
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
@@ -96,7 +93,7 @@ class SensedShip():
                     addTruth(workbook, worksheet, i, truth_data)
 
                 # grab sensed data for step i
-                sensed_data = [self.sensedState] + [systems[j].sensedState for j in range(self.n)]
+                sensed_data = [self.sensedHistory[i]] + [systems[j].sensedHistory[i] for j in range(self.n)]
                 # on step zero add headers to the top row then first row of data
                 if i==0: 
                     ship_sensed_headers = [f'Ship Sensed State'] + [f'System {i+1} Sensed State' for i in range(self.n)]
@@ -112,27 +109,48 @@ class SensedShip():
             
             finalFormatting(worksheet, self.n)       
 
-            # if addComps:
-            #     # add each systems data to their own worksheet
-            #     for i in range(self.n):
+            if addComps:
+                # add each systems data to their own worksheet
+                for i in range(self.n):
+                    systems[i].system.check4DuplicateNames()  # ensure no duplicate names in each sensed system
 
-            #         for comps in systems[i].comps: 
-            #             if type(comps) is SensedSystem:
-            #                 # add the systems sub system to their own worksheet
-            #                 ws = workbook.add_worksheet(f'System {i+1}- ' + comps.name.capitalize())
-            #                 comps.printHistory2Excel(filename, worksheet=ws, addComps=True)
+                    for comps in systems[i].sensedComps: 
+                        if type(comps) is SensedSystem:
+                            sub_sys = comps
 
-            #                 # add each component in the series to their own worksheet                        
-            #                 for comp in comps.components:
-            #                     ws = workbook.add_worksheet(f'System {i+1}- {comp.name.capitalize()}')
-            #                     comp.printHistory2Excel(filename, worksheet=ws)
-            #             else:
-            #                 ws = workbook.add_worksheet(f'System {i+1}- {comps.name.capitalize()}')
-            #                 comps.printHistory2Excel(filename, worksheet=ws)
+                            # add the systems sub system to their own worksheet
+                            sheet_name = f'System {i+1}- ' + sub_sys.system.name.capitalize()
+                            ws = workbook.add_worksheet(sheet_name[:31])
+                            sub_sys.printHistory2Excel(filename, worksheet=ws, addComps=True)
 
-            #                             # create a new worksheet for each system
+                            # add each component in the series to their own worksheet
+                            for comp in sub_sys.sensedComps:
+                                sheet_name = f'System {i+1}- ' + comp.comp.name.capitalize()
+                                ws = workbook.add_worksheet(sheet_name[:31])
+                                comp.printHistory2Excel(filename, worksheet=ws)
+                        else:
+                            # add the component to its own worksheet
+                            sheet_name = f'System {i+1}-' + comps.comp.name.capitalize()
+                            ws = workbook.add_worksheet(sheet_name[:31])
+                            comps.printHistory2Excel(filename, worksheet=ws)
 
-            #         ws = workbook.add_worksheet(f'System {i+1} History')
+                    # create a new worksheet for each system
+                    ws = workbook.add_worksheet(f'System {i+1} History')
 
-            #         # add the history of the system to the worksheet
-            #         systems[i].printHistory2Excel(filename, ws, addComps=True)
+                    # add the history of the system to the worksheet
+                    systems[i].printHistory2Excel(filename, ws, addComps=True)    
+
+    # ---------------------- Additional Analysis Functions -----------------------------
+
+        def determineFirstFailureTime(self):
+            # Determine the failure time of the ship
+            # first time the state = 0
+            return self.ship.history.index(0)
+        
+        def calculate_state_accuracy(self):
+            true_states = self.ship.history
+            sensed_states = self.sensedHistory
+            correct = sum(t == s for t, s in zip(true_states, sensed_states))
+
+            return correct / len(true_states) if true_states else 0
+

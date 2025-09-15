@@ -111,7 +111,7 @@ class SensedSystem():
                     if isinstance(self.sensedComps[comps], SensedSystem):
                         comps_truth.append(self.sensedComps[comps].system.history[i])
                     else:
-                        comps_truth.append(self.sensedComps[comps].component.history[i])
+                        comps_truth.append(self.sensedComps[comps].comp.history[i])
                 truth_data = sys_truth + comps_truth
                 if i == 0:
                     sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + ' Truth State' for comp in self.system.comps]
@@ -142,7 +142,7 @@ class SensedSystem():
 
                     if type(comp) is SensedComp:
                         # create a new worksheet for each component in the system (comp or seriesComps)
-                        comp_name = comp.component.name.capitalize()
+                        comp_name = comp.comp.name.capitalize()
                         ws= workbook.add_worksheet(comp_name)
 
                         # add the history of the component to the worksheet
@@ -159,7 +159,7 @@ class SensedSystem():
 
                         # for the seriesComps object, add each component to its own worksheet
                         for sub_comp in sub_sys.sensedComps:
-                            comp_name = sub_comp.component.name.capitalize()
+                            comp_name = sub_comp.comp.name.capitalize()
                             ws= workbook.add_worksheet(comp_name)
 
                             # add the history of the component to the worksheet

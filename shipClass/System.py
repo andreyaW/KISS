@@ -126,11 +126,17 @@ class System():
             if comp.name in seen:
                 # update this component to have a number
                 i = 1
-                new_name = f"{comp.name} {i+1}"
+                new_name = f"#{i+1} {comp.name}"
                 while new_name in seen:
                     i += 1
-                    new_name = f"{comp.name} {i+1}"
+                    new_name = f"#{i+1} {comp.name}"
                 comp.name = new_name
+
+                if type(comp) is not Component:
+                    # if the component is a subsystem, update the names of its components as well
+                    for i, sub_comp in enumerate(comp.comps):
+                        sub_comp.name = f"#{i+1} {sub_comp.name}"
+
             seen.add(comp.name)
 
 # --------------- Functions for Printing to Excel ----------------    
