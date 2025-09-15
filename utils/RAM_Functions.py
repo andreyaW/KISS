@@ -1,6 +1,13 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+
+
+# -----------------RELIABILITY FUNCTIONS----------------- #
+
+
+
 def drawRelCurve(failure_times):
     """Draws the reliability curve based on the failure times of simulated components"""
     # Calculate the reliability function R(t)
