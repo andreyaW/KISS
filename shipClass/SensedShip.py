@@ -24,9 +24,9 @@ class SensedShip():
 
         shipSystems = list(self.ship.systems.values())
         for i, shipSystem in enumerate(shipSystems):
-            print(f"The system has {len(shipSystem.comps)} components")
-            print(f"Attaching {len(self.number_of_sensors[i])} sets of sensors to system")
-            sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i], sensor_quality=sensor_quality)
+            # print(f"The system has {len(shipSystem.comps)} components")
+            # print(f"Attaching {len(self.number_of_sensors[i])} sets of sensors to system")
+            sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i])
             self.sensedSystems.append(sensedSystem)
         self.n = len(self.sensedSystems)
 
@@ -44,9 +44,14 @@ class SensedShip():
             self.sensedHistory.append(self.sensedState)
 
     def reset(self):
+        # reset the true ship to initial conditions
+        self.ship.reset()
+        
+        # reset sensed ship to initial conditions
         self.sensedHistory = [self.sensedState]
         for sensedSystem in self.sensedSystems:
             sensedSystem.reset()
+        self.sensedState = self.ship.state
 
     # ---------------------- Plotting and Printing Functions -----------------------------
     def plotHistory(self):
@@ -142,15 +147,15 @@ class SensedShip():
 
     # ---------------------- Additional Analysis Functions -----------------------------
 
-        def determineFirstFailureTime(self):
-            # Determine the failure time of the ship
-            # first time the state = 0
-            return self.ship.history.index(0)
+    def determineFirstFailureTime(self):
+        # Determine the failure time of the ship
+        # first time the state = 0
+        return self.ship.history.index(0)
         
-        def calculate_state_accuracy(self):
-            true_states = self.ship.history
-            sensed_states = self.sensedHistory
-            correct = sum(t == s for t, s in zip(true_states, sensed_states))
+    def calculate_state_accuracy(self):
+        true_states = self.ship.history
+        sensed_states = self.sensedHistory
+        correct = sum(t == s for t, s in zip(true_states, sensed_states))
 
-            return correct / len(true_states) if true_states else 0
+        return correct / len(true_states) if true_states else 0
 
