@@ -7,26 +7,22 @@ import matplotlib.pyplot as plt
 import xlsxwriter
 
 class SensedShip():
-    def __init__(self, ship: Ship, number_of_sensors: list[int] = None):
+    def __init__(self, ship: Ship, sensors: list[tuple[int, str]] = None):
         self.ship = ship
         self.sensedState = self.ship.state
         self.sensedHistory = [self.sensedState]
         self.sensedSystems = []
+        self.sensors = sensors
 
     # ---------------------- Initialization Functions -----------------------------
-    def attach_sensors(self, number_of_sensors: list[int] = None, sensor_quality: str = 'Good'):
-        """ Attach sensors to each system in the ship. """        
-        self.number_of_sensors = number_of_sensors
-        if self.number_of_sensors is None:
-            self.number_of_sensors = [[3 for i in range((len(shipSystems.comps)))] for shipSystems in self.ship.systems.values()]
-        else: 
-            self.number_of_sensors = number_of_sensors
+    def attach_sensors(self):
+        """ Attach sensors to each system in the ship. """
+        if self.sensors is None:
+            self.sensors = [[(3, 'Good') for comps in system.comps] for system in self.ship.systems.values()]
 
         shipSystems = list(self.ship.systems.values())
         for i, shipSystem in enumerate(shipSystems):
-            # print(f"The system has {len(shipSystem.comps)} components")
-            # print(f"Attaching {len(self.number_of_sensors[i])} sets of sensors to system")
-            sensedSystem = SensedSystem(shipSystem, self.number_of_sensors[i])
+            sensedSystem = SensedSystem(shipSystem, self.sensors[i])
             self.sensedSystems.append(sensedSystem)
         self.n = len(self.sensedSystems)
 
@@ -59,13 +55,12 @@ class SensedShip():
         ax = self.ship.plotHistory(return_ax=True)
 
         # Plot the sensed history of the ship
-        ax.plot(self.sensedHistory, marker=',', label='Sensed', linestyle='--', color='orange')
+        ax.plot(self.sensedHistory, marker=',', label='Sensed', linestyle='--', linewidth=1, color='orange')
 
         # add updated legend and show fig
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
         plt.show()
-
 
 
     def printHistory2Excel(self, filename: str, worksheet= None, addComps: bool = False) -> None:

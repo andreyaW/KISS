@@ -56,8 +56,8 @@ class System():
         """Resets the system to its initial state and deletes its history."""
         for comp in self.comps:
             comp.reset()
-        self.state = SolveStructureFunction(self.comps, self.parallels)
-        self.history = [self.state]
+        self.history = []
+        self.update_state()
 
 # -------------- Functions for Plotting --------------------------
     def plotHistory(self, plot_comp_history: bool = False, return_ax = False) -> None:

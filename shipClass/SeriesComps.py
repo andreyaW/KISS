@@ -44,7 +44,3 @@ class SeriesComps(System):
         # System MTTF = 1 / system_rate
         system_MTTF = 1 / system_rate
         return system_MTTF
-
-    def reset(self):
-        for comp in self.comps:
-            comp.reset()

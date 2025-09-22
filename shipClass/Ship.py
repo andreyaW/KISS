@@ -135,7 +135,7 @@ class Ship:
         fig, ax = plt.subplots()
         
         # Plot the true and sensed history of the system
-        ax.plot(self.history, marker=',', label='Truth')
+        ax.plot(self.history, marker=',', linewidth=2, label='Truth')
 
         # Formatting
         ax.set_ylabel('State')

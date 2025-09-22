@@ -10,33 +10,37 @@ import xlsxwriter
 class SensedSystem():
     ''' a class which holds the system class and also attaches sensors to each component of the system to get readings 
     '''
-    def __init__(self, system: System, number_of_sensors: list[int] = None):
+    def __init__(self, system: System, sensors: list[tuple[int, str]] = None):
         self.system = system        
-        self.sensedState = self.system.state
-        self.sensedHistory = [self.sensedState]
         self.sensedComps = []
-
-        # if the number of sensors per component is not specified, add defualts
-        if number_of_sensors is None:
-            self.number_of_sensors = [3 for comp in self.system.comps]
-        else: 
-            self.number_of_sensors = number_of_sensors
+        self.sensors = sensors
         self.attach_sensors()
+        self.sensedHistory = []
+        self.senseState()
 
     def attach_sensors(self):
+        # if the sensors are not specified, add defaults
+        if self.sensors is None:
+            self.sensors = [[(3, 'Good') for comps in self.sensedComps]]
+
         comps = self.system.comps
         for i, comp in enumerate(comps):
             if isinstance(comp, System):
                 # if the component is a subsystem, recursively attach sensors to its components
-                num_sensors = [self.number_of_sensors[i] for _ in comp.comps]              
-                sensed_subsystem = SensedSystem(comp, number_of_sensors=num_sensors)
+                sub_sys_sensors = [self.sensors[i] for _ in comp.comps]
+                sensed_subsystem = SensedSystem(comp, sensors=sub_sys_sensors)
                 self.sensedComps.append(sensed_subsystem)
                 continue
             else: 
                 # if the component is a individual component, attach sensors to it
-                sensors = [Sensor() for _ in range(self.number_of_sensors[i])] # attaching good sensors (default)
+                sensors = [Sensor(quality=self.sensors[i][1]) for _ in range(self.sensors[i][0])] # attaching good sensors (default)
+                # print(sensors, sensors[0].quality)
                 sensed_comp = SensedComp(comp, sensors)
                 self.sensedComps.append(sensed_comp)
+
+    def senseState(self):
+        self.sensedState = SolveStructureFunction(self.sensedComps, self.system.parallels, sensed=True)
+        self.sensedHistory.append(self.sensedState)
 
     def simulate(self, time_step):
 
@@ -51,13 +55,15 @@ class SensedSystem():
             self.system.update_state()  
             
             # update the system sensed state
-            self.sensedState = SolveStructureFunction(sensedComps, self.system.parallels, sensed=True)
-            self.sensedHistory.append(self.sensedState)
-        
+            self.senseState()
+
     def reset(self):
+        self.system.reset()
         self.sensedHistory = [self.sensedState]
         for sensed_comp in self.sensedComps:
             sensed_comp.reset()
+        
+
 
     def plotHistory(self, plot_comp_history = False, return_ax = False):
         ''' plot the history of the sensed system '''

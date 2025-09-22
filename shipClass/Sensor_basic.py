@@ -42,6 +42,7 @@ class Sensor:
         # if (step_num-1) % self.sensing_interval != 0:
         #     self.sensed_history.append(self.sensed_history[-1])  # Maintain last reading if not sensing
         # else:
+        
         # Get the observation probabilities for the true health reading
         probs = self.observation_probs[true_health_reading]
 
@@ -60,6 +61,9 @@ class Sensor:
         """Resets the sensor to its initial state."""
         self.history = []
         self.sensedHistory = []
+        # self.history = [self.history[0]]
+        # self.sensedHistory = [self.sensedHistory[0]]
+
 
 # ---------------------- Plotting Functions -----------------------------
     def plotReadings(self, ax):

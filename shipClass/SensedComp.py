@@ -14,8 +14,8 @@ class SensedComp():
     def __init__(self, component: Component, sensors: list[Sensor]):
         self.comp = component
         self.sensors = sensors
-        self.sensedState = self.senseState()
-        self.sensedHistory = [self.sensedState]  # history of the sensed states
+        self.sensedHistory = []
+        self.senseState()
 
 # -------------------- Simulation Functions -----------------------------
     def senseState (self): 
@@ -26,22 +26,23 @@ class SensedComp():
 
         aggregated_reading = find_mode(sensor_readings) # aggregate the sensor readings
         sensedState = aggregated_reading
-        return sensedState
-
+        
+        # update the sensed state and its history
+        self.sensedState =  sensedState
+        self.sensedHistory.append(sensedState)
 
     def simulate(self, number_of_steps = 1):
         for i in range(number_of_steps):
             self.comp.simulate(1)
-            self.sensedState = self.senseState()
-            self.sensedHistory.append(self.sensedState)
+            self.senseState()
 
     def reset(self):
         """Resets the sensed component to its initial state."""
         self.comp.reset()
         for sensor in self.sensors:
             sensor.reset()
-        self.sensedState = self.senseState()
-        self.sensedHistory = [self.sensedState]
+        self.sensedHistory = []
+        self.senseState()
 
 # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self):
