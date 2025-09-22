@@ -2,6 +2,7 @@ from collections import Counter
 
 import textwrap
 import numpy as np
+import tabulate
 
 def get_key_by_value(my_dict, value):
     
@@ -145,6 +146,11 @@ def set_x_ticks(ax, history_len, max_ticks=10):
         ticks = np.append(ticks, history_len - 1)
 
     ax.set_xticks(ticks)
+
+
+def create_multi_simulation_table(headers, rows):
+    """ Create a table summarizing the results of multiple simulations """
+    return tabulate.tabulate(rows, headers=headers, tablefmt="grid")
 
 
 

@@ -154,3 +154,36 @@ class SensedShip():
 
         return correct / len(true_states) if true_states else 0
 
+
+
+    def getFalseAlarmRate(self):
+        """ Calculate the false alarm rate of the ship. 
+            False alarm rate is defined as the number of times the ship is sensed to be failed when it is actually working,
+            divided by the total number of times the ship is sensed to be failed.
+        """
+        false_alarms = 0
+        total_alarms = 0
+
+        for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
+            if sensed_state == 0 or sensed_state == 1:  # Sensed as failed or incipient failure
+                total_alarms += 1
+                if true_state == 1:  # Actually working
+                    false_alarms += 1
+
+        return (false_alarms / total_alarms) * 100 if total_alarms > 0 else 0
+
+    def getUnexpectedFailureRate(self):
+        """ Calculate the number of unexpected failures of the ship.
+            Unexpected failure is defined as the number of times the ship actually fails when it is sensed to be working,
+            divided by the total number of times the ship actually fails.
+        """
+        unexpected_failures = 0
+        total_failures = 0
+
+        for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
+            if true_state == 0:  # Actually failed
+                total_failures += 1
+                if sensed_state == 2:  # Sensed as working
+                    unexpected_failures += 1
+
+        return (unexpected_failures / total_failures) * 100 if total_failures > 0 else 0
