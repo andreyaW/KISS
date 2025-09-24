@@ -13,6 +13,7 @@ class SensedShip():
         self.sensedHistory = [self.sensedState]
         self.sensedSystems = []
         self.sensors = sensors
+        self.attach_sensors()
 
     # ---------------------- Initialization Functions -----------------------------
     def attach_sensors(self):
@@ -167,7 +168,7 @@ class SensedShip():
         for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
             if sensed_state == 0 or sensed_state == 1:  # Sensed as failed or incipient failure
                 total_alarms += 1
-                if true_state == 1:  # Actually working
+                if true_state == 2:  # Actually working
                     false_alarms += 1
 
         return (false_alarms / total_alarms) * 100 if total_alarms > 0 else 0
@@ -183,7 +184,7 @@ class SensedShip():
         for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
             if true_state == 0:  # Actually failed
                 total_failures += 1
-                if sensed_state == 2:  # Sensed as working
+                if sensed_state != 0:  # did not sense the failure
                     unexpected_failures += 1
 
         return (unexpected_failures / total_failures) * 100 if total_failures > 0 else 0

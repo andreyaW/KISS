@@ -94,7 +94,7 @@ class Component(MarkovChain):
                 self.transition_matrix = self.defineTwoStateTransitionMatrix(repairable) # (all repair rates = 0 if unmanned = True)
             
             # inheriting from MarkovChain class 
-            super().__init__(self.states, self.transition_matrix) \
+            super().__init__(self.states, self.transition_matrix) 
 
     def reset(self):
         """Resets the component to its initial state."""
@@ -109,6 +109,7 @@ class Component(MarkovChain):
             if state < working_state:
                 return i
         return None
+    
     
     def printHistory2Excel(self, filename: str, worksheet: str = None):
         """ print the history of the component to an excel sheet """

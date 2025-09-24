@@ -1,5 +1,7 @@
 from collections import Counter
 
+import shutil
+import os
 import textwrap
 import numpy as np
 import tabulate
@@ -154,3 +156,30 @@ def create_multi_simulation_table(headers, rows):
 
 
 
+
+
+def compress_folder_to_zip(source_folder, output_zip_name):
+    """
+    Compresses a specified folder into a zip archive.
+
+    Args:
+        source_folder (str): The path to the folder to be compressed.
+        output_zip_name (str): The desired name for the output zip file
+                                (without the .zip extension).
+    """
+    try:
+        # Get the absolute path of the source folder
+        source_folder_abs = os.path.abspath(source_folder)
+        
+        # Create the zip archive
+        shutil.make_archive(output_zip_name, 'zip', source_folder_abs)
+        print(f"Folder '{source_folder}' successfully compressed to '{output_zip_name}.zip'")
+    except Exception as e:
+        print(f"Error compressing folder: {e}")
+
+    # remove the original folder after compression
+    try:
+        shutil.rmtree(source_folder)
+        print(f"Original folder '{source_folder}' has been removed.")
+    except Exception as e:
+        print(f"Error removing original folder: {e}")
