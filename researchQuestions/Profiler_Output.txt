@@ -1,0 +1,38 @@
+ 12345665382 function calls (12332544461 primitive calls) in 18866.368 seconds
+Profiler Results
+
+
+   Ordered by: cumulative time
+   List reduced from 1955 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+    30518    0.481    0.000 22564.570    0.739 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\selectors.py:310(select)
+     9000   18.964    0.002 16786.106    1.865 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedShip.py:30(simulate)
+    30518    0.686    0.000 15045.901    0.493 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\selectors.py:304(_select)
+38880000/25920000   98.911    0.000 14579.497    0.001 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:45(simulate)
+162000000  165.890    0.000 13062.850    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:34(simulate)
+162450000  511.177    0.000 9780.961    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:21(senseState)
+487350000 6491.929    0.000 8152.009    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Sensor_basic.py:37(read)
+    30518 4432.653    0.145 4661.765    0.153 {built-in method select.select}
+162000000 2369.666    0.000 2961.854    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\MarkovChain.py:95(simulate)
+649350003  562.012    0.000 1354.032    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\numerictypes.py:471(issubdtype)
+ 30519/99    2.247    0.000 1232.406   12.449 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py:1960(_run_once)
+162450000  304.390    0.000 1013.621    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:19(find_mode)
+     9000  787.432    0.087  791.124    0.088 {built-in method _pickle.dump}
+1298700006  430.623    0.000  722.450    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\numerictypes.py:289(issubclass_)
+1298700000  406.741    0.000  649.403    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\getlimits.py:493(__new__)
+162450000  182.005    0.000  560.274    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:599(__init__)
+ 90900008  220.603    0.000  448.586    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:51(SolveStructureFunction)
+162450000  100.220    0.000  378.269    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:673(update)
+1948068227  361.423    0.000  361.469    0.000 {built-in method builtins.issubclass}
+1857765924  329.268    0.000  329.268    0.000 {method 'append' of 'list' objects}
+        1    0.017    0.017  305.329  305.329 C:\Users\adware\AppData\Local\Temp\1\ipykernel_11692\1438095698.py:9(main)
+ 39006000   44.545    0.000  244.434    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\System.py:51(update_state)
+1298738367  242.687    0.000  242.687    0.000 {method 'get' of 'dict' objects}
+ 38934000   37.690    0.000  207.803    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:41(senseState)
+164024620/163988462   78.875    0.000  183.265    0.000 {built-in method builtins.isinstance}
+129834010  107.887    0.000  165.040    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:34(getStates)
+    29887    0.157    0.000  163.769    0.005 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\asyncio\events.py:87(_run)
+    29887    0.124    0.000  160.286    0.005 {method 'run' of '_contextvars.Context' objects}
+    18000    0.057    0.000  104.575    0.006 c:\Users\adware\Documents\KISS\Lib\site-packages\tornado\platform\asyncio.py:200(_handle_events)
+162450052   53.533    0.000  104.265    0.000 <frozen abc>:117(__instancecheck__)

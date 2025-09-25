@@ -5,6 +5,7 @@ from utils.excelFunctions import addTruth, addTimeSteps, addSensed, highlightPar
 
 import matplotlib.pyplot as plt
 import xlsxwriter
+import numpy as np
 
 class SensedShip():
     def __init__(self, ship: Ship, sensors: list[tuple[int, str]] = None):
@@ -155,36 +156,30 @@ class SensedShip():
 
         return correct / len(true_states) if true_states else 0
 
-
-
     def getFalseAlarmRate(self):
-        """ Calculate the false alarm rate of the ship. 
-            False alarm rate is defined as the number of times the ship is sensed to be failed when it is actually working,
-            divided by the total number of times the ship is sensed to be failed.
-        """
-        false_alarms = 0
-        total_alarms = 0
+        """Calculate the false alarm rate of the ship."""
+        true = np.array(self.ship.history)
+        sensed = np.array(self.sensedHistory)
 
-        for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
-            if sensed_state == 0 or sensed_state == 1:  # Sensed as failed or incipient failure
-                total_alarms += 1
-                if true_state == 2:  # Actually working
-                    false_alarms += 1
+        # mask where sensed == failed (0 or 1)
+        alarm_mask = (sensed == 0) | (sensed == 1)
+        total_alarms = np.sum(alarm_mask)
+
+        # among those, check where true == working (2)
+        false_alarms = np.sum((true == 2) & alarm_mask)
 
         return (false_alarms / total_alarms) * 100 if total_alarms > 0 else 0
 
     def getUnexpectedFailureRate(self):
-        """ Calculate the number of unexpected failures of the ship.
-            Unexpected failure is defined as the number of times the ship actually fails when it is sensed to be working,
-            divided by the total number of times the ship actually fails.
-        """
-        unexpected_failures = 0
-        total_failures = 0
+        """Calculate the unexpected failure rate of the ship."""
+        true = np.array(self.ship.history)
+        sensed = np.array(self.sensedHistory)
 
-        for true_state, sensed_state in zip(self.ship.history, self.sensedHistory):
-            if true_state == 0:  # Actually failed
-                total_failures += 1
-                if sensed_state != 0:  # did not sense the failure
-                    unexpected_failures += 1
+        # mask where actual failure occurred
+        failure_mask = (true == 0)
+        total_failures = np.sum(failure_mask)
+
+        # among those failures, check where it wasn't sensed
+        unexpected_failures = np.sum(failure_mask & (sensed != 0))
 
         return (unexpected_failures / total_failures) * 100 if total_failures > 0 else 0

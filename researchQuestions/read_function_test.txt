@@ -1,0 +1,103 @@
+# OLD READ FUNCTION 
+# Random seed 11
+# ~5.5 mins runtime (20 ships + plot)
+
++-------------------------+-------------------+--------------------------+
+| Simulation Parameters   |   False Alarm (%) |   Unexpected Failure (%) |
++=========================+===================+==========================+
+| (7, 'bad')              |           82.1458 |                        0 |
++-------------------------+-------------------+--------------------------+
+| (7, 'moderate')         |           88.263  |                        0 |
++-------------------------+-------------------+--------------------------+
+| (7, 'good')             |           70.2775 |                        0 |
++-------------------------+-------------------+--------------------------+
+         281478258 function calls (280959428 primitive calls) in 338.424 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2304 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+518400/345600    1.448    0.000  294.911    0.001 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:45(simulate)
+  2160000    2.553    0.000  287.501    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:37(simulate)
+       60    0.217    0.004  266.183    4.436 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedShip.py:31(simulate)
+  2166000    8.235    0.000  259.791    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:24(senseState)
+ 15162000  187.420    0.000  236.930    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Sensor_basic.py:40(read)
+       60   30.971    0.516   31.109    0.518 {built-in method _pickle.dump}
+ 15162003   12.652    0.000   30.347    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\numerictypes.py:471(issubdtype)
+  2160000   10.017    0.000   25.949    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\MarkovChain.py:129(simulate)
+ 30324006    9.578    0.000   16.095    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\numerictypes.py:289(issubclass_)
+  2166000    4.269    0.000   14.229    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:19(find_mode)
+ 30324840    8.673    0.000   13.841    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\getlimits.py:493(__new__)
+  4341766    2.762    0.000   10.403    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:51(_wrapfunc)
+ 45535063    8.126    0.000    8.126    0.000 {built-in method builtins.issubclass}
+  2166000    2.436    0.000    7.931    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:599(__init__)
+  2163240    1.415    0.000    7.726    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:2879(cumsum)
+ 41883983    7.219    0.000    7.219    0.000 {method 'append' of 'list' objects}
+  1125248    2.765    0.000    5.560    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:51(SolveStructureFunction)
+  2166000    1.379    0.000    5.495    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:673(update)
+ 30812519    5.251    0.000    5.251    0.000 {method 'get' of 'dict' objects}
+  2160000    1.241    0.000    5.223    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:1447(searchsorted)
+  2163360    4.381    0.000    4.381    0.000 {method 'cumsum' of 'numpy.ndarray' objects}
+   4012/3    0.048    0.000    3.965    1.322 c:\Users\adware\Documents\KISS\Lib\site-packages\matplotlib\text.py:926(get_window_extent)
+   519720    0.614    0.000    3.375    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\System.py:51(update_state)
+   519120    0.500    0.000    2.704    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:41(senseState)
+2636372/2635519    1.089    0.000    2.542    0.000 {built-in method builtins.isinstance}
+       60    0.002    0.000    2.529    0.042 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Ship.py:132(plotHistory)
+  2160480    2.266    0.000    2.266    0.000 {method 'searchsorted' of 'numpy.ndarray' objects}
+  1557850    1.316    0.000    2.015    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:34(getStates)
+  2166000    1.702    0.000    1.702    0.000 {built-in method _collections._count_elements}
+  2160362    1.554    0.000    1.554    0.000 {built-in method numpy.arange}
+
+
+
+
+# NEW READ FUNCTION 
+# Random seed 11
+# ~3.5 mins runtime (20 ships + plots)
+
++-------------------------+-------------------+--------------------------+
+| Simulation Parameters   |   False Alarm (%) |   Unexpected Failure (%) |
++=========================+===================+==========================+
+| (7, 'bad')              |           82.1458 |                        0 |
++-------------------------+-------------------+--------------------------+
+| (7, 'moderate')         |           88.263  |                        0 |
++-------------------------+-------------------+--------------------------+
+| (7, 'good')             |           70.2775 |                        0 |
++-------------------------+-------------------+--------------------------+
+         281477297 function calls (280958837 primitive calls) in 205.120 seconds
+
+   Ordered by: cumulative time
+   List reduced from 2304 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+518400/345600    1.245    0.000  164.419    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:45(simulate)
+  2160000    2.374    0.000  157.632    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:37(simulate)
+       60    0.189    0.003  151.813    2.530 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedShip.py:31(simulate)
+  2166000    7.285    0.000  132.581    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:24(senseState)
+ 15162000   38.955    0.000  111.540    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Sensor_basic.py:63(read)
+ 34665766   16.503    0.000   59.171    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:51(_wrapfunc)
+ 17325240    8.537    0.000   41.002    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:2879(cumsum)
+ 17322000    7.924    0.000   34.527    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:1447(searchsorted)
+       60   28.980    0.483   29.108    0.485 {built-in method _pickle.dump}
+  2160000    9.067    0.000   23.078    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\MarkovChain.py:129(simulate)
+ 17325360   21.312    0.000   21.312    0.000 {method 'cumsum' of 'numpy.ndarray' objects}
+ 17322480   15.924    0.000   15.924    0.000 {method 'searchsorted' of 'numpy.ndarray' objects}
+  2166000    3.823    0.000   13.294    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:19(find_mode)
+  2166000    2.249    0.000    7.549    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:599(__init__)
+ 41884002    6.859    0.000    6.859    0.000 {method 'append' of 'list' objects}
+34977449/34975649    5.445    0.000    5.541    0.000 {built-in method builtins.getattr}
+  2166000    1.360    0.000    5.300    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:673(update)
+  1125248    2.495    0.000    5.212    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:51(SolveStructureFunction)
+   519720    0.517    0.000    3.049    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\System.py:51(update_state)
+   519120    0.437    0.000    2.563    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:41(senseState)
+2636432/2635577    1.088    0.000    2.465    0.000 {built-in method builtins.isinstance}
+       60    0.002    0.000    2.356    0.039 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Ship.py:132(plotHistory)
+   4012/3    0.045    0.000    2.302    0.767 c:\Users\adware\Documents\KISS\Lib\site-packages\matplotlib\text.py:926(get_window_extent)
+ 17325240    2.005    0.000    2.005    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:2875(_cumsum_dispatcher)
+ 17322000    1.991    0.000    1.991    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:1443(_searchsorted_dispatcher)
+  1557850    1.276    0.000    1.985    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:34(getStates)
+  2166000    1.599    0.000    1.599    0.000 {built-in method _collections._count_elements}
+  2190528    0.741    0.000    1.375    0.000 <frozen abc>:117(__instancecheck__)
+  2160362    1.338    0.000    1.338    0.000 {built-in method numpy.arange}
+  900/540    0.002    0.000    1.199    0.002 c:\Users\adware\Documents\KISS\Lib\site-packages\matplotlib\axes\_base.py:73(wrapper)
+

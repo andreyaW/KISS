@@ -1,0 +1,246 @@
+simulation_parameters: Number of Sensors =  1 , Sensor Quality =  bad
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  1 , Sensor Quality =  moderate
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  1 , Sensor Quality =  good
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  3 , Sensor Quality =  bad
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  3 , Sensor Quality =  moderate
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  3 , Sensor Quality =  good
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  7 , Sensor Quality =  bad
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  7 , Sensor Quality =  moderate
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
+simulation_parameters: Number of Sensors =  7 , Sensor Quality =  good
+Simulation 1 of 20
+Simulation 2 of 20
+Simulation 3 of 20
+Simulation 4 of 20
+Simulation 5 of 20
+Simulation 6 of 20
+Simulation 7 of 20
+Simulation 8 of 20
+Simulation 9 of 20
+Simulation 10 of 20
+Simulation 11 of 20
+Simulation 12 of 20
+Simulation 13 of 20
+Simulation 14 of 20
+Simulation 15 of 20
+Simulation 16 of 20
+Simulation 17 of 20
+Simulation 18 of 20
+Simulation 19 of 20
+Simulation 20 of 20
++-------------------------+-------------------+--------------------------+
+| Simulation Parameters   |   False Alarm (%) |   Unexpected Failure (%) |
++=========================+===================+==========================+
+| (1, 'bad')              |           92.5347 |                0         |
++-------------------------+-------------------+--------------------------+
+| (1, 'moderate')         |           76.2292 |                0.0581509 |
++-------------------------+-------------------+--------------------------+
+| (1, 'good')             |           90.2919 |                0         |
++-------------------------+-------------------+--------------------------+
+| (3, 'bad')              |           86.0069 |                0         |
++-------------------------+-------------------+--------------------------+
+| (3, 'moderate')         |           86.2511 |                0         |
++-------------------------+-------------------+--------------------------+
+| (3, 'good')             |           79.9199 |                0         |
++-------------------------+-------------------+--------------------------+
+| (7, 'bad')              |           88.1389 |                0         |
++-------------------------+-------------------+--------------------------+
+| (7, 'moderate')         |           92.903  |                0         |
++-------------------------+-------------------+--------------------------+
+| (7, 'good')             |           68.8904 |                0         |
++-------------------------+-------------------+--------------------------+
+         531969893 function calls (531445485 primitive calls) in 375.969 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1037 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+1555200/1036800    3.422    0.000  320.521    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:45(simulate)
+  6480000    6.426    0.000  301.956    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:37(simulate)
+      180    0.487    0.003  299.472    1.664 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedShip.py:31(simulate)
+  6498000   14.547    0.000  230.896    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedComp.py:24(senseState)
+ 23826000   63.384    0.000  180.966    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\Sensor_basic.py:63(read)
+ 60612002   29.343    0.000  107.409    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:51(_wrapfunc)
+ 30306000   15.001    0.000   74.522    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:2879(cumsum)
+  6480000   25.543    0.000   65.302    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\MarkovChain.py:129(simulate)
+ 30306000   14.029    0.000   61.918    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:1447(searchsorted)
+      180   47.343    0.263   47.555    0.264 {built-in method _pickle.dump}
+ 30306000   39.545    0.000   39.545    0.000 {method 'cumsum' of 'numpy.ndarray' objects}
+  6498000    9.729    0.000   34.204    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:19(find_mode)
+ 30306000   29.105    0.000   29.105    0.000 {method 'searchsorted' of 'numpy.ndarray' objects}
+  6498000    6.196    0.000   19.607    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:599(__init__)
+  3375728    6.726    0.000   14.257    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:51(SolveStructureFunction)
+  6498000    3.755    0.000   13.411    0.000 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\collections\__init__.py:673(update)
+ 81933684   12.958    0.000   12.958    0.000 {method 'append' of 'list' objects}
+  683/329    0.056    0.000   12.086    0.037 C:\Users\adware\AppData\Local\Programs\Python\Python313\Lib\asyncio\base_events.py:1960(_run_once)
+ 60618176    9.410    0.000    9.410    0.000 {built-in method builtins.getattr}
+  1559160    1.398    0.000    8.243    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\System.py:51(update_state)
+  1557360    1.196    0.000    7.073    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\shipClass\SensedSystem.py:41(senseState)
+        1    0.000    0.000    6.886    6.886 C:\Users\adware\AppData\Local\Temp\1\ipykernel_24000\4265436833.py:9(main)
+6559767/6559040    2.812    0.000    6.466    0.000 {built-in method builtins.isinstance}
+  4673530    3.554    0.000    5.510    0.000 c:\Users\adware\Desktop\KISS\researchQuestions\..\utils\helperFunctions.py:34(getStates)
+  6480002    3.843    0.000    3.843    0.000 {built-in method numpy.arange}
+  6498052    1.983    0.000    3.651    0.000 <frozen abc>:117(__instancecheck__)
+ 30306000    3.544    0.000    3.544    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:2875(_cumsum_dispatcher)
+ 30306000    3.509    0.000    3.509    0.000 c:\Users\adware\Documents\KISS\Lib\site-packages\numpy\_core\fromnumeric.py:1443(_searchsorted_dispatcher)
+  6498000    3.206    0.000    3.206    0.000 {built-in method _collections._count_elements}
+      683    2.398    0.004    2.410    0.004 {built-in method select.select}
