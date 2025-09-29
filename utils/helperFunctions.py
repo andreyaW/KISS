@@ -17,78 +17,82 @@ def get_key_by_value(my_dict, value):
             if val == value:
                 return key
         return None
-    
+
 def find_mode(values):
-    if not values:
-        return None  # handle empty list gracefully
-    
+    """Return the most frequent value in a list or 1D numpy array."""
+    values = np.ravel(values)  # flatten if needed
+    if len(values) == 0:
+        return None
     counts = Counter(values)
-    max_count = max(counts.values())
-    
-    # if all counts == 1, all values are unique
-    if max_count == 1:
-        return min(values)
-    
-    # otherwise, get all values with frequency == max_count
-    modes = [val for val, count in counts.items() if count == max_count]
-    return min(modes)
-
-def getStates(list_of_objs, sensed: bool = False) -> list:
-    """Gets the states of the systems components."""
-    states = []
-    for obj in list_of_objs:
-        if sensed:
-            states.append(obj.sensedState)
-        else:
-            states.append(obj.state)
-    return states
-
+    mode_val = counts.most_common(1)[0][0]
+    return mode_val
 
 def reset(obj):
     """Resets the component to its initial state and deletes its history."""
     obj.state = obj.history[0]
     obj.history = [obj.state]
 
+# Pick the right history accessor
+def get_history(obj, sensed: bool = False) -> np.ndarray:
+    return obj.sensedHistory if sensed else obj.history
 
-def SolveStructureFunction(objects:list, parallels: list[tuple], sensed: bool = False) -> int:
-    ''' calculate the structure function of either a system of sensed components or a ship of systems '''
+def SolveStructureFunction(objects: list, parallels: list[tuple] = None, num_steps: int = 0, sensed: bool = False) -> np.ndarray:
+    """
+    Calculate the structure function of a system of components with series and parallel configurations.
+    Returns a NumPy array of system states over the last `num_steps` timesteps.
 
-    Xi_overall = []     # overall state vector
-    Xi_temp = []        # state vector for each group considered
+    Parameters
+    ----------
+    objects : list
+        List of Component-like objects with `.history` and optionally `.sensedHistory`.
+    parallels : list of tuple
+        Each tuple contains 1-based indices of components in parallel.
+    num_steps : int
+        Number of most recent timesteps to include (0 means use full history).
+    sensed : bool
+        If True, use .sensedHistory instead of .history.
 
-    # determine the state of each parallel set first
-    if parallels is not None: 
-        for parallel_sets in parallels:
+    Returns
+    -------
+    np.ndarray
+        Array of system states over time (shape: [num_timesteps]).
+    """
 
-            # subtract 1 from each value to get the idx
-            parallel_sets = [i-1 for i in parallel_sets]
-            parallel_objs = [objects[i] for i in parallel_sets]  # get the objects in the parallel set
-            Xi_temp = getStates(parallel_objs, sensed)          
-            Xi_overall.append(max(Xi_temp))                      # add the state of the parallel sets to overall system list
+    # Slice only the last `num_steps`
+    def sliced_history(obj):
+            return get_history(obj, sensed)[-num_steps:]
 
-    # determine the state of the series components
-        # if parallels is None, all comps are in series
-    if parallels is None: 
-        series_comps_idx = list(range(len(objects)))
-        series_objs = [objects[i] for i in series_comps_idx]  # get the objects in the series set
-        Xi_temp = getStates(series_objs, sensed)
-        Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
-    
-    # if parallels is not None, get the idx of the series components
-    else: 
-        series_comp_idxs = []  # list to store the idx of series components
-        objects_in_parallel = [i-1 for sublist in parallels for i in sublist]  # get all objects in parallel sets
-        for i in range(len(objects)):
-            if i not in objects_in_parallel:
-                series_comp_idxs.append(i)
-        series_objs = [objects[i] for i in series_comp_idxs]  # get the objects in the series set
-        Xi_temp = getStates(series_objs, sensed)  # get the states of the series components
-        Xi_overall = Xi_overall + Xi_temp  # add the state of the series components to overall system list
+    parallel_results = []
 
-    # final consideration of all states in overall system state vector
-    phi = min(Xi_overall)               
-    
-    return phi
+    # Handle parallel sets
+    if parallels is not None:
+        for p_set in parallels:
+            idx = [i - 1 for i in p_set]  # convert to 0-based
+            parallel_histories = np.vstack([sliced_history(objects[i]) for i in idx])
+            # system works if any component in the parallel set works
+            parallel_results.append(np.max(parallel_histories, axis=0))  # shape: (num_steps,)
+
+    # Series components not in any parallel set
+    if parallels is not None:
+        parallel_indices = [i - 1 for sub in parallels for i in sub]
+        series_indices = [i for i in range(len(objects)) if i not in parallel_indices]
+    else:
+        series_indices = list(range(len(objects)))
+
+    if series_indices:
+        series_histories = np.vstack([sliced_history(objects[i]) for i in series_indices])
+        series_result = np.min(series_histories, axis=0)
+        parallel_results.append(series_result)
+
+    # Combine parallel sets and series components: system fails if any subset fails
+    if parallel_results:
+        phi = np.min(np.vstack(parallel_results), axis=0)
+    else:
+        # No components? Return all zeros
+        phi = np.zeros(num_steps, dtype=int)
+
+    return phi  # shape: (num_steps,)
+
 
 def idx2letter(idx):
     """ Convert an index to a letter (1 -> A, 2 -> B, etc.) """
@@ -153,8 +157,6 @@ def set_x_ticks(ax, history_len, max_ticks=10):
 def create_multi_simulation_table(headers, rows):
     """ Create a table summarizing the results of multiple simulations """
     return tabulate.tabulate(rows, headers=headers, tablefmt="grid")
-
-
 
 
 

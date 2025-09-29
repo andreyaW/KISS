@@ -29,27 +29,32 @@ class SensedShip():
         self.n = len(self.sensedSystems)
 
     # -------------------- Simulation Functions -----------------------------
-    def simulate(self, time_step):
-        for i in range(time_step):
-            for sensedSystem in self.sensedSystems:
-                sensedSystem.simulate(1)
+    def simulate(self, time_steps):
+        ''' simulate the ship and all its sensed systems for a number of time steps '''
+        # simulate each sensed system of the ship
+        for sensedSystem in self.sensedSystems:
+            sensedSystem.simulate(time_steps)
 
-            # update the truth state of the ship
-            self.ship.update_state()
-
-            # determine the sensed state of the ship
-            self.sensedState = SolveStructureFunction(self.sensedSystems, self.ship.parallels, sensed=True)
-            self.sensedHistory.append(self.sensedState)
+        # update the truth state of the ship
+        self.ship.history = np.concatenate([self.ship.history, SolveStructureFunction(list(self.ship.systems.values()), self.ship.parallels, time_steps)])
+        self.ship.state = self.ship.history[-1]
+        
+        # update the sensed state of the ship
+        self.sensedHistory = np.concatenate([self.sensedHistory, SolveStructureFunction(self.sensedSystems, self.ship.parallels, time_steps, sensed=True)])
+        self.sensedState = self.sensedHistory[-1]
 
     def reset(self):
-        # reset the true ship to initial conditions
-        self.ship.reset()
-        
-        # reset sensed ship to initial conditions
-        self.sensedHistory = [self.sensedState]
+        # reset each sensed system of the ship
         for sensedSystem in self.sensedSystems:
             sensedSystem.reset()
+
+        # reset the history of the true ship (assume initial ship state (all systems operational))
+        self.ship.state = max(self.ship.states.keys())
+        self.ship.history = np.array([self.ship.state], dtype=int)
+  
+        # reset the sensed history of the ship (assume initial sensed state is correct)
         self.sensedState = self.ship.state
+        self.sensedHistory = np.array([self.sensedState], dtype=int)
 
     # ---------------------- Plotting and Printing Functions -----------------------------
     def plotHistory(self):
@@ -142,6 +147,22 @@ class SensedShip():
                     # add the history of the system to the worksheet
                     systems[i].printHistory2Excel(filename, ws, addComps=True)    
 
+    def countAllReadings(self):
+        """
+        Determine all correct and incorrect sensor readings for each component in the sensed ship.
+        """
+        # correct vs incorrect readings
+        correct_readings = 0
+        incorrect_readings = 0
+
+        for sensedState, trueState in zip(self.sensedHistory, self.ship.history):
+            if sensedState == trueState:
+                correct_readings += 1
+            else:
+                incorrect_readings += 1
+
+        return correct_readings, incorrect_readings
+
     # ---------------------- Additional Analysis Functions -----------------------------
 
     def determineFirstFailureTime(self):
@@ -154,32 +175,33 @@ class SensedShip():
         sensed_states = self.sensedHistory
         correct = sum(t == s for t, s in zip(true_states, sensed_states))
 
+
         return correct / len(true_states) if true_states else 0
 
-    def getFalseAlarmRate(self):
-        """Calculate the false alarm rate of the ship."""
-        true = np.array(self.ship.history)
-        sensed = np.array(self.sensedHistory)
+    # def getFalseAlarmRate(self):
+    #     """Calculate the false alarm rate of the ship."""
+    #     true = np.array(self.ship.history)
+    #     sensed = np.array(self.sensedHistory)
 
-        # mask where sensed == failed (0 or 1)
-        alarm_mask = (sensed == 0) | (sensed == 1)
-        total_alarms = np.sum(alarm_mask)
+    #     # mask where sensed == failed (0 or 1)
+    #     alarm_mask = (sensed == 0) | (sensed == 1)
+    #     total_alarms = np.sum(alarm_mask)
 
-        # among those, check where true == working (2)
-        false_alarms = np.sum((true == 2) & alarm_mask)
+    #     # among those, check where true == working (2)
+    #     false_alarms = np.sum((true == 2) & alarm_mask)
 
-        return (false_alarms / total_alarms) * 100 if total_alarms > 0 else 0
+    #     return (false_alarms / total_alarms) * 100 if total_alarms > 0 else 0
 
-    def getUnexpectedFailureRate(self):
-        """Calculate the unexpected failure rate of the ship."""
-        true = np.array(self.ship.history)
-        sensed = np.array(self.sensedHistory)
+    # def getUnexpectedFailureRate(self):
+    #     """Calculate the unexpected failure rate of the ship."""
+    #     true = np.array(self.ship.history)
+    #     sensed = np.array(self.sensedHistory)
 
-        # mask where actual failure occurred
-        failure_mask = (true == 0)
-        total_failures = np.sum(failure_mask)
+    #     # mask where actual failure occurred
+    #     failure_mask = (true == 0)
+    #     total_failures = np.sum(failure_mask)
 
-        # among those failures, check where it wasn't sensed
-        unexpected_failures = np.sum(failure_mask & (sensed != 0))
+    #     # among those failures, check where it wasn't sensed
+    #     unexpected_failures = np.sum(failure_mask & (sensed != 0))
 
-        return (unexpected_failures / total_failures) * 100 if total_failures > 0 else 0
+    #     return (unexpected_failures / total_failures) * 100 if total_failures > 0 else 0

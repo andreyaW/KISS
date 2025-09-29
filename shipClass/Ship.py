@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import xlsxwriter
 import ast
+import numpy as np
+
 
 class Ship:
 
     def __init__(self, name, excel_file, repairable: bool = True):
-        ''' initializes the ship object with its name, excel file, and repairable status (default repairable) '''
+        """Initialize ship with name, Excel data, and repairable status."""
         self.name = name
         self.repairable = repairable
         self.initializeShipSystemsfromExcel(excel_file, self.repairable)
@@ -20,197 +22,174 @@ class Ship:
 # ------------ Simulation Functions -------------------
 
     def initializeShipSystemsfromExcel(self, excel_file, repairable: bool):
-        # read in machinery reliability data from first sheet
-        rel_df= pd.read_excel(excel_file, sheet_name = 0)
+        """Read Excel and initialize systems and components."""
+        # Read machinery reliability
+        rel_df = pd.read_excel(excel_file, sheet_name=0)
 
-        # read in each system structure from second sheet
-        sys_structure_df = pd.read_excel(excel_file, sheet_name=1) 
-        sys_structure_df['Structure']= sys_structure_df['Structure'].apply(ast.literal_eval) # convert from str to list
+        # Read system structure
+        sys_structure_df = pd.read_excel(excel_file, sheet_name=1)
+        sys_structure_df['Structure'] = sys_structure_df['Structure'].apply(ast.literal_eval)
 
-        # read in overall ship structure (list of parallel systems) from third sheet
-        ship_structure_df = pd.read_excel(excel_file, sheet_name=2) 
-        ship_structure_df['ship structure'] = ship_structure_df['ship structure'].apply(ast.literal_eval) # convert from str to list 
-        self.parallels = ship_structure_df.iat[0,0] #store ship parallels to self
+        # Read overall ship structure (parallel systems)
+        ship_structure_df = pd.read_excel(excel_file, sheet_name=2)
+        ship_structure_df['ship structure'] = ship_structure_df['ship structure'].apply(ast.literal_eval)
+        self.parallels = ship_structure_df.iat[0, 0]
 
-        # go through each system and set it up according to the given structure
+        # Initialize systems
         ship_systems = {}
-        sys_parallels = []
         for i, sys_struct in enumerate(sys_structure_df.Structure):
-
             sys_comps = []
-            sys_parallels = []    # assume series system by default
+            sys_parallels = []
 
             for comp in sys_struct:
-
-                # single component in series, added easily
-                if type(comp) is int:
-
-                    # intialize it as a SensedComp
+                if isinstance(comp, int):
                     comp_name = rel_df.Component[comp]
                     comp_MTTF = rel_df.MTBF[comp]
                     comp_MTTR = rel_df.MTTR[comp]
-                    comp = Component(comp_name, comp_MTTF, comp_MTTR)
+                    sys_comps.append(Component(comp_name, comp_MTTF, comp_MTTR))
 
-                    # add it directly to the dictionary of system comps
-                    sys_comps.append( comp )
-
-                # if tuple, component is in a parallel set, add it to the systems list of parallels before adding it to the system
-                elif type(comp) is tuple:
+                elif isinstance(comp, tuple):
                     parallel_set = list(comp)
-
-                    # add the individual comps from the parallel sets to the system
-                    for j,idx in enumerate(parallel_set):
-                        
-                        # if the index in the tuple is an int, it is a single component
-                        if type(idx) is int: 
+                    for j, idx in enumerate(parallel_set):
+                        if isinstance(idx, int):
                             comp_name = rel_df.Component[idx]
                             comp_MTTF = rel_df.MTBF[idx]
                             comp_MTTR = rel_df.MTTR[idx]
-                            comp = Component(comp_name, comp_MTTF, comp_MTTR)
-                            
-                            # add it directly to the dictionary of system comps
-                            sys_comps.append( comp)
-                            parallel_set[j] = comp 
-                        
-                        #if the index in the tuple is a list, it is a group of series components
-                        elif type(idx) is list: 
-                            series_set = idx
+                            c = Component(comp_name, comp_MTTF, comp_MTTR)
+                            sys_comps.append(c)
+                            parallel_set[j] = c
+                        elif isinstance(idx, list):
                             series_set_comps = []
-
-                            for k,idx in enumerate(series_set):
-
-                                if type(idx) is int: # if the index is an int, it is a single component
-                                    comp_name = rel_df.Component[idx]
-                                    comp_MTTF = rel_df.MTBF[idx]
-                                    comp_MTTR = rel_df.MTTR[idx]
-                                    comp = Component(comp_name, comp_MTTF, comp_MTTR)
-                                    series_set_comps.append( comp )  # add the sensed component to the series set
-                                
-                            # define the series set as a seriesSensedComp
+                            for k, idx2 in enumerate(idx):
+                                if isinstance(idx2, int):
+                                    comp_name = rel_df.Component[idx2]
+                                    comp_MTTF = rel_df.MTBF[idx2]
+                                    comp_MTTR = rel_df.MTTR[idx2]
+                                    series_set_comps.append(Component(comp_name, comp_MTTF, comp_MTTR))
                             series_set = SeriesComps(components=series_set_comps)
-                            sys_comps.append( series_set )
+                            sys_comps.append(series_set)
                             parallel_set[j] = series_set
-                   
-                    # replace parallel_set with their locations within the system
-                    parallel_set = tuple([sys_comps.index(comp)+1 for comp in parallel_set])
-                    sys_parallels.append(parallel_set) # add the index of the parallel set to the list of parallels for the system     
+                    # replace parallel_set with their 1-based positions
+                    parallel_set = tuple([sys_comps.index(c) + 1 for c in parallel_set])
+                    sys_parallels.append(parallel_set)
 
-            # add the system components to a system object
             sys_name = sys_structure_df.System[i]
-            if sys_parallels == []:
-                ship_systems[sys_name] = System(sys_name, sys_comps, repairable=repairable)  
-            else: 
-                ship_systems[sys_name] = System(sys_name, sys_comps, sys_parallels, repairable=repairable)  
-        
-        # setting necessary ship parameters
+            if sys_parallels:
+                ship_systems[sys_name] = System(sys_name, sys_comps, sys_parallels, repairable=repairable)
+            else:
+                ship_systems[sys_name] = System(sys_name, sys_comps, repairable=repairable)
+
         self.systems = ship_systems
-        self.n = len(self.systems)  # number of total systems in the ship
-        self.states = ship_systems[sys_name].states  # Assuming all systems have the same states
-        self.state = max(self.states.keys())
-        self.history = [self.state]
+        self.n = len(self.systems)
+        self.states = list(ship_systems.values())[0].states
+        self.state = max(self.states.keys())  # initial ship state
+        self.history = np.array([self.state], dtype=int)
 
-    def simulate(self, num_steps:int):
+# ------------ Vectorized Simulation -------------------
+
+    def simulate(self, num_steps: int):
+        """Vectorized simulation of all systems and ship state."""
         systems = list(self.systems.values())
-        for _ in range(num_steps):
-            for sys in systems:
-                sys.simulate(1)
-            self.update_state()
+        for sys in systems:
+            sys.simulate(num_steps)
 
-    def update_state(self):
-        ''' Update the state of the ship based on the current state of its systems '''
-        self.state = SolveStructureFunction(list(self.systems.values()), self.parallels)
-        self.history.append(self.state)
+        # Vectorized ship history
+        self.history = np.concatenate([self.history, SolveStructureFunction(systems, self.parallels, num_steps)])
 
     def reset(self):
-        ''' Reset the ship and all its systems to their initial states '''
-        self.state = self.history[0]
-        self.history = [self.state]
+        """Reset ship and all systems to initial state."""
         for sys in self.systems.values():
             sys.reset()
-    
-# ------------ Plotting Functions -------------------
-    def plotHistory(self, return_ax=False):
-
-        # Create a figure and axis
-        fig, ax = plt.subplots()
         
-        # Plot the true and sensed history of the system
-        ax.plot(self.history, marker=',', linewidth=2, label='Truth')
+        # assume initial ship state is correct (all systems operational)
+        self.state = max(self.states.keys())
+        self.history = np.array([self.state], dtype=int)
+        
+# ------------ Plotting Functions -------------------
 
-        # Formatting
+    def plotHistory(self, return_ax=False):
+        fig, ax = plt.subplots()
+        ax.plot(self.history, marker=',', linewidth=2, label='Ship Truth')
         ax.set_ylabel('State')
-        ax.set_yticks(list(self.states.keys()))         # y ticks are labeled with the state names
+        ax.set_yticks(list(self.states.keys()))
         ax.set_yticklabels(list(self.states.values()))
         ax.set_xlabel('Time Step')
-        set_x_ticks(ax, len(self.history))              # function which sets x limits based on len(history)
+        set_x_ticks(ax, len(self.history))
         ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-
         if return_ax:
             return ax
 
-# ------------ Excel Functions --------------------
-    def printHistory2Excel(self, filename: str, worksheet= None, addComps: bool = False) -> None:
-        """ Print the history of the ship and its systems to an excel file """
+# ------------ Vectorized Excel Export -------------------
+    def printHistory2Excel(self, filename: str, addComps: bool = True):
+        """
+        Print ship and all system/component histories to Excel using vectorized writes.
+        Ensures unique worksheet names.
+        """
+        systems = list(self.systems.values())
+        num_steps = len(self.history)
+        used_sheet_names = set()
 
-        # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
-            
-            # if no worksheet is provided, create a new workbook and worksheet
-            if worksheet is None:
-                worksheet = workbook.add_worksheet(self.name) 
-            
-            # add data to the worksheet
-            num_data = len(self.history)
-            systems = list(self.systems.values())
-            for i in range(num_data):
+            # ---------------- Main Ship Worksheet ----------------
+            ws_ship = workbook.add_worksheet(self.name[:31])
+            used_sheet_names.add(self.name[:31])
 
-                # add the time steps to the first column
-                addTimeSteps(workbook, worksheet,i)
+            # Time steps
+            ws_ship.write(0, 0, "Time Step")
+            ws_ship.write_column(1, 0, np.arange(num_steps))
 
-                # grab data for step i 
-                truth_data = [self.history[i]] + [systems[j].history[i] for j in range(self.n)] 
+            # Ship truth states
+            ws_ship.write(0, 1, "Ship Truth State")
+            ws_ship.write_column(1, 1, self.history)
 
-                # on step zero add headers to the top row then first row of data
-                if i==0: 
-                    ship_truth_headers = [f'Ship Truth State'] + [f'System {i+1} Truth State' for i in range(self.n)]
-                    addTruth(workbook, worksheet, i, truth_data, ship_truth_headers)
-                # for remaining steps add data to the row
-                else: 
-                    addTruth(workbook, worksheet, i, truth_data)
+            # Systems truth states
+            for j, sys in enumerate(systems):
+                col = j + 2
+                ws_ship.write(0, col, f"System {j+1} Truth State")
+                ws_ship.write_column(1, col, sys.history)
 
-            # add formating for parallel components
+            # Highlight parallel systems if any
             if self.parallels is not None:
-                highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
-            
-            finalFormatting(worksheet, self.n)       
+                highlightParallels(workbook, ws_ship, self.parallels, num_steps, self.n)
 
+            finalFormatting(ws_ship, self.n)
+
+            # ---------------- Component Worksheets ----------------
             if addComps:
-                # add each systems data to their own worksheet
-                for i in range(self.n):
-                    systems[i].check4DuplicateNames()
+                for j, sys in enumerate(systems):
+                    sys.check4DuplicateNames()
+                    for comp in sys.comps:
+                        self._writeComponentWorksheet(comp, workbook, f"System {j+1}-", num_steps, used_sheet_names)
 
-                    for comps in systems[i].comps: 
-                        if type(comps) is SeriesComps:
-                            # add the systems sub system to their own worksheet
-                            sheet_name = f'System {i+1}- ' + comps.name.capitalize()
-                            ws = workbook.add_worksheet(sheet_name[:31])
-                            comps.printHistory2Excel(filename, worksheet=ws, addComps=True)
+    # ---------------------- Helper Method ----------------------
+    def _writeComponentWorksheet(self, comp, workbook, prefix, num_steps, used_sheet_names):
+        """
+        Write a single component or SeriesComps to a worksheet.
+        Ensures unique worksheet names across the workbook.
+        """
+        # Generate unique sheet name
+        base_name = f"{prefix} {comp.name}"[:31]
+        sheet_name = base_name
+        i = 1
+        while sheet_name in used_sheet_names:
+            suffix = f"_{i}"
+            sheet_name = base_name[:31-len(suffix)] + suffix
+            i += 1
+        used_sheet_names.add(sheet_name)
 
-                            # add each component in the series to their own worksheet
-                            for comp in comps.comps:
-                                sheet_name = f'System {i+1}- ' + comp.name.capitalize()
-                                ws = workbook.add_worksheet(sheet_name[:31])
-                                comp.printHistory2Excel(filename, worksheet=ws)
-                        else:
-                            # add the component to its own worksheet
-                            sheet_name = f'System {i+1}-' + comps.name.capitalize()
-                            ws = workbook.add_worksheet(sheet_name[:31])
-                            comps.printHistory2Excel(filename, worksheet=ws)
+        ws = workbook.add_worksheet(sheet_name)
 
-                    # create a new worksheet for each system
-                    ws = workbook.add_worksheet(f'System {i+1} History')
+        # Time steps
+        ws.write(0, 0, "Time Step")
+        ws.write_column(1, 0, np.arange(num_steps))
 
-                    # add the history of the system to the worksheet
-                    systems[i].printHistory2Excel(filename, ws, addComps=True)
+        # Component history
+        ws.write(0, 1, f"{comp.name.capitalize()} Truth State")
+        ws.write_column(1, 1, comp.history)
+
+        # Recursively handle SeriesComps
+        if hasattr(comp, 'comps') and isinstance(comp.comps, list):
+            for sub_comp in comp.comps:
+                self._writeComponentWorksheet(sub_comp, workbook, sheet_name, num_steps, used_sheet_names)

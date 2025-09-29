@@ -1,89 +1,81 @@
 from shipClass.Component import Component
 from utils.helperFunctions import SolveStructureFunction, set_x_ticks
-from utils.excelFunctions import grabSysTruthData, addTimeSteps, addTruth, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
+from utils.excelFunctions import grabSysTruthData, addTimeSteps, addTruth, highlightParallels, finalFormatting
 from utils.SystemDiagram import SystemDiagram
 
 import xlsxwriter
 import matplotlib.pyplot as plt
+import numpy as np
 
-class System():
 
-    def __init__(self, name, comps: list[Component], parallels = None, repairable:bool = False)-> None:
+class System:
+    def __init__(self, name, comps: list[Component], parallels=None, repairable: bool = False):
+        """
+        Model a system composed of multiple components (series and parallel).
 
-        """ a simple model of a system composed of many sensed components
-
-            Parameters
-            ----------
-            name: str
-                The name of the system.
-            comps: list[Component]
-                A list of components that make up the system.
-            parallels: list[tuple[int]]
-                A list of parallel component sets, where each set is represented as a tuple of component indices.
-            repairable: bool
-                A flag indicating whether the system is repairable (default is False).
+        Parameters
+        ----------
+        name : str
+            Name of the system.
+        comps : list[Component]
+            Components making up the system.
+        parallels : list of tuple
+            Parallel component sets (1-based indices).
+        repairable : bool
+            Whether the system is repairable.
         """
         self.name = name
         self.comps = comps
         self.parallels = parallels
         self.initialize(repairable)
 
-
-#------------------- Simulation Functions ----------------
-    def initialize(self, repairable:bool = False):
+# ------------------- Simulation Functions ----------------
+    def initialize(self, repairable: bool = False):
         for comp in self.comps:
             comp.initialize(repairable)
-        
-        # true state of the system
-        self.state = SolveStructureFunction(self.comps, self.parallels)  
-        self.history = [self.state]  
-        
-        # define the states of the system based on the components
-        self.states = self.comps[0].states  # Assuming all components have the same states
-        self.n = len(self.comps)                                         # number of total components in the system
 
-    def simulate(self, num_steps): 
-        for _ in range(num_steps):
-            for comp in self.comps:
-                comp.simulate(1)
-            self.update_state()
+        # initial system state
+        self.history = SolveStructureFunction(self.comps, self.parallels)
+        self.states = self.comps[0].states
+        self.n = len(self.comps)
 
-    def update_state(self):
-            self.state = SolveStructureFunction(self.comps, self.parallels)  
-            self.history.append(self.state)
+    def simulate(self, num_steps: int):
+        """
+        Vectorized system simulation over multiple steps.
+        Each component simulates its own history, then the system state is computed vectorized.
+        """
+        for comp in self.comps:
+            comp.simulate(num_steps)
+
+        # compute system history vectorized
+        self.history = np.append(self.history, SolveStructureFunction(self.comps, self.parallels, num_steps))
 
     def reset(self):
-        """Resets the system to its initial state and deletes its history."""
+        """Reset system and all components to initial state."""
         for comp in self.comps:
             comp.reset()
-        self.history = []
-        self.update_state()
-
+        
+        # assume initial system state is correct (all components operational)
+        self.state = max(self.states.keys())
+        self.history = np.array([self.state], dtype=int)
+        
 # -------------- Functions for Plotting --------------------------
-    def plotHistory(self, plot_comp_history: bool = False, return_ax = False) -> None:
-        
-        """ Plot the ground truth and sensed history of the system of sensed components """
-            
-        # Create a figure and axis
+    def plotHistory(self, plot_comp_history: bool = False, return_ax=False):
         fig, ax = plt.subplots()
-        
-        # Plot the true and sensed history of the system
-        ax.plot(self.history, marker=',', label='Truth')
+        ax.plot(self.history, marker=',', label='System Truth')
 
-        # Formatting
         ax.set_ylabel('State')
-        ax.set_yticks(list(self.states.keys()))         # y ticks are labeled with the state names
+        ax.set_yticks(list(self.states.keys()))
         ax.set_yticklabels(list(self.states.values()))
         ax.set_xlabel('Time Step')
-        set_x_ticks(ax, len(self.history))              # function which sets x limits based on len(history)
+        set_x_ticks(ax, len(self.history))
         ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-    
+
         if plot_comp_history:
             for comp in self.comps:
                 ax.plot(comp.history, marker='o', linestyle='', label=comp.name.capitalize())
-            # add updated legend
             ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                       fancybox=True, shadow=True, ncol=5)
 
@@ -91,40 +83,26 @@ class System():
             return ax
 
     def drawSystem(self, ax=None):
-        """ Draw the system on the given axis """
-
-        # create a new figure and axis if no axis is provided        
         if ax is None:
             fig, ax = plt.subplots()
-        
-        # initialize a SystemDiagram object in the given axis
+
         sys_diagram = SystemDiagram(ax=ax)
-                
-        # define (x,y) coordinates of all components using function in SystemDiagram class
         spacing = 1
         comp_size = 2
         sys_diagram.defineLocations(self, comp_size, spacing)
-        
-        # draw each component in the system at desired location
-        for i,comp in enumerate(self.comps):     
-            
-            # draw current component
-            x,y = sys_diagram.comp_locations[comp]
-            sys_diagram.drawComp(comp, x, y, comp_size)
-        
-        sys_diagram.drawConnections(self,comp_size)   # draw connections between series and parallel components
-            
-        # sys_diagram.drawConnections()   # draw connections between series and parallel components                                
-        sys_diagram.displayDiagram()      # display the diagram
 
+        for comp in self.comps:
+            x, y = sys_diagram.comp_locations[comp]
+            sys_diagram.drawComp(comp, x, y, comp_size)
+
+        sys_diagram.drawConnections(self, comp_size)
+        sys_diagram.displayDiagram()
 
 # --------------- Functions for Printing to Excel ----------------
     def check4DuplicateNames(self):
-        """ Check for duplicate component names, and update the duplicates to have unique names """
         seen = set()
         for comp in self.comps:
             if comp.name in seen:
-                # update this component to have a number
                 i = 1
                 new_name = f"#{i+1} {comp.name}"
                 while new_name in seen:
@@ -132,77 +110,66 @@ class System():
                     new_name = f"#{i+1} {comp.name}"
                 comp.name = new_name
 
-                if type(comp) is not Component:
-                    # if the component is a subsystem, update the names of its components as well
+                if not isinstance(comp, Component):
                     for i, sub_comp in enumerate(comp.comps):
                         sub_comp.name = f"#{i+1} {sub_comp.name}"
-
             seen.add(comp.name)
 
-# --------------- Functions for Printing to Excel ----------------    
+    def printHistory2Excel(self, filename='system_history.xlsx', worksheet=None, addComps: bool = True):
+        """
+        Print the system and all component histories to Excel using vectorized writes.
 
-    def printHistory2Excel(self, filename: str = 'system_history.xlsx',  worksheet=None, addComps:bool = False) -> None:
-        """ Print the history of the system and its sensed components to an excel file """
+        Parameters
+        ----------
+        filename : str
+            Excel file name.
+        worksheet : xlsxwriter worksheet
+            Optional pre-created worksheet.
+        addComps : bool
+            Whether to include component histories.
+        """
+        self.check4DuplicateNames()
 
-        self.check4DuplicateNames()  # check for duplicate component names and update them to be unique
-
-        # add to the workbook using xlsxwriter
         with xlsxwriter.Workbook(filename) as workbook:
-
-            # if no worksheet is provided, create a new workbook and worksheet
+            # Create main worksheet
             if worksheet is None:
-                if len(self.name) > 31:
-                    sheet_name = self.name[:31]
-                else: 
-                    sheet_name = self.name
+                sheet_name = self.name[:31]
                 worksheet = workbook.add_worksheet(sheet_name)
 
-            # add data to the sheet 
-            num_data = len(self.history)
-            for i in range(num_data):
-                
-                # add the time steps to the first column
-                addTimeSteps(workbook, worksheet, i)
+            num_steps = len(self.history)
 
-                # add truth states of the system and each sensed component to the row           
-                truth_data = grabSysTruthData(self, i)
-                if i == 0: 
-                    sys_truth_headers = ['Sys Truth State'] + [comp.name.capitalize() + ' Truth State' for comp in self.comps]
-                    addTruth(workbook, worksheet, i, truth_data, sys_truth_headers)
-                else:
-                    addTruth(workbook, worksheet, i, truth_data)
+            # Write time steps in column A
+            worksheet.write(0, 0, "Time Step")
+            worksheet.write_column(1, 0, np.arange(num_steps))
 
-            # add formating for parallel components
-            if self.parallels is not None:
-                highlightParallels(workbook, worksheet, self.parallels, num_data, self.n)
-            
-            finalFormatting(worksheet, self.n)
+            # Write system truth states in column B
+            worksheet.write(0, 1, "System Truth State")
+            worksheet.write_column(1, 1, self.history)
 
-            # add each sensed componet to its own worksheet
             if addComps:
                 for comp in self.comps:
+                    self._writeComponentToExcel(comp, workbook, num_steps)
 
-                    if type(comp) is Component:
-                        # create a new worksheet for each component in the system (comp or seriesComps)
-                        comp_name = comp.name.capitalize()
-                        ws= workbook.add_worksheet(comp_name)
+        finalFormatting(worksheet, self.n)
 
-                        # add the history of the component to the worksheet
-                        comp.printHistory2Excel(filename, worksheet=ws)
+# ---------------------- Helper Method ----------------------
+    def _writeComponentToExcel(self, comp, workbook, num_steps):
+        """
+        Write a single component (or SeriesComps) history to a new worksheet.
+        Handles SeriesComps recursively.
+        """
+        sheet_name = comp.name[:31]  # Excel sheet name max 31 chars
+        ws = workbook.add_worksheet(sheet_name)
 
-                    else: 
-                        sub_sys = comp
-                        # create a new worksheet for each subsystem in the system (comp or seriesComps)
-                        sub_sys_name = sub_sys.name.capitalize()
-                        ws= workbook.add_worksheet(sub_sys_name)
+        # Write time steps
+        ws.write(0, 0, "Time Step")
+        ws.write_column(1, 0, np.arange(num_steps))
 
-                        # add the history of the subsystem to the worksheet
-                        sub_sys.printHistory2Excel(filename, worksheet=ws, addComps=True)
+        # Write component history
+        ws.write(0, 1, f"{comp.name.capitalize()} Truth State")
+        ws.write_column(1, 1, comp.history)
 
-                        # for the seriesComps object, add each component to its own worksheet
-                        for sub_comp in comp.comps:
-                            comp_name = sub_comp.name.capitalize()
-                            ws= workbook.add_worksheet(comp_name)
-
-                            # add the history of the component to the worksheet
-                            sub_comp.printHistory2Excel(filename, worksheet=ws)
+        # If the component is a SeriesComps, recursively write its subcomponents
+        if hasattr(comp, 'comps') and isinstance(comp.comps, list):
+            for sub_comp in comp.comps:
+                self._writeComponentToExcel(sub_comp, workbook, num_steps)
