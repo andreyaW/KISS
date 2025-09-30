@@ -19,13 +19,20 @@ def get_key_by_value(my_dict, value):
         return None
 
 def find_mode(values):
-    """Return the most frequent value in a list or 1D numpy array."""
+    """Return the most frequent value in a list or 1D numpy array (fast)."""
     values = np.ravel(values)  # flatten if needed
-    if len(values) == 0:
+    if values.size == 0:
         return None
-    counts = Counter(values)
-    mode_val = counts.most_common(1)[0][0]
-    return mode_val
+
+    # If values are integers or booleans → use bincount (fastest)
+    if np.issubdtype(values.dtype, np.integer) or values.dtype == bool:
+        counts = np.bincount(values)
+        return np.argmax(counts)
+
+    # For general numeric or categorical values → use np.unique with counts
+    unique_vals, counts = np.unique(values, return_counts=True)
+    return unique_vals[np.argmax(counts)]
+
 
 def reset(obj):
     """Resets the component to its initial state and deletes its history."""

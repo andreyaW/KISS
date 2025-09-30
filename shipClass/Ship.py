@@ -35,6 +35,9 @@ class Ship:
         ship_structure_df['ship structure'] = ship_structure_df['ship structure'].apply(ast.literal_eval)
         self.parallels = ship_structure_df.iat[0, 0]
 
+        # Close any open Excel files
+        pd.ExcelFile(excel_file).close()
+
         # Initialize systems
         ship_systems = {}
         for i, sys_struct in enumerate(sys_structure_df.Structure):
@@ -162,6 +165,9 @@ class Ship:
                     sys.check4DuplicateNames()
                     for comp in sys.comps:
                         self._writeComponentWorksheet(comp, workbook, f"System {j+1}-", num_steps, used_sheet_names)
+
+        # close the workbook to save changes
+        workbook.close()
 
     # ---------------------- Helper Method ----------------------
     def _writeComponentWorksheet(self, comp, workbook, prefix, num_steps, used_sheet_names):

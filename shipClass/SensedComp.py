@@ -26,21 +26,48 @@ class SensedComp:
         
     # -------------------- Simulation Functions -----------------------------
     def simulate(self, num_steps=1):
-        """Simulate the sensed component and its sensors over multiple steps."""
+        """Simulate the sensed component and its sensors over multiple steps (vectorized)."""
         # Simulate component once
         self.comp.simulate(num_steps)
         true_health_readings = self.comp.history[-num_steps:]
+        print(true_health_readings.shape)
 
         # Simulate all sensor readings for the new steps
         for sensor in self.sensors:
             sensor.read(true_health_readings)
 
-        # Aggregate sensor readings
-        sensor_matrix = np.array([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
-        sensor_readings = np.empty(num_steps, dtype=int)
-        for t in range(num_steps):
-            sensor_readings[t] = find_mode(sensor_matrix[:, t])
+        print(sensor.sensedHistory.shape)
+
+        # Stack sensor readings: shape (n_sensors, num_steps)
+        sensor_matrix = np.vstack([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
+
+        # --- Vectorized mode calculation ---
+        # assume states are small integers (e.g., 0,1,2)
+        n_states = sensor_matrix.max() + 1
+        counts = np.apply_along_axis(lambda col: np.bincount(col, minlength=n_states), axis=0, arr=sensor_matrix)
+        sensor_readings = counts.argmax(axis=1)   # (num_steps,)
+        print(sensor_readings.shape)
+
+        # Append to history
         self.sensedHistory = np.concatenate([self.sensedHistory, sensor_readings])
+
+
+    # def simulate(self, num_steps=1):
+    #     """Simulate the sensed component and its sensors over multiple steps."""
+    #     # Simulate component once
+    #     self.comp.simulate(num_steps)
+    #     true_health_readings = self.comp.history[-num_steps:]
+
+    #     # Simulate all sensor readings for the new steps
+    #     for sensor in self.sensors:
+    #         sensor.read(true_health_readings)
+
+    #     # Aggregate sensor readings
+    #     sensor_matrix = np.array([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
+    #     sensor_readings = np.empty(num_steps, dtype=int)
+    #     for t in range(num_steps):
+    #         sensor_readings[t] = find_mode(sensor_matrix[:, t])
+    #     self.sensedHistory = np.concatenate([self.sensedHistory, sensor_readings])
 
     def reset(self):
         """Reset component and sensors."""
@@ -125,3 +152,6 @@ class SensedComp:
         aggregate_row = ["Aggregate", SM_aggregate, FN_aggregate, FP_aggregate, FA_aggregate, MA_aggregate]
 
         print(tabulate([headers] + list(rows) + [aggregate_row], headers="firstrow"))
+
+
+
