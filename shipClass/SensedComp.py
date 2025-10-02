@@ -26,51 +26,31 @@ class SensedComp:
         
     # -------------------- Simulation Functions -----------------------------
     def simulate(self, num_steps=1):
-        """Simulate the sensed component and its sensors over multiple steps (vectorized)."""
-        # Simulate component once
+        """Simulate the sensed component and its sensors over multiple steps (fully vectorized)."""
+        # Simulate the component itself
         self.comp.simulate(num_steps)
         true_health_readings = self.comp.history[-num_steps:]
 
-        # Simulate all sensor readings for the new steps
+        # Simulate all sensor readings
         for sensor in self.sensors:
             sensor.read(true_health_readings)
 
         # Stack sensor readings: shape (n_sensors, num_steps)
         sensor_matrix = np.vstack([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
-        n_states = sensor_matrix.shape[1]
-        counts = np.zeros((num_steps, n_states), dtype=np.int64)
 
-        for state in range(n_states):
-            counts[:, state] = (sensor_matrix == state).sum(axis=0)
+        # One-hot encode sensor readings for all states: shape (n_sensors, num_steps, n_states)
+        n_states = 3
+        one_hot = np.eye(n_states)[sensor_matrix]  # shape -> (n_sensors, num_steps, 3)
 
-        sensor_readings = counts.argmax(axis=1)  # shape: (num_steps,)
+        # Sum across sensors to get counts per state per timestep: shape -> (num_steps, n_states)
+        counts = one_hot.sum(axis=0)
 
-        # # --- Vectorized mode calculation ---
-        # # assume states are small integers (e.g., 0,1,2)
-        # n_states = sensor_matrix.max() + 1
-        # counts = np.apply_along_axis(lambda col: np.bincount(col, minlength=n_states), axis=0, arr=sensor_matrix)
-        # sensor_readings = counts.argmax(axis=1)   # (num_steps,)
+        # Majority vote across sensors
+        sensor_readings = counts.argmax(axis=1)  # shape -> (num_steps,)
 
         # Append to history
         self.sensedHistory = np.concatenate([self.sensedHistory, sensor_readings])
-
-
-    # def simulate(self, num_steps=1):
-    #     """Simulate the sensed component and its sensors over multiple steps."""
-    #     # Simulate component once
-    #     self.comp.simulate(num_steps)
-    #     true_health_readings = self.comp.history[-num_steps:]
-
-    #     # Simulate all sensor readings for the new steps
-    #     for sensor in self.sensors:
-    #         sensor.read(true_health_readings)
-
-    #     # Aggregate sensor readings
-    #     sensor_matrix = np.array([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
-    #     sensor_readings = np.empty(num_steps, dtype=int)
-    #     for t in range(num_steps):
-    #         sensor_readings[t] = find_mode(sensor_matrix[:, t])
-    #     self.sensedHistory = np.concatenate([self.sensedHistory, sensor_readings])
+        
 
     def reset(self):
         """Reset component and sensors."""
