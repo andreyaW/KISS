@@ -39,66 +39,48 @@ def reset(obj):
     obj.state = obj.history[0]
     obj.history = [obj.state]
 
+
 # Pick the right history accessor
-def get_history(obj, sensed: bool = False) -> np.ndarray:
-    return obj.sensedHistory if sensed else obj.history
+def get_history(obj, num_steps: int, sensed: bool = False) -> np.ndarray:
+    return obj.sensedHistory[-num_steps:] if sensed else obj.history[-num_steps:]
 
-def SolveStructureFunction(objects: list, parallels: list[tuple] = None, num_steps: int = 0, sensed: bool = False) -> np.ndarray:
-    """
-    Calculate the structure function of a system of components with series and parallel configurations.
-    Returns a NumPy array of system states over the last `num_steps` timesteps.
+def SolveStructureFunction(objects:list, parallels: list[tuple], num_steps, sensed: bool = False) -> int:
+    ''' calculate the structure function of either a system of sensed components or a ship of systems '''
 
-    Parameters
-    ----------
-    objects : list
-        List of Component-like objects with `.history` and optionally `.sensedHistory`.
-    parallels : list of tuple
-        Each tuple contains 1-based indices of components in parallel.
-    num_steps : int
-        Number of most recent timesteps to include (0 means use full history).
-    sensed : bool
-        If True, use .sensedHistory instead of .history.
+    all_comps_history = np.array([get_history(obj, num_steps, sensed) for obj in objects], dtype=int)  # shape (n_comps, n_steps)
+    
+    # if parallels is None, all comps are in series
+    if parallels is None: 
+        Xi_temp = all_comps_history  # shape (n_comps, n_steps)
+        phi_series = np.min(all_comps_history, axis=0)  # shape (n_steps,)
+        return phi_series
 
-    Returns
-    -------
-    np.ndarray
-        Array of system states over time (shape: [num_timesteps]).
-    """
+    # determine the state of each parallel set first
+    if parallels is not None: 
+        for parallel_sets in parallels:
 
-    # Slice only the last `num_steps`
-    def sliced_history(obj):
-            return get_history(obj, sensed)[-num_steps:]
+            # subtract 1 from each value to get the idx
+            parallel_comps_idx = [i-1 for i in parallel_sets]
 
-    parallel_results = []
+            # parallel_objs = [objects[i] for i in parallel_comps_idx]  # get the objects in the parallel set
+            Xi_parallel_set = np.array([all_comps_history[i] for i in parallel_comps_idx])  # shape (n_parallel_comps, n_steps)
+            phi_parallel_set = np.max(Xi_parallel_set, axis=0)  # shape (n_steps,)
 
-    # Handle parallel sets
-    if parallels is not None:
-        for p_set in parallels:
-            idx = [i - 1 for i in p_set]  # convert to 0-based
-            parallel_histories = np.vstack([sliced_history(objects[i]) for i in idx])
-            # system works if any component in the parallel set works
-            parallel_results.append(np.max(parallel_histories, axis=0))  # shape: (num_steps,)
+        series_comp_idxs = []  # list to store the idx of series components
+        objects_in_parallel = [i-1 for sublist in parallels for i in sublist]  # get all objects in parallel sets
+        for i in range(len(objects)):
+            if i not in objects_in_parallel:
+                series_comp_idxs.append(i)
+        if series_comp_idxs == []:  # if there are no series components
+            return phi_parallel_set
+        else:
+            Xi_series_set = np.array([all_comps_history[i] for i in series_comp_idxs])  # shape (n_series_comps, n_steps)
+            phi_series_set = np.min(Xi_series_set, axis=0)  # shape (n_steps,)
 
-    # Series components not in any parallel set
-    if parallels is not None:
-        parallel_indices = [i - 1 for sub in parallels for i in sub]
-        series_indices = [i for i in range(len(objects)) if i not in parallel_indices]
-    else:
-        series_indices = list(range(len(objects)))
-
-    if series_indices:
-        series_histories = np.vstack([sliced_history(objects[i]) for i in series_indices])
-        series_result = np.min(series_histories, axis=0)
-        parallel_results.append(series_result)
-
-    # Combine parallel sets and series components: system fails if any subset fails
-    if parallel_results:
-        phi = np.min(np.vstack(parallel_results), axis=0)
-    else:
-        # No components? Return all zeros
-        phi = np.zeros(num_steps, dtype=int)
-
-    return phi  # shape: (num_steps,)
+            # final consideration of all states in overall system state vector
+            Xi_overall = np.vstack((phi_parallel_set, phi_series_set))
+            phi_sys = np.min(Xi_overall, axis=0)        # shape (n_steps,)
+            return phi_sys
 
 
 def idx2letter(idx):

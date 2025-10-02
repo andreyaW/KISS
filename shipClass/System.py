@@ -28,6 +28,9 @@ class System:
         self.comps = comps
         self.parallels = parallels
         self.initialize(repairable)
+        self.state = max(self.states.keys())
+        self.history = np.array([self.state])
+
 
 # ------------------- Simulation Functions ----------------
     def initialize(self, repairable: bool = False):
@@ -35,7 +38,6 @@ class System:
             comp.initialize(repairable)
 
         # initial system state
-        self.history = SolveStructureFunction(self.comps, self.parallels)
         self.states = self.comps[0].states
         self.n = len(self.comps)
 
@@ -47,8 +49,11 @@ class System:
         for comp in self.comps:
             comp.simulate(num_steps)
 
+        history = SolveStructureFunction(self.comps, self.parallels, num_steps)
+
         # compute system history vectorized
-        self.history = np.append(self.history, SolveStructureFunction(self.comps, self.parallels, num_steps))
+        self.history = np.concatenate([self.history, history])
+        self.state = self.history[-1]
 
     def reset(self):
         """Reset system and all components to initial state."""

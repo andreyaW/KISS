@@ -30,23 +30,26 @@ class SensedComp:
         # Simulate component once
         self.comp.simulate(num_steps)
         true_health_readings = self.comp.history[-num_steps:]
-        print(true_health_readings.shape)
 
         # Simulate all sensor readings for the new steps
         for sensor in self.sensors:
             sensor.read(true_health_readings)
 
-        print(sensor.sensedHistory.shape)
-
         # Stack sensor readings: shape (n_sensors, num_steps)
         sensor_matrix = np.vstack([sensor.sensedHistory[-num_steps:] for sensor in self.sensors])
+        n_states = sensor_matrix.shape[1]
+        counts = np.zeros((num_steps, n_states), dtype=np.int64)
 
-        # --- Vectorized mode calculation ---
-        # assume states are small integers (e.g., 0,1,2)
-        n_states = sensor_matrix.max() + 1
-        counts = np.apply_along_axis(lambda col: np.bincount(col, minlength=n_states), axis=0, arr=sensor_matrix)
-        sensor_readings = counts.argmax(axis=1)   # (num_steps,)
-        print(sensor_readings.shape)
+        for state in range(n_states):
+            counts[:, state] = (sensor_matrix == state).sum(axis=0)
+
+        sensor_readings = counts.argmax(axis=1)  # shape: (num_steps,)
+
+        # # --- Vectorized mode calculation ---
+        # # assume states are small integers (e.g., 0,1,2)
+        # n_states = sensor_matrix.max() + 1
+        # counts = np.apply_along_axis(lambda col: np.bincount(col, minlength=n_states), axis=0, arr=sensor_matrix)
+        # sensor_readings = counts.argmax(axis=1)   # (num_steps,)
 
         # Append to history
         self.sensedHistory = np.concatenate([self.sensedHistory, sensor_readings])
