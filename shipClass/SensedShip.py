@@ -57,7 +57,7 @@ class SensedShip():
         self.sensedHistory = np.array([self.sensedState], dtype=int)
 
     # ---------------------- Plotting and Printing Functions -----------------------------
-    def plotHistory(self):
+    def plotHistory(self, show_plot=True, save_path=None):
         # Plot the true history of the ship
         ax = self.ship.plotHistory(return_ax=True)
 
@@ -67,7 +67,11 @@ class SensedShip():
         # add updated legend and show fig
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
-        plt.show()
+        if show_plot:
+            plt.show()
+        if save_path is not None:
+            plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
 
 
     def printHistory2Excel(self, filename: str, worksheet= None, addComps: bool = False) -> None:

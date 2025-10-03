@@ -2,7 +2,6 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import os
 
 # --- Function to count correct readings by category ---
 def countCorrectReadings(truth_history, sensed_history):
@@ -80,48 +79,17 @@ def countMissedWorkings(truth_history, sensed_history):
 
 
 # --- Plotting function for confusion matrix ---
-def plot_confusion_matrix(save_path, 
-                          c00, c01, c02,
-                          c10, c11, c12,
-                          c20, c21, c22,
-                          labels=None,
-                          cmap="RdBu"):
+def plot_confusion_matrix(cm_mean, param, num_simulations, simulation_hours):
     """
-    Plot a 3x3 confusion matrix with provided cell values.
-
-    Parameters
-    ----------
-    c00 ... c22 : int
-        Values for the 9 cells (row-major order).
-    labels : list of str, optional
-        Class labels for axes.
-    cmap : str
-        Colormap for heatmap.
+    Plot the averaged confusion matrix for a given parameter set.
     """
-    # Build matrix
-    cm = np.array([
-        [c00, c01, c02],
-        [c10, c11, c12],
-        [c20, c21, c22]
-    ])
-
-    # Default labels if none provided
-    if labels is None:
-        labels = [f"Class {i}" for i in range(3)]
-
-    # Plot heatmap
     plt.figure(figsize=(6, 5))
-    sns.heatmap(cm, annot=True, fmt=".2f", cmap=cmap, 
-                xticklabels=labels, yticklabels=labels, cbar=False)
-
-    plt.title("Confusion Matrix")
+    sns.heatmap(cm_mean, annot=True, fmt=".2f", cmap="BuPu",
+                xticklabels=["Fail", "Alarm", "Working"],
+                yticklabels=["Fail", "Alarm", "Working"], cbar=False)
+    plt.title(f"Average Confusion Matrix\nSensors: {param[0]}, Quality: {param[1]},\nNum Simulations: {num_simulations}, Hours: {simulation_hours}")
     plt.xlabel("Sensed")
     plt.ylabel("Truth")
     plt.tight_layout()
-
-    # # Ensure directory exists
-    # os.makedirs(os.path.dirname(save_path), exist_ok=True)
-
-    # Save and close
-    plt.savefig(save_path, dpi=300)
+    plt.savefig(f"confusionMatrices/{num_simulations}Ships/confusion_matrix_({param[0]}_'{param[1]}')_{num_simulations}ships_{simulation_hours}Hrs.png", dpi=300)
     plt.close()
