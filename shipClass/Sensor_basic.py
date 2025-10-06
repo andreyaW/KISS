@@ -18,20 +18,21 @@ class Sensor:
 
     def setObservationProbs(self):
         """ set the observation probabilities based on sensor quality """
-        quality = self.quality.lower()
 
+        # determine the probability of correct observation based on quality
+        quality = self.quality.lower()
         if quality == 'good':
-            observation_probs = np.array([[0.98, 0.01, 0.01],
-                                          [0.01, 0.98, 0.01],
-                                          [0.01, 0.01, 0.98]])
+            prob_correct = 0.99999
         elif quality == 'moderate':
-            observation_probs = np.array([[0.75, 0.125, 0.125],
-                                          [0.125, 0.75, 0.125],
-                                          [0.125, 0.125, 0.75]])
-        elif quality == 'bad':
-            observation_probs = np.array([[0.5, 0.25, 0.25],
-                                          [0.25, 0.5, 0.25],
-                                          [0.25, 0.25, 0.5]])
+            prob_correct = 0.75
+        elif quality == 'bad':    
+            prob_correct = 0.5
+
+        # set up the observation probability matrix
+        prob_incorrect = (1 - prob_correct) / 2
+        observation_probs = np.array([[prob_correct, prob_incorrect, prob_incorrect],
+                                      [prob_incorrect, prob_correct, prob_incorrect],
+                                      [prob_incorrect, prob_incorrect, prob_correct]])
         return observation_probs
 
     def read(self, true_history):
@@ -39,17 +40,23 @@ class Sensor:
         Vectorized simulation of multiple sensor readings at once using np.random.choice.
         """
         n = len(true_history)
-        sensed = np.empty(n, dtype=int)
+        # initialize with a sentinel value to catch any missed assignments
+        sensed = np.full(n, -1, dtype=int)
 
         # For each possible true state, sample all readings at once
         for state in range(self.observation_probs.shape[0]):
-            mask = true_history == state
-            if np.any(mask):
+            mask = (true_history == state)
+            if mask.any():
                 sensed[mask] = np.random.choice(
                     [0, 1, 2],
                     size=mask.sum(),
                     p=self.observation_probs[state]
                 )
+
+        # sanity check: all positions must have been set
+        if (sensed == -1).any():
+            raise RuntimeError("Sensor.read: some sensed entries were not assigned. "
+                            f"true_history={true_history}, sensed={sensed}")
 
         # Sensor working history: 1 if match, 0 if not
         working = (sensed == true_history).astype(int)
@@ -59,15 +66,16 @@ class Sensor:
         self.history = np.concatenate([self.history, working])
 
 
+
     def reset(self):
         """Resets the sensor to its initial state."""
-        self.history = []
-        self.sensedHistory = []
+        self.history = np.array([], dtype=int)
+        self.sensedHistory = np.array([], dtype=int)
 
 # ---------------------- Plotting Functions -----------------------------
     def plotReadings(self, ax):
         # Plot the sensor readings over time on a given axis
-        ax.plot(self.sensedHistory, marker= '*',linestyle='', label=f"Sensor (Quality: {self.quality})")
+        ax.plot(self.sensedHistory, marker= '*',linestyle='--', label=f"Sensor (Quality: {self.quality})")
 
 # ------------------ Simulation Functions -----------------------------
     def checkReadings(self, component):

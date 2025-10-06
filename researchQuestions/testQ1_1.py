@@ -11,11 +11,13 @@ import multiprocessing as mp
 import numpy.random as npr
 import os
 
-npr.seed(1)  # reproducibility
-
 # ---- Worker function ----
 def run_simulation_worker(task):
     sim_id, simulation_hours, num_sensors, quality, num_ships = task
+
+    # set random seed for reproducibility
+    npr.seed(sim_id)
+
     # create a fresh ship per worker
     worker_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True)
     # worker_ship = Ship('SimpleShip', 'simple_test_ship_data.xlsx', repairable=True)
@@ -42,16 +44,17 @@ def run_simulation_worker(task):
 # ---- Main function ----
 def main():
     simulation_parameters = [
-        (1, 'bad'), (1, 'moderate'), (1, 'good'), # 1 sensor per component
-        (3, 'bad'), (3, 'moderate'), (3, 'good'), # 3 sensors per component
-        (7, 'bad'), (7, 'moderate'), (7, 'good'), # 7 sensors per component
+        (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component
+        (3, 'bad'), (3, 'moderate'), (3, 'good'),   # 3 sensors per component
+        (5, 'bad'), (5, 'moderate'), (5, 'good'),   # 5 sensors per component
+        (7, 'bad'), (7, 'moderate'), (7, 'good'),   # 7 sensors per component
         (11, 'bad'), (11, 'moderate'), (11, 'good') # 11 sensors per component
     ]
 
-    num_simulations = 3    # runs per parameter set
-    simulation_hours = 20  # hours per run
-    num_cores = 5          # max number of workers
-
+    num_simulations = 3     # runs per parameter set
+    simulation_hours = 720  # hours per run
+    num_cores = 4           # max number of workers
+    
     # create a folder for confusion matrices output
     new_folder = f"confusionMatrices/{num_simulations}ships"
     os.makedirs(new_folder, exist_ok=True)
