@@ -4,19 +4,20 @@ from utils.helperFunctions import create_multi_simulation_table
 from simCalcFunctions import plot_confusion_matrix
 from tqdm import tqdm
 from sklearn.metrics import confusion_matrix
+from numpy.random import default_rng
 
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
-import numpy.random as npr
 import os
 
 # ---- Worker function ----
 def run_simulation_worker(task):
+    # unpack task
     sim_id, simulation_hours, num_sensors, quality, num_ships = task
 
     # set random seed for reproducibility
-    npr.seed(sim_id)
+    rng = default_rng(sim_id)  
 
     # create a fresh ship per worker
     worker_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True)
@@ -44,16 +45,19 @@ def run_simulation_worker(task):
 # ---- Main function ----
 def main():
     simulation_parameters = [
-        (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component
-        (3, 'bad'), (3, 'moderate'), (3, 'good'),   # 3 sensors per component
-        (5, 'bad'), (5, 'moderate'), (5, 'good'),   # 5 sensors per component
-        (7, 'bad'), (7, 'moderate'), (7, 'good'),   # 7 sensors per component
-        (11, 'bad'), (11, 'moderate'), (11, 'good') # 11 sensors per component
+        (3, 'good'), (4, 'good'), (5, 'good')  # uncomment for simple test case
+
+        # *** Uncomment below to run full set of simulations
+        # (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component
+        # (3, 'bad'), (3, 'moderate'), (3, 'good'),   # 3 sensors per component
+        # (5, 'bad'), (5, 'moderate'), (5, 'good'),   # 5 sensors per component
+        # (7, 'bad'), (7, 'moderate'), (7, 'good'),   # 7 sensors per component
+        # (11, 'bad'), (11, 'moderate'), (11, 'good') # 11 sensors per component
     ]
 
     num_simulations = 3     # runs per parameter set
     simulation_hours = 720  # hours per run
-    num_cores = 4           # max number of workers
+    num_cores = 6          # max number of workers
     
     # create a folder for confusion matrices output
     new_folder = f"confusionMatrices/{num_simulations}ships"
@@ -116,7 +120,6 @@ def main():
     # export results for each parameter set
     df = pd.DataFrame(rows, columns=headers)
     df.to_excel("test1_1_simulation_results.xlsx", index=False)
-
 
 if __name__ == "__main__":
     main()

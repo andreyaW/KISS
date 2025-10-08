@@ -13,16 +13,17 @@ import numpy as np
 
 class Ship:
 
-    def __init__(self, name, excel_file, repairable: bool = True):
+    def __init__(self, name, excel_file, repairable: bool = True, np_rng_num: int = 0)-> None:
         """Initialize ship with name, Excel data, and repairable status."""
         self.name = name
         self.repairable = repairable
-        self.initializeShipSystemsfromExcel(excel_file, self.repairable)
+        self.initializeShipSystemsfromExcel(excel_file, self.repairable, np_rng_num)
 
 # ------------ Simulation Functions -------------------
 
-    def initializeShipSystemsfromExcel(self, excel_file, repairable: bool):
+    def initializeShipSystemsfromExcel(self, excel_file, repairable: bool, np_rng_num: int = 0):
         """Read Excel and initialize systems and components."""
+        
         # Read machinery reliability
         rel_df = pd.read_excel(excel_file, sheet_name=0)
 
@@ -85,7 +86,7 @@ class Ship:
         self.systems = ship_systems
         self.n = len(self.systems)
         self.states = list(ship_systems.values())[0].states
-        self.state = max(self.states.keys())  # initial ship state
+        self.state = max(self.states.keys())                            # initial ship state
         self.history = np.array([self.state], dtype=int)
 
 # ------------ Vectorized Simulation -------------------

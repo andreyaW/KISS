@@ -8,7 +8,7 @@ import xlsxwriter
 import numpy as np
 
 class SensedShip():
-    def __init__(self, ship: Ship, sensors: list[tuple[int, str]] = None):
+    def __init__(self, ship: Ship, sensors: list[tuple[int, str]] = None) -> None:
         self.ship = ship
         self.sensedState = self.ship.state
         self.sensedHistory = [self.sensedState]

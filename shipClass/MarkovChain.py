@@ -5,30 +5,49 @@ import matplotlib.pyplot as plt
 from utils.helperFunctions import get_key_by_value
 
 class MarkovChain:
-    def __init__(self, states: dict, transition_matrix: np.array) -> None:
+    def __init__(self, states: dict, transition_matrix: np.array, rng: int = None) -> None:
         """ Initialize the Markov Chain with the given states and transition matrix """
         self.states = states
         self.transitionMatrix = transition_matrix
-
+        if rng is None:
+            self.rng = np.random.default_rng(0)  # default seed
+        else:
+            self.rng = rng
+        
         self.state = list(self.states.keys())[-1]     # initial state
         self.history = np.array([self.state])         # keep track of history as numpy array
 
-# ---------------------- Useful Methods  ----------------------       
+# ---------------------- Monte Carlo Simulation  ----------------------       
 
-    def get_failure_time(self):
-        """ Determine from the history when the object fails """
-        failure_state = list(self.states.keys())[0]
+    def simulate(self, number_of_steps: int = 1) -> None:
+        """Simulate the Markov Chain over n steps using a fully vectorized method with RNG support."""
+        cum_probs = np.cumsum(self.transitionMatrix, axis=1)
 
-        indices = np.where(self.history == failure_state)[0]
-        if indices.size > 0:
-            self.failure_time = indices[0]
-            return self.failure_time
-        return None
+        # Array to store trajectory
+        next_states = np.empty(number_of_steps, dtype=int)
+        current_state = self.state
+
+        # Generate all random values using the RNG
+        random_vals = self.rng.random(number_of_steps)
+
+        # Vectorized state propagation
+        for i in range(number_of_steps):
+            next_state = np.searchsorted(cum_probs[current_state], random_vals[i])
+            next_states[i] = next_state
+            current_state = next_state
+
+        self.state = current_state
+        self.history = np.concatenate((self.history, next_states))
+
+    def reset(self):
+        """ Reset the Markov Chain to its initial state and delete its history """
+        self.state = self.history[0]
+        self.history = np.array([self.state])
 
 # ---------------------- Plotting Functions -----------------------------    
     def drawChain(self, name: str = None):
         """ Draw the Markov Chain as a directed graph """
-        plt.figure(figsize=(10, 5))
+        plt.figure()
 
         if name is not None:
             ax = plt.gca()
@@ -64,28 +83,15 @@ class MarkovChain:
 
         return ax
 
-# ---------------------- Monte Carlo Simulation  ----------------------       
-    def simulate(self, number_of_steps: int = 1) -> None:
-        """ Simulate the Markov Chain over n steps using a fully vectorized method """
-        cum_probs = np.cumsum(self.transitionMatrix, axis=1)
 
-        # Array to store trajectory
-        next_states = np.empty(number_of_steps, dtype=int)
-        current_state = self.state
+# ---------------------- Useful Methods  ----------------------       
 
-        # Generate all random values
-        random_vals = np.random.rand(number_of_steps)
+    # def get_failure_time(self):
+    #     """ Determine from the history when the object fails """
+    #     failure_state = list(self.states.keys())[0]
 
-        # Vectorized state propagation
-        for i in range(number_of_steps):
-            next_state = np.searchsorted(cum_probs[current_state], random_vals[i])
-            next_states[i] = next_state
-            current_state = next_state
-
-        self.state = current_state
-        self.history = np.concatenate((self.history, next_states))
-
-    def reset(self):
-        """ Reset the Markov Chain to its initial state and delete its history """
-        self.state = self.history[0]
-        self.history = np.array([self.state])
+    #     indices = np.where(self.history == failure_state)[0]
+    #     if indices.size > 0:
+    #         self.failure_time = indices[0]
+    #         return self.failure_time
+    #     return None
