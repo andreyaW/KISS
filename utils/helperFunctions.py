@@ -79,7 +79,7 @@ def SolveStructureFunction(objects:list, parallels: list[tuple], num_steps, sens
 
             # final consideration of all states in overall system state vector
             Xi_overall = np.vstack((phi_parallel_set, phi_series_set))
-            phi_sys = np.min(Xi_overall, axis=0)        # shape (n_steps,)
+            phi_sys = np.min(Xi_overall, axis=0)            # shape (n_steps,)
             return phi_sys
 
 

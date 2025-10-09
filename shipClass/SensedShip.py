@@ -36,11 +36,13 @@ class SensedShip():
             sensedSystem.simulate(time_steps)
 
         # update the truth state of the ship
-        self.ship.history = np.concatenate([self.ship.history, SolveStructureFunction(list(self.ship.systems.values()), self.ship.parallels, time_steps)])
+        true_history = SolveStructureFunction(list(self.ship.systems.values()), self.ship.parallels, time_steps)
+        self.ship.history = np.concatenate([self.ship.history, true_history])
         self.ship.state = self.ship.history[-1]
         
         # update the sensed state of the ship
-        self.sensedHistory = np.concatenate([self.sensedHistory, SolveStructureFunction(self.sensedSystems, self.ship.parallels, time_steps, sensed=True)])
+        sensed_history = SolveStructureFunction(self.sensedSystems, self.ship.parallels, time_steps, sensed=True)
+        self.sensedHistory = np.concatenate([self.sensedHistory, sensed_history])
         self.sensedState = self.sensedHistory[-1]
 
     def reset(self):
@@ -55,6 +57,14 @@ class SensedShip():
         # reset the sensed history of the ship (assume initial sensed state is correct)
         self.sensedState = self.ship.state
         self.sensedHistory = np.array([self.sensedState], dtype=int)
+
+
+    def checkSensingAccuracy(self):
+        """ Check the accuracy of the sensing system by comparing the sensed state to the true state. """
+        correct = np.sum(self.ship.history == self.sensedHistory)
+        total = len(self.ship.history)
+        accuracy = correct / total * 100
+        return accuracy
 
     # ---------------------- Plotting and Printing Functions -----------------------------
     def plotHistory(self, show_plot=True, save_path=None):

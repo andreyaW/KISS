@@ -17,7 +17,7 @@ class Ship:
         """Initialize ship with name, Excel data, and repairable status."""
         self.name = name
         self.repairable = repairable
-        self.initializeShipSystemsfromExcel(excel_file, self.repairable, np_rng_num)
+        self.initializeShipSystemsfromExcel(excel_file, self.repairable, np_rng_num*25)
 
 # ------------ Simulation Functions -------------------
 
@@ -31,10 +31,12 @@ class Ship:
         sys_structure_df = pd.read_excel(excel_file, sheet_name=1)
         sys_structure_df['Structure'] = sys_structure_df['Structure'].apply(ast.literal_eval)
 
-        # Read overall ship structure (parallel systems)
+        # Read in overall ship structure (should only contain which systems are in parallel)
         ship_structure_df = pd.read_excel(excel_file, sheet_name=2)
         ship_structure_df['ship structure'] = ship_structure_df['ship structure'].apply(ast.literal_eval)
         self.parallels = ship_structure_df.iat[0, 0]
+        if self.parallels == []:
+            self.parallels = None
 
         # Close any open Excel files
         pd.ExcelFile(excel_file).close()
@@ -45,13 +47,22 @@ class Ship:
             sys_comps = []
             sys_parallels = []
 
+            total_num_comps = 0 + np_rng_num  # to ensure random seeds are specific to the ship
+
+
+            # create components, series sets, and parallel sets as needed
             for comp in sys_struct:
+                
+                # if the value is a single integer, it's a single component
                 if isinstance(comp, int):
                     comp_name = rel_df.Component[comp]
                     comp_MTTF = rel_df.MTBF[comp]
                     comp_MTTR = rel_df.MTTR[comp]
-                    sys_comps.append(Component(comp_name, comp_MTTF, comp_MTTR))
+                    sys_comps.append(Component(comp_name, comp_MTTF, comp_MTTR, 
+                                               np_rng_num = total_num_comps))  # unique random seed for each component
+                    total_num_comps += 1
 
+                # if the value is a tuple, it's a parallel set 
                 elif isinstance(comp, tuple):
                     parallel_set = list(comp)
                     for j, idx in enumerate(parallel_set):
@@ -59,9 +70,13 @@ class Ship:
                             comp_name = rel_df.Component[idx]
                             comp_MTTF = rel_df.MTBF[idx]
                             comp_MTTR = rel_df.MTTR[idx]
-                            c = Component(comp_name, comp_MTTF, comp_MTTR)
+                            c = Component(comp_name, comp_MTTF, comp_MTTR, 
+                                           np_rng_num = total_num_comps)  # unique random seed for each component
+                            total_num_comps += 1
                             sys_comps.append(c)
                             parallel_set[j] = c
+
+                        # if the value is a list within a tuple, it's a series set in parallel with other objects
                         elif isinstance(idx, list):
                             series_set_comps = []
                             for k, idx2 in enumerate(idx):
@@ -69,27 +84,36 @@ class Ship:
                                     comp_name = rel_df.Component[idx2]
                                     comp_MTTF = rel_df.MTBF[idx2]
                                     comp_MTTR = rel_df.MTTR[idx2]
-                                    series_set_comps.append(Component(comp_name, comp_MTTF, comp_MTTR))
+                                    series_set_comps.append(Component(comp_name, comp_MTTF, comp_MTTR, 
+                                                                     np_rng_num = total_num_comps))  # unique random seed for each component
+                                    total_num_comps += 1
+
+                            # create the series set
                             series_set = SeriesComps(components=series_set_comps)
                             sys_comps.append(series_set)
                             parallel_set[j] = series_set
+    
                     # replace parallel_set with their 1-based positions
                     parallel_set = tuple([sys_comps.index(c) + 1 for c in parallel_set])
                     sys_parallels.append(parallel_set)
 
+            # create the system from its components and parallel sets
             sys_name = sys_structure_df.System[i]
             if sys_parallels:
                 ship_systems[sys_name] = System(sys_name, sys_comps, sys_parallels, repairable=repairable)
             else:
                 ship_systems[sys_name] = System(sys_name, sys_comps, repairable=repairable)
 
-        self.systems = ship_systems
-        self.n = len(self.systems)
-        self.states = list(ship_systems.values())[0].states
-        self.state = max(self.states.keys())                            # initial ship state
-        self.history = np.array([self.state], dtype=int)
+        # set important ship attributes
+        self.systems = ship_systems                                 # dictionary of systems in the ship
+        self.n = len(self.systems)                                  # total number of systems in the ship
+        self.total_num_comps = total_num_comps - np_rng_num         # total number of components in the ship
+        self.states = list(ship_systems.values())[0].states         # assumes all systems have same states
+        self.state = max(self.states.keys())                        # initial ship state
+        self.history = np.array([self.state], dtype=int)            # ship history array (truth)
 
-# ------------ Vectorized Simulation -------------------
+
+# ------------ Simulation -------------------
 
     def simulate(self, num_steps: int):
         """Vectorized simulation of all systems and ship state."""
@@ -97,8 +121,12 @@ class Ship:
         for sys in systems:
             sys.simulate(num_steps)
 
+        history = SolveStructureFunction(systems, self.parallels, num_steps)
+
         # Vectorized ship history
-        self.history = np.concatenate([self.history, SolveStructureFunction(systems, self.parallels, num_steps)])
+        self.history = np.concatenate([self.history, history])
+        self.state = self.history[-1]
+        
 
     def reset(self):
         """Reset ship and all systems to initial state."""

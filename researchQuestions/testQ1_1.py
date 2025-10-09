@@ -45,7 +45,7 @@ def run_simulation_worker(task):
 # ---- Main function ----
 def main():
     simulation_parameters = [
-        (3, 'good'), (4, 'good'), (5, 'good')  # uncomment for simple test case
+        (3, 'good'), (3, 'bad'), # simple case: 3 sensors per component, good vs bad quality
 
         # *** Uncomment below to run full set of simulations
         # (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component

@@ -40,17 +40,18 @@ class SensedSystem():
 
     def simulate(self, time_steps=1):
         ''' simulate the system and all its sensed components for a number of time steps '''
-        
         # simulate the sensed components of the system (updates history and sensedHistory)
         for sc in self.sensedComps:
             sc.simulate(time_steps)
 
         # solve the system structure function to get the true state of the system
-        self.system.history = np.concatenate([self.system.history, SolveStructureFunction(self.system.comps, self.system.parallels, time_steps)])
+        true_history = SolveStructureFunction([sc.comp for sc in self.sensedComps], self.system.parallels, time_steps)
+        self.system.history = np.concatenate([self.system.history, true_history])
         self.system.state = self.system.history[-1]
         
         # solve the system structure function to get the sensed state of the system
-        self.sensedHistory = np.concatenate([self.sensedHistory, SolveStructureFunction(self.sensedComps, self.system.parallels, time_steps, sensed=True)])
+        sensed_history = SolveStructureFunction(self.sensedComps, self.system.parallels, time_steps, sensed=True)
+        self.sensedHistory = np.concatenate([self.sensedHistory, sensed_history])
         self.sensedState = self.sensedHistory[-1]
 
     def reset(self):
