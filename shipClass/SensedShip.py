@@ -1,7 +1,7 @@
 from shipClass.SensedSystem import SensedSystem
 from shipClass.Ship import Ship
 from utils.helperFunctions import SolveStructureFunction, set_x_ticks
-from utils.excelFunctions import addTruth, addTimeSteps, addSensed, highlightParallels, finalFormatting
+from utils.excelFunctions import addTruth, addTimeSteps, addSensed, addUnsensedFailureFormula, highlightParallels, finalFormatting
 
 import matplotlib.pyplot as plt
 import xlsxwriter
@@ -14,7 +14,6 @@ class SensedShip():
         self.sensedHistory = [self.sensedState]
         self.sensedSystems = []
         self.sensors = sensors
-        self.attach_sensors()
 
     # ---------------------- Initialization Functions -----------------------------
     def attach_sensors(self):
@@ -23,6 +22,7 @@ class SensedShip():
             self.sensors = [[(3, 'Good') for comps in system.comps] for system in self.ship.systems.values()]
 
         shipSystems = list(self.ship.systems.values())
+        self.sensedSystems = []     # reset sensed systems
         for i, shipSystem in enumerate(shipSystems):
             sensedSystem = SensedSystem(shipSystem, self.sensors[i])
             self.sensedSystems.append(sensedSystem)
@@ -123,6 +123,11 @@ class SensedShip():
                 # for remaining steps add data to the row
                 else: 
                     addSensed(workbook, worksheet, i, sensed_data)
+
+            # add equation checking sensed vs truth data
+            addUnsensedFailureFormula(workbook=workbook, worksheet=worksheet, 
+                                      truth_col=2, sensed_col=self.n+3, f1_col=2*self.n+4, 
+                                      num_data_points=num_data)
 
             # add formating for parallel components
             if self.ship.parallels is not None:

@@ -131,5 +131,15 @@ class SensedSystem():
             # optional: per-component worksheets
             if addComps:
                 for sensed_comp in self.sensedComps:
-                    ws = workbook.add_worksheet(sensed_comp.comp.name[:31])
+                    # Try to get the component or system name safely
+                    comp_name = getattr(getattr(sensed_comp, "comp", None), "name", None)
+                    system_name = getattr(getattr(sensed_comp, "system", None), "name", None)
+
+                    # Use whichever exists, or a unique fallback
+                    name = comp_name or system_name
+
+                    # Create the worksheet (Excel sheet names are limited to 31 chars)
+                    ws = workbook.add_worksheet(name[:31])
+
+                    # Print the history of the sensed component or subsystem
                     sensed_comp.printHistory2Excel(filename, worksheet=ws)

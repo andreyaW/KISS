@@ -84,62 +84,69 @@ def addSensed(workbook, worksheet, i, sensed_data, sensed_headers = None) -> Non
             worksheet.write(i+1, col, value)
 
 
-def addUnsensedFailureFormula(workbook, worksheet, i, truth_col, sensed_col, f1_col, num_data_points) -> None:
-    if i == 0:
-        # add the header for the formula column
-        f1_col_header_format = headerFormat(workbook)  # add formatting to the headers
-        f1_col_header_format.set_right(5)  # add a thick right border to the header
-        worksheet.write(0, f1_col-1, 'Does Sensed State Match Truth State?', f1_col_header_format)
-    
-    row = i + 2     # formulas consider data which starts from row 2 
-    truth_col = idx2letter(truth_col)  # convert column index to letter
-    sensed_col = idx2letter(sensed_col)  # convert column index to letter
-    f1 = f"IF({truth_col}{row} = {sensed_col}{row}, 1, 0)"
-    f1_col_format = workbook.add_format({'align': 'center',
-                                           'right': 5})             # Add a thick right border
-    f1_col = idx2letter(f1_col)  # convert column index to letter
-    worksheet.write_formula(f"{f1_col}{row}", f1, f1_col_format)    # add the formula to the cell
+def addUnsensedFailureFormula(workbook, worksheet, truth_col, sensed_col, f1_col, num_data_points) -> None:
+    """adds a formula to the worksheet to check if sensed state matches truth state"""
 
-    # add conditional formatting to formula colums
-    if i == num_data_points - 1:  # add conditional formatting after adding all the data
-        # add conditional formatting to the formula column
-        worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
-                                        {'type': '2_color_scale',
-                                        'min_color': '#FD0000',  # red
-                                        'max_color': '#00FD00'}) # green
+    for i in range(num_data_points):
+        if i == 0:
+            # add the header for the formula column
+            f1_col_header_format = headerFormat(workbook)  # add formatting to the headers
+            f1_col_header_format.set_right(5)  # add a thick right border to the header
+            worksheet.write(0, f1_col-1, 'Does Sensed State Match Truth State?', f1_col_header_format)
+
+            truth_col = idx2letter(truth_col)  # convert column index to letter
+            sensed_col = idx2letter(sensed_col)  # convert column index to letter
+            f1_col = idx2letter(f1_col)  # convert column index to letter
+        
+        # add the formula to check if sensed state matches truth state
+        row = i + 2     # formulas consider data which starts from row 2 
+        f1 = f"IF({truth_col}{row} = {sensed_col}{row}, 1, 0)"
+        f1_col_format = workbook.add_format({'align': 'center',
+                                            'right': 5})             # Add a thick right border
+        worksheet.write_formula(f"{f1_col}{row}", f1, f1_col_format)    # add the formula to the cell
+
+        # add conditional formatting to the entire column after all data is added
+        if i == num_data_points - 1:  # add conditional formatting after adding all the data
+            # add conditional formatting to the formula column
+            worksheet.conditional_format(f'{f1_col}2:{f1_col}{row}', 
+                                            {'type': '2_color_scale',
+                                            'min_color': '#FD0000',  # red
+                                            'max_color': '#00FD00'}) # green
 
 
-def addSensorFailureFormula(workbook, worksheet, i, truth_col, f2_col, num_data_points, num_objects) -> None:   
+def addSensorFailureFormula(workbook, worksheet, truth_col, f2_col, num_data_points, num_objects) -> None:   
     """adds a formula sensed component worksheet to check if attached sensors are mostly working """
 
-    if i == 0:
-        # add the header for the formula column
-        f2_col_header_format = headerFormat(workbook)  # add formatting to the headers
-        f2_col_header_format.set_right(5)  # add a thick right border to the header
-        worksheet.write(0, f2_col-1, 'Are Sensors Working?', f2_col_header_format)
-    
-    row = i + 2     # formulas consider data which starts from row 2 
-    f2_col = idx2letter(f2_col)  # convert column index to letter
-    f2_col_format = workbook.add_format({'align': 'center',
-                                             'right': 5})             # Add a thick right border
-    if num_objects == 1: 
-        # copy sensor state from colomn C
-        single_sensor_col = idx2letter(truth_col + 1)  # column index of the only sensor
-        f2 = f'={single_sensor_col}{row}' # can take the first sensor state as the only sensor is present
-        worksheet.write_formula(f'{f2_col}{row}', f'={single_sensor_col}{row}', f2_col_format)        
-    else: 
-        first_sensor_col = idx2letter(truth_col +1)
-        last_sensor_col = idx2letter(truth_col + num_objects) 
-        f2 = f'=MODE({first_sensor_col}{row}:{last_sensor_col}{row})' # formula to check if all sensors are working
-        worksheet.write_formula(f'{f2_col}{row}', f2, f2_col_format)    # add the formula to the cell
+    for i in range(num_data_points):
 
-    # add conditional formatting to formula colums
-    if i == num_data_points - 1:  # add conditional formatting after adding all the data
-        # add conditional formatting to the formula column
-        worksheet.conditional_format(f'{f2_col}2:{f2_col}{row}', 
-                                        {'type': '2_color_scale',
-                                        'min_color': '#FD0000',  # red
-                                        'max_color': '#00FD00'}) # green
+        if i == 0:
+            # add the header for the formula column
+            f2_col_header_format = headerFormat(workbook)  # add formatting to the headers
+            f2_col_header_format.set_right(5)  # add a thick right border to the header
+            worksheet.write(0, f2_col-1, 'Are Sensors Working?', f2_col_header_format)
+        
+            f2_col = idx2letter(f2_col)  # convert column index to letter
+            single_sensor_col = idx2letter(truth_col + 1)  # column index of the only sensor
+            first_sensor_col = idx2letter(truth_col +1)
+            last_sensor_col = idx2letter(truth_col + num_objects)
+
+        row = i + 2     # formulas consider data which starts from row 2 
+        f2_col_format = workbook.add_format({'align': 'center',
+                                                'right': 5})             # Add a thick right border
+        if num_objects == 1: 
+            f2 = f'={single_sensor_col}{row}' # can take the first sensor state as the only sensor is present
+            worksheet.write_formula(f'{f2_col}{row}', f'={single_sensor_col}{row}', f2_col_format)        
+        else: 
+            f2 = f'=MODE({first_sensor_col}{row}:{last_sensor_col}{row})' # formula to check if all sensors are working
+            worksheet.write_formula(f'{f2_col}{row}', f2, f2_col_format)    # add the formula to the cell
+
+        # add conditional formatting to formula colums
+        if i == num_data_points - 1:  # add conditional formatting after adding all the data
+            # add conditional formatting to the formula column
+            worksheet.conditional_format(f'{f2_col}2:{f2_col}{row}', 
+                                            {'type': '2_color_scale',
+                                            'min_color': '#FD0000',  # red
+                                            'max_color': '#00FD00'}) # green
 
       
 def finalFormatting(worksheet, num_sub_objs) -> None:

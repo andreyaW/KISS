@@ -133,14 +133,13 @@ class SensedComp:
                 worksheet.write_column(1, col_offset + j + 1, sensor.sensedHistory)
 
             # Add formulas for performance
-            truth_col = 1
+            truth_col = 2
             sensed_col = col_offset
             f1_col = sensed_col + len(self.sensors) + 1
             f2_col = f1_col + 1
-            for i in range(num_steps):
-                addUnsensedFailureFormula(workbook, worksheet, i, truth_col, sensed_col, f1_col, num_steps)
-                addSensorFailureFormula(workbook, worksheet, i, truth_col, f2_col, num_steps, len(self.sensors))
 
+            addSensorFailureFormula(workbook, worksheet, truth_col, f2_col, num_steps, len(self.sensors))
+            addUnsensedFailureFormula(workbook, worksheet, truth_col, sensed_col, f1_col, num_steps)
             finalFormatting(worksheet, 1)
 
     # ---------------------- Summary of Readings ---------------------------

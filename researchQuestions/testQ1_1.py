@@ -11,6 +11,12 @@ import pandas as pd
 import multiprocessing as mp
 import os
 
+# import logging 
+
+# logging.basicConfig(level=logging.INFO, 
+#                     filename='testQ1_1.log', filemode='w', 
+#                     format="{levelname}:{name}:{message}", style="{")
+
 # ---- Worker function ----
 def run_simulation_worker(task):
     # unpack task
@@ -22,7 +28,6 @@ def run_simulation_worker(task):
     # create a fresh ship per worker
     worker_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', 
                        repairable=True, np_rng_num= sim_id)
-    # worker_ship = Ship('SimpleShip', 'simple_test_ship_data.xlsx', repairable=True)
  
     # attach sensors
     sensors = [[(num_sensors, quality) for _ in system.comps]
@@ -35,6 +40,12 @@ def run_simulation_worker(task):
     if num_ships <= 3:
         fig = sensed_ship.plotHistory(show_plot=False, save_path=f"shipHistories/sensed_ship_history_({num_sensors}, '{quality}')_{simulation_hours}Hrs_shipID{sim_id+1}.png")  # disable plot saving
 
+        sensed_ship.printHistory2Excel(f"shipHistories/sensed_ship_history_({num_sensors}, '{quality}')_{simulation_hours}Hrs_shipID{sim_id+1}.xlsx", addComps=True)  # save to excel
+
+    # # use the logger to output ship history to a file
+    # logging.info(f"Simulation ID: {sim_id}, Parameters: (num_sensors={num_sensors}, quality='{quality}'), Ship History: {sensed_ship.ship.history}, Sensed History: {sensed_ship.sensedHistory}")
+    
+
     # build confusion matrix
     truth_history = sensed_ship.ship.history
     sensed_history = sensed_ship.sensedHistory
@@ -45,21 +56,21 @@ def run_simulation_worker(task):
 # ---- Main function ----
 def main():
     simulation_parameters = [
-        # (3, 'good'), (3, 'bad'), # simplest case: 3 sensors per component, good vs bad quality
+        (3, 'good'), (3, 'bad'), # simplest case: 3 sensors per component, good vs bad quality
 
         # *** Uncomment below to run full set of simulations
         # (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component
         # (3, 'bad'), (3, 'moderate'), (3, 'good'),   # 3 sensors per component
         # (5, 'bad'), (5, 'moderate'), (5, 'good'),   # 5 sensors per component
         # (7, 'bad'), (7, 'moderate'), (7, 'good'),   # 7 sensors per component
-        (11, 'bad'), (11, 'moderate'), (11, 'good'),  # 11 sensors per component
-        (13, 'bad'), (13, 'moderate'), (13, 'good'),  # 13 sensors per component
-        (15, 'bad'), (15, 'moderate'), (15, 'good'),  # 15 sensors per component
-        (17, 'bad'), (17, 'moderate'), (17, 'good'),  # 17 sensors per component
-        (19, 'bad'), (19, 'moderate'), (19, 'good')   # 19 sensors per component
+        # (11, 'bad'), (11, 'moderate'), (11, 'good'),  # 11 sensors per component
+        # (13, 'bad'), (13, 'moderate'), (13, 'good'),  # 13 sensors per component
+        # (15, 'bad'), (15, 'moderate'), (15, 'good'),  # 15 sensors per component
+        # (17, 'bad'), (17, 'moderate'), (17, 'good'),  # 17 sensors per component
+        # (19, 'bad'), (19, 'moderate'), (19, 'good')   # 19 sensors per component
     ]
 
-    num_simulations = 1000     # runs per parameter set
+    num_simulations = 3     # runs per parameter set
     simulation_hours = 720     # hours per run
     num_cores = 6              # max number of workers
     
@@ -117,7 +128,7 @@ def main():
 
         rows.append([
             param,
-            # c00 + c11 + c22,                    # correct
+            c00 + c11 + c22,                    # correct
             c01 + c02 + c10 + c12 + c20 + c21,  # incorrect
             c00, c01, c02,
             c10, c11, c12,
