@@ -42,7 +42,37 @@ def reset(obj):
 
 # Pick the right history accessor
 def get_history(obj, num_steps: int, sensed: bool = False) -> np.ndarray:
-    return obj.sensedHistory[-num_steps:] if sensed else obj.history[-num_steps:]
+    """ Returns the last num_steps of history from either the true state or sensed state. """
+    if sensed:
+        if not hasattr(obj, 'sensedHistory'):
+            raise ValueError(f"get_history: Object of type {type(obj)} does not have sensedHistory attribute.") 
+        return obj.sensedHistory[-num_steps:]
+    else:
+        if not hasattr(obj, 'history'):
+            # if its a sensed component, the  history is abstracted in the comp attribute
+            if hasattr(obj, 'comp') and hasattr(obj.comp, 'history'):
+                return obj.comp.history[-num_steps:]
+            
+            # if its a sensed system, the history is abstracted in the system attribute
+            elif hasattr(obj, 'system') and hasattr(obj.system, 'history'):
+                return obj.system.history[-num_steps:]
+        else:
+            return obj.history[-num_steps:]
+
+
+    # # if isinstance(obj, SensedComp) and sensed:
+    # if sensed and hasattr(obj, 'sensedHistory'):
+    #     return obj.sensedHistory[-num_steps:]
+    # elif sensed and not hasattr(obj, 'sensedHistory'):
+    #     print(type(obj), 'does not have sensedHistory attribute.')
+    # elif not sensed and hasattr(obj, 'history'):
+    #     return obj.history[-num_steps:]
+    # else:
+    #     print(type(obj), 'does not have history attribute.')
+    #     # raise ValueError("get_history: Object does not have sensedHistory attribute.")
+
+
+    # return obj.sensedHistory[-num_steps:] if sensed else obj.history[-num_steps:]
 
 def SolveStructureFunction(objects:list, parallels: list[tuple], num_steps, sensed: bool = False) -> int:
     ''' calculate the structure function of either a system of sensed components or a ship of systems '''

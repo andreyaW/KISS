@@ -84,7 +84,7 @@ def plot_confusion_matrix(cm_mean, param, num_simulations, simulation_hours):
     Plot the averaged confusion matrix for a given parameter set.
     """
     plt.figure(figsize=(6, 5))
-    sns.heatmap(cm_mean, annot=True, fmt=".2f", cmap="BuPu",
+    sns.heatmap(cm_mean, annot=True, fmt=".1%", cmap="BuPu",
                 xticklabels=["Fail", "Alarm", "Working"],
                 yticklabels=["Fail", "Alarm", "Working"], cbar=False)
     plt.title(f"Average Confusion Matrix \nNum Simulations: {num_simulations}, Hours: {simulation_hours},\nSensors: {param[0]}, Quality: {param[1]}")

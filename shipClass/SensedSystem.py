@@ -45,7 +45,8 @@ class SensedSystem():
             sc.simulate(time_steps)
 
         # solve the system structure function to get the true state of the system
-        true_history = SolveStructureFunction([sc.comp for sc in self.sensedComps], self.system.parallels, time_steps)
+        
+        true_history = SolveStructureFunction(self.sensedComps, self.system.parallels, time_steps)
         self.system.history = np.concatenate([self.system.history, true_history])
         self.system.state = self.system.history[-1]
         

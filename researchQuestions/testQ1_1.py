@@ -20,7 +20,8 @@ def run_simulation_worker(task):
     rng = default_rng(sim_id)  
 
     # create a fresh ship per worker
-    worker_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True)
+    worker_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', 
+                       repairable=True, np_rng_num= sim_id)
     # worker_ship = Ship('SimpleShip', 'simple_test_ship_data.xlsx', repairable=True)
  
     # attach sensors
@@ -41,23 +42,26 @@ def run_simulation_worker(task):
 
     return (num_sensors, quality, sim_id, cm)
 
-
 # ---- Main function ----
 def main():
     simulation_parameters = [
-        (3, 'good'), (3, 'bad'), # simple case: 3 sensors per component, good vs bad quality
+        # (3, 'good'), (3, 'bad'), # simplest case: 3 sensors per component, good vs bad quality
 
         # *** Uncomment below to run full set of simulations
         # (1, 'bad'), (1, 'moderate'), (1, 'good'),   # 1 sensor per component
         # (3, 'bad'), (3, 'moderate'), (3, 'good'),   # 3 sensors per component
         # (5, 'bad'), (5, 'moderate'), (5, 'good'),   # 5 sensors per component
         # (7, 'bad'), (7, 'moderate'), (7, 'good'),   # 7 sensors per component
-        # (11, 'bad'), (11, 'moderate'), (11, 'good') # 11 sensors per component
+        (11, 'bad'), (11, 'moderate'), (11, 'good'),  # 11 sensors per component
+        (13, 'bad'), (13, 'moderate'), (13, 'good'),  # 13 sensors per component
+        (15, 'bad'), (15, 'moderate'), (15, 'good'),  # 15 sensors per component
+        (17, 'bad'), (17, 'moderate'), (17, 'good'),  # 17 sensors per component
+        (19, 'bad'), (19, 'moderate'), (19, 'good')   # 19 sensors per component
     ]
 
-    num_simulations = 3     # runs per parameter set
-    simulation_hours = 720  # hours per run
-    num_cores = 6          # max number of workers
+    num_simulations = 1000     # runs per parameter set
+    simulation_hours = 720     # hours per run
+    num_cores = 6              # max number of workers
     
     # create a folder for confusion matrices output
     new_folder = f"confusionMatrices/{num_simulations}ships"
@@ -100,6 +104,9 @@ def main():
         # average confusion matrix over all runs and save plot
         cm_mean = confusion_matrices[i].mean(axis=0)
 
+        # convert to percentages
+        cm_mean = (cm_mean / cm_mean.sum())
+
         print(f"Saving Confusion Matrix for {param}:")
         plot_confusion_matrix(cm_mean, param, num_simulations, simulation_hours)
 
@@ -110,7 +117,7 @@ def main():
 
         rows.append([
             param,
-            c00 + c11 + c22,                    # correct
+            # c00 + c11 + c22,                    # correct
             c01 + c02 + c10 + c12 + c20 + c21,  # incorrect
             c00, c01, c02,
             c10, c11, c12,
