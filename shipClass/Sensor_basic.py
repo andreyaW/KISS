@@ -16,17 +16,20 @@ class Sensor:
         self.observation_probs = self.setObservationProbs()
         # self.sensing_interval = 30  # seconds
 
-    def setObservationProbs(self):
+    def setObservationProbs(self, value=None):
         """ set the observation probabilities based on sensor quality """
 
         # determine the probability of correct observation based on quality
-        quality = self.quality.lower()
-        if quality == 'good':
-            prob_correct = 0.99999
-        elif quality == 'moderate':
-            prob_correct = 0.75
-        elif quality == 'bad':    
-            prob_correct = 0.5
+        if value is not None:
+            prob_correct = value
+        else: 
+            quality = self.quality.lower()
+            if quality == 'good':
+                prob_correct = 0.98
+            elif quality == 'moderate':
+                prob_correct = 0.75
+            elif quality == 'bad':    
+                prob_correct = 0.5
 
         # set up the observation probability matrix
         prob_incorrect = (1 - prob_correct) / 2

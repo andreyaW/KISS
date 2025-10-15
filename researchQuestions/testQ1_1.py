@@ -42,10 +42,6 @@ def run_simulation_worker(task):
 
         sensed_ship.printHistory2Excel(f"shipHistories/sensed_ship_history_({num_sensors}, '{quality}')_{simulation_hours}Hrs_shipID{sim_id+1}.xlsx", addComps=True)  # save to excel
 
-    # # use the logger to output ship history to a file
-    # logging.info(f"Simulation ID: {sim_id}, Parameters: (num_sensors={num_sensors}, quality='{quality}'), Ship History: {sensed_ship.ship.history}, Sensed History: {sensed_ship.sensedHistory}")
-    
-
     # build confusion matrix
     truth_history = sensed_ship.ship.history
     sensed_history = sensed_ship.sensedHistory
