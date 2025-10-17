@@ -8,7 +8,7 @@ class Sensor:
         Parameters: 
         ---------------------
         quality: str
-            The quality of the sensor (e.g., 'Good', 'Moderate', or 'Bad').
+            The quality of the sensor (e.g., 'Good', 'Moderate', or 'Bad' OR a value for sensor accuracy).
         """
         self.quality = quality
         self.history = np.array([], dtype=int)          # state history: 1 for working, 0 for failed
@@ -16,12 +16,12 @@ class Sensor:
         self.observation_probs = self.setObservationProbs()
         # self.sensing_interval = 30  # seconds
 
-    def setObservationProbs(self, value=None):
+    def setObservationProbs(self):
         """ set the observation probabilities based on sensor quality """
 
         # determine the probability of correct observation based on quality
-        if value is not None:
-            prob_correct = value
+        if type(self.quality) != str:
+            prob_correct = self.quality
         else: 
             quality = self.quality.lower()
             if quality == 'good':

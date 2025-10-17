@@ -11,7 +11,7 @@ import numpy as np
 class SensedSystem():
     ''' a class which holds the system class and also attaches sensors to each component of the system to get readings '''
     
-    def __init__(self, system: System, sensors: list[tuple[int, str]] = None):
+    def __init__(self, system: System, sensors: list[tuple] = None):
         self.system = system        
         self.sensedComps = []
         self.sensors = sensors
@@ -24,26 +24,20 @@ class SensedSystem():
         if self.sensors is None:
             self.sensors = [[(3, 'Good') for comps in self.sensedComps]]
 
+
         comps = self.system.comps
         for i, comp in enumerate(comps):
             if isinstance(comp, System):
                 # if the component is a subsystem, recursively attach sensors to its components
-                if type(sub_sys_sensors[i][1]) is str:
-                    sub_sys_sensors = [self.sensors[i] for _ in comp.comps]
-                    sensed_subsystem = SensedSystem(comp, sensors=sub_sys_sensors)
-                    self.sensedComps.append(sensed_subsystem)
-                    continue
-                elif type(self.sensors[i][1]) is float:
-                    pass
-            
+                sub_sys_sensors = [self.sensors[i] for _ in comp.comps]
+                sensed_subsystem = SensedSystem(comp, sensors=sub_sys_sensors)
+                self.sensedComps.append(sensed_subsystem) 
             else: 
-                if type(self.sensors[i][1]) is str: 
-                    # if the component is a individual component, attach the designated quality and number of sensors to it
-                    sensors = [Sensor(quality=self.sensors[i][1]) for _ in range(self.sensors[i][0])]
-                    sensed_comp = SensedComp(comp, sensors)
-                    self.sensedComps.append(sensed_comp)
-                elif type(self.sensors[i][1]) is float:
-                    pass
+                # if the component is a individual component, attach the designated quality and number of sensors to it
+                sensors = [Sensor(quality=self.sensors[i][1]) for _ in range(self.sensors[i][0])]
+                sensed_comp = SensedComp(comp, sensors)
+                self.sensedComps.append(sensed_comp)
+
 
     def simulate(self, time_steps=1):
         ''' simulate the system and all its sensed components for a number of time steps '''

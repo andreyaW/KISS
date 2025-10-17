@@ -14,28 +14,25 @@ class SensedShip():
         self.sensedHistory = [self.sensedState]
         self.sensedSystems = []
         self.sensors = sensors
+        self.attach_sensors()
 
     # ---------------------- Initialization Functions -----------------------------
-    def attach_sensors(self, sensors= None):
+    # def attach_sensors(self, sensors= None, sensor_accuracy= None, sensor_count = 3):
+    def attach_sensors(self):
         """ Attach sensors to each system in the ship. """
         shipSystems = list(self.ship.systems.values()) # get list of ship systems
-        self.sensedSystems = []     # reset sensed systems
+        self.sensedSystems = []                        # reset sensed systems
 
-
-        # if new sensors are not provided, result to default (3, 'Good') sensors per component
-        if sensors is None:
+        # if sensors are not specified, add default (3, 'Good') sensors per component 
+        if self.sensors is None:
             self.sensors = [[(3, 'Good') for comps in system.comps] for system in self.ship.systems.values()]
-            for i, shipSystem in enumerate(shipSystems):
-                sensedSystem = SensedSystem(shipSystem, self.sensors[i])    # attach default sensors to each system
-                self.sensedSystems.append(sensedSystem)       
-        
-        # if sensors are provided push each list to the corresponding system
-        else:
-            for i, shipSystem in enumerate(shipSystems):
-                sensedSystem = SensedSystem(shipSystem, sensors[i])    # attach provided sensors to each system
-                self.sensedSystems.append(sensedSystem)
+
+        # attach sensors to each system
+        for i, shipSystem in enumerate(shipSystems):
+            sensedSystem = SensedSystem(shipSystem, self.sensors[i])
+            self.sensedSystems.append(sensedSystem)       
                     
-        self.n = len(self.sensedSystems)                                #self.n= number of systems in the ship
+        self.n = len(self.sensedSystems)                                # number of systems on the ship
 
 
     # -------------------- Simulation Functions -----------------------------

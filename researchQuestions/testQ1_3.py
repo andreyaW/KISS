@@ -1,174 +1,135 @@
-import numpy as np
-import matplotlib.pyplot as plt
-
-from mpl_toolkits.mplot3d import Axes3D  # needed for older matplotlib versions
 from shipClass.Ship import Ship
 from shipClass.SensedShip import SensedShip
 from shipClass.Sensor_basic import Sensor
-from tqdm import tqdm  # <-- progress bar library
+from tqdm import tqdm
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def sim_Quality_SensedShip(quality, sensor_count, random_seed):
+    """Simulate a sensed ship with sensors of a given quality and number of sensors per component."""
+
+    # initialize an auxiliary ship for testing
+    aux_ship = Ship(f'Aux_Ship_{quality}_Sensors', 'AuxilaryPropulsionPlant_Reliability_Availability_Data.xlsx', np_rng_num=random_seed)
+
+    # use aux ship to initialize a sensed ship
+    sensors = [[(sensor_count, quality) for _ in range(len(sys.comps))] for sysName, sys in aux_ship.systems.items()]
+    sensedShip = SensedShip(aux_ship, sensors)
+    sensedShip.attach_sensors()
+    sensedShip.simulate(720)  # simulate for 720 time steps (hours)
+    return sensedShip
 
 
-def main():
-    ''' Compare the accuracy of a few moderate sensors to good sensors '''
+def plot_sensor_results(X_vals, Y_vals, Z_vals, mode: str = "surface"):
+    """
+    Plot sensor simulation results in 3D either as a surface ('surface') or points ('points').
 
-    simulation_hours = 1440     # simulate for 1440 hours (60 days)
-    num_sims = 100              # number of simulations to average accuracy over
+    Parameters
+    ----------
+    X_vals : array-like
+        Sensor probabilities of correct detection.
+    Y_vals : array-like
+        Number of sensors per component.
+    Z_vals : array-like
+        Overall sensed accuracy (or other metric).
+    mode : str, optional
+        Choose 'surface' for a 3D surface plot or 'points' for a scatter plot.
+        Default is 'surface'.
+    """
 
-    baseline_accuracy = 98.0    # baseline accuracy for good sensors 
 
-    # initial moderate sensor configuration
-    num_sensors = 3
-    max_sensors = 25                                   # max number of moderate sensors to try
-    quality = 'moderate'
-    comparison_limit = 1        # percent accuracy difference to stop simulations
-
-    # ---- X, Y, Z FOR PLOTTING ----
-    # X: sensor probability of correct detection
-    probs_correct = np.linspace(start=0.6, stop=0.85, num=20) # (moderate sensor prob. correct detection ranges 60% to 85% accuracy)
-
-    # Y: overall sensed accuracy (nearly constant, small variation)
-    # Y_vals = baseline_accuracy + 0.3 * np.sin(np.linspace(0, 2*np.pi, len(probs_correct)))  # small wave around 98%
-    Y_vals = np.zeros(len(probs_correct))  # initialize Y values
-    Z_vals = np.zeros(len(probs_correct))  # Z: number of sensors per component (inversely related to X)
-
-    for i, prob in enumerate(probs_correct):
-
-        # create a new ship
-        test_ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True, np_rng_num= 15)
-
-        # iteratively add sensors until similar accuracy is achieved with moderate sensors
-        while abs(Y_vals[-1] - baseline_accuracy) > comparison_limit:  # within 1% of good accuracy
-
-            # attach sensors
-            sensors = [[(num_sensors, quality) for _ in system.comps] for system in test_ship.systems.values()]
-            sensed_ship = SensedShip(test_ship, sensors)
-            sensed_ship.attach_sensors()
-
-            # Set all sensors to have the current probability of correct detection
-            for sensor_set in sensed_ship.sensors:
-                for sensor in sensor_set:
-                    sensor.setObservationProbs(value=prob)
-
-            # simulate current configuration n times and average accuracy
-            accuracy = np.zeros(num_sims)
-            for i in tqdm(range(num_sims), desc=f"{num_sensors} sensors per comp", ncols=80):  # <-- added progress bar here too
-                # simulate the current configuration
-                sensed_ship.simulate(simulation_hours)
-                accuracy[i] = sensed_ship.checkSensingAccuracy()
-                sensed_ship.reset()  # reset for next run
-
-            # record results for plotting  
-            Y_vals[i] = np.mean(accuracy)
-            # High X (more accurate sensors) → fewer sensors needed
-            Z_vals = num_sensors           # Z: number of sensors per component (inversely related to X)
-            
-            # increment sensors
-            num_sensors += 1
-            if num_sensors > max_sensors:   # max 25 sensors per component
-                break
-       
-    # Create 2D grid for surface plotting
-    X, Y = np.meshgrid(probs_correct, Y_vals)   #(~constant along Y)
-
-    # ---- 3D Surface Plot ----
+    # ---- 3D Plot ----
     fig = plt.figure(figsize=(8, 6))
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
 
-    surf = ax.plot_surface(X, Y, Z_vals, cmap='viridis', edgecolor='none', alpha=0.9)
+    if mode.lower() == "surface":
+        X, Y = np.meshgrid(X_vals, Y_vals)
+        Z = np.tile(Z_vals, (len(Y_vals), 1))
+        surf = ax.plot_surface(X, Y, Z, cmap="RdYlGn", edgecolor="none", alpha=0.9)
+    elif mode.lower() == "points":
+        ax.scatter(X_vals, Y_vals, Z_vals, c='red', s=50, alpha=0.8, marker='o')
+    else:
+        raise ValueError("Invalid mode. Use 'surface' or 'points'.")
 
-    # Labels and title
-    ax.set_xlabel('Sensor Probability of Correct Detection', labelpad=10)
-    ax.set_ylabel('Overall Sensed State Accuracy (%)', labelpad=10)
-    ax.set_zlabel('Number of Sensors per Component', labelpad=10)
-    ax.set_title('Sensor Detection Accuracy vs Overall Accuracy vs Sensor Count')
+    ax.set_xlabel("Sensor Probability of Correct Detection", labelpad=10)
+    ax.set_ylabel("Number of Sensors per Component", labelpad=10)
+    ax.set_zlabel("Overall Sensed State Accuracy (%)", labelpad=10)
+    ax.set_title(f"Sensor Detection Accuracy vs Overall Accuracy vs Sensor Count")
 
-    # Adjust view for better perception
-    ax.view_init(elev=25, azim=135)
-
-    fig.colorbar(surf, ax=ax, shrink=0.6, aspect=10, label='Sensor Count Value')
+    # invert the z-axis
+    ax.set_zlim(0, 100)
+    ax.view_init(elev=36, azim=45, roll=4) # adjust viewing angle
     plt.tight_layout()
     plt.show()
 
+    # ---- Save Plot ----
+    filename = f"sensor_accuracy_{mode}_plot.png"
+    fig.savefig(filename, dpi=300)
+    print(f"[✔] Saved figure as: {filename}")
+
+    # ---- Export Results ----
+    results_df = pd.DataFrame({
+        "Sensor_Probability_of_Correct_Detection": X_vals,
+        "Number_of_Sensors_per_Component": Y_vals,
+        "Overall_Sensed_State_Accuracy": Z_vals,
+    })
+    csv_filename = "sensor_simulation_results.csv"
+    results_df.to_csv(csv_filename, index=False)
+    print(f"[✔] Saved results to: {csv_filename}")
+
+
+def main():
+    """Compare the overall sensing accuracy of a few moderate sensors to one really good sensor."""
+    num_sims = 100              # number of simulations to average accuracy over
+    comparison_limit = 10       # percent accuracy difference to stop simulations
+    num_sensors = 3             # initial number of sensors per component
+    max_sensors = 12            # maximum number of sensors per component
+
+    # simulate baseline with good sensors
+    baseline_accuracy = np.zeros(num_sims)
+    with tqdm(total=num_sims, desc="Baseline (Good Sensors)", leave=False) as pbar:
+        for i in range(num_sims):
+            good_sensedShip = sim_Quality_SensedShip('good', 1, random_seed=i)
+            baseline_accuracy[i] = good_sensedShip.checkSensingAccuracy()
+            pbar.update(1)
+    baseline_accuracy = np.mean(baseline_accuracy)
+    print(f"Baseline accuracy with good sensors: {baseline_accuracy:.2f}%")
+
+    # X, Y, Z for plotting
+    # X: sensor quality (probability of correct detection) from 0.6 to 0.85
+    X_vals = np.linspace(0.25, 0.95, 8)
+    print(X_vals)
+    
+    # Y: number of sensors needed to match baseline accuracy
+    Y_vals = np.ones(len(X_vals)) * num_sensors
+    
+    # Z: overall sensed state accuracy (percentage)
+    Z_vals = np.zeros(len(X_vals))
+
+    # For each probability value, vary number of sensors until performance matches baseline
+    for i, prob in enumerate(tqdm(X_vals, desc="Varying Sensor Quality", leave=True)):
+
+        # run simulations for a probability value with number of sensors increasing, but not exceeding max_sensors        
+        while Y_vals[i] < max_sensors:
+            sim_accuracy = np.zeros(num_sims)
+
+            with tqdm(total=num_sims, desc=f"p={prob:.2f}, sensors={int(Y_vals[i])}", leave=False) as sim_pbar:
+                for j in range(num_sims):
+                    sensedShip = sim_Quality_SensedShip(prob, int(Y_vals[i]), j)
+                    sim_accuracy[j] = sensedShip.checkSensingAccuracy()
+                    sim_pbar.update(1)
+            sensed_accuracy = np.mean(sim_accuracy)
+
+            if abs(sensed_accuracy - baseline_accuracy) <= comparison_limit:
+                Z_vals[i] = sensed_accuracy
+                Y_vals[i] = int(Y_vals[i])
+                break
+            else:
+                Y_vals[i] += 2
+
+    # Plot the results
+    plot_sensor_results(X_vals, Y_vals, Z_vals, mode="points")
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-        # # (baseline) ship with a single good sensor configuration (98% accurate)
-        # num_sensors = 1
-        # quality = 'good'
-        # ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True, np_rng_num= 15)
-        # sensed_ship = SensedShip(ship, [[(num_sensors, quality) for _ in system.comps] for system in ship.systems.values()])
-        # sensed_ship.attach_sensors()
-
-        # good_accuracy = np.zeros(num_sims)  # array to store accuracies for averaging
-        # print("\nRunning baseline (good sensors)...")
-        # for i in tqdm(range(num_sims), desc="Baseline runs", ncols=80):  # <-- added progress bar here
-        #     sensed_ship.simulate(1440)      # simulate for 1440 hours
-        #     good_accuracy[i] = sensed_ship.checkSensingAccuracy()
-        #     sensed_ship.reset()             # reset for next run
-        # baseline_accuracy = np.mean(good_accuracy)
-        # print(f"\nBaseline: {baseline_accuracy:.2f}% accuracy with {num_sensors} '{quality}' sensors per component over 1440 hours.")
-
-
-
-
-    # print("\nRunning moderate sensor comparisons...\n")
-
-    # for i, prob in enumerate(prob_correct):
-    #     # iteratively add sensors until similar accuracy is achieved with moderate sensors
-    #     while abs(moderate_accuracies[-1] - good_accuracy) > comparison_limit:  # within 1% of good accuracy
-
-    #         # print(f"Testing {num_sensors} '{quality}' sensors per component...")
-
-    #         # create a new ship
-    #         ship = Ship('RepairableShip', 'auxiliary_ship_data.xlsx', repairable=True, np_rng_num= 15)
-            
-    #         # attach sensors
-    #         sensors = [[(num_sensors, quality) for _ in system.comps]
-    #                 for system in ship.systems.values()]
-    #         sensors = [sensor.setObservationProbs(value=prob_correct) for sensor_set in sensors for sensor in sensor_set]
-    #         sensed_ship = SensedShip(ship, sensors)
-    #         sensed_ship.attach_sensors()
-
-    #         # simulate current configuration n times and average accuracy
-    #         accuracy = np.zeros(num_sims)
-    #         for i in tqdm(range(num_sims), desc=f"{num_sensors} sensors per comp", ncols=80):  # <-- added progress bar here too
-    #             # simulate the current configuration
-    #             sensed_ship.simulate(simulation_hours)
-    #             accuracy[i] = sensed_ship.checkSensingAccuracy()
-    #             sensed_ship.reset()  # reset for next run
-
-    #         # record results for plotting  
-    #         print(f"  {num_sensors} '{quality}' sensors per component: {np.mean(accuracy):.2f}% accuracy over {simulation_hours} hours (averaged over {num_sims} runs).")
-    #         accuracy = np.mean(accuracy)
-    #         moderate_sensor_counts[i] = num_sensors
-    #         moderate_accuracies[i] = accuracy
-
-    #         # increment sensors
-    #         num_sensors += 1
-    #         if num_sensors > max_sensors:   # max 25 sensors per component
-    #             break
-
-    #     if num_sensors == max_sensors:
-    #         print(f"\nMax sensors reached; {moderate_accuracies[-1]:.2f}% accuracy with {num_sensors-2} '{quality}' sensors per component over {simulation_hours} hours.")
-    #     else:
-    #         print(f"\nAchieved {moderate_accuracies[-1]:.2f}% accuracy with {num_sensors-2} '{quality}' sensors per component over {simulation_hours} hours.")
-
-            # 2D Line Plot
-            # # plot accuracy vs number of sensors
-            # plt.figure()
-            # plt.plot(moderate_sensor_counts[1:], [acc for acc in moderate_accuracies[1:]], marker='o', label=f"'{quality}' sensors")
-            # plt.axhline(y=good_accuracy, color='r', linestyle='--', label=f"'Good' sensors baseline ({good_accuracy:.2f}%)")
-            # plt.xlabel('Number of Sensors per Component')
-            # plt.ylabel('Sensing Accuracy (%)')
-            # plt.title('Sensing Accuracy vs Number of Sensors')
-            # plt.legend()
-            # plt.grid()
-            # plt.show()
-
-            # # Save the figure
-            # plt.savefig(f'moderate_sensing_accuracy_vs_number_of_sensors.png', bbox_inches='tight')
