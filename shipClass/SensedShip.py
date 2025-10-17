@@ -8,7 +8,7 @@ import xlsxwriter
 import numpy as np
 
 class SensedShip():
-    def __init__(self, ship: Ship, sensors: list[tuple[int, str]] = None) -> None:
+    def __init__(self, ship: Ship, sensors = None) -> None:
         self.ship = ship
         self.sensedState = self.ship.state
         self.sensedHistory = [self.sensedState]
@@ -16,17 +16,27 @@ class SensedShip():
         self.sensors = sensors
 
     # ---------------------- Initialization Functions -----------------------------
-    def attach_sensors(self):
+    def attach_sensors(self, sensors= None):
         """ Attach sensors to each system in the ship. """
-        if self.sensors is None:
-            self.sensors = [[(3, 'Good') for comps in system.comps] for system in self.ship.systems.values()]
-
-        shipSystems = list(self.ship.systems.values())
+        shipSystems = list(self.ship.systems.values()) # get list of ship systems
         self.sensedSystems = []     # reset sensed systems
-        for i, shipSystem in enumerate(shipSystems):
-            sensedSystem = SensedSystem(shipSystem, self.sensors[i])
-            self.sensedSystems.append(sensedSystem)
-        self.n = len(self.sensedSystems)
+
+
+        # if new sensors are not provided, result to default (3, 'Good') sensors per component
+        if sensors is None:
+            self.sensors = [[(3, 'Good') for comps in system.comps] for system in self.ship.systems.values()]
+            for i, shipSystem in enumerate(shipSystems):
+                sensedSystem = SensedSystem(shipSystem, self.sensors[i])    # attach default sensors to each system
+                self.sensedSystems.append(sensedSystem)       
+        
+        # if sensors are provided push each list to the corresponding system
+        else:
+            for i, shipSystem in enumerate(shipSystems):
+                sensedSystem = SensedSystem(shipSystem, sensors[i])    # attach provided sensors to each system
+                self.sensedSystems.append(sensedSystem)
+                    
+        self.n = len(self.sensedSystems)                                #self.n= number of systems in the ship
+
 
     # -------------------- Simulation Functions -----------------------------
     def simulate(self, time_steps):

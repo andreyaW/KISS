@@ -40,8 +40,7 @@ def main():
         while abs(Y_vals[-1] - baseline_accuracy) > comparison_limit:  # within 1% of good accuracy
 
             # attach sensors
-            sensors = [[(num_sensors, quality) for _ in system.comps]
-                    for system in test_ship.systems.values()]
+            sensors = [[(num_sensors, quality) for _ in system.comps] for system in test_ship.systems.values()]
             sensed_ship = SensedShip(test_ship, sensors)
             sensed_ship.attach_sensors()
 
