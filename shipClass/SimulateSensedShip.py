@@ -1,5 +1,27 @@
+from shipClass.Ship import Ship
+from shipClass.SensedShip import SensedShip
+
 import numpy as np
 
+# -------- Ship Initialization Functions -----------------------------
+def initialize_sensed_aux_ship(np_rng_num = 0, sensors = None):
+
+    from shipClass.Ship import Ship
+    from shipClass.SensedShip import SensedShip
+
+    aux_ship = Ship(name="Auxiliary Ship",
+                    excel_file="AuxilaryPropulsionPlant_Reliability_Availability_Data.xlsx",
+                    repairable=False,
+                    np_rng_num=np_rng_num)
+
+    if sensors is not None:
+        sensed_aux_ship = SensedShip(ship=aux_ship, sensors=sensors)
+    else: 
+        sensed_aux_ship = SensedShip(ship=aux_ship)
+
+    return sensed_aux_ship
+
+# -------- Simulation with Spare Parts Logic -----------------------------
 def simulateWithSpareParts(sensedShip, number_of_spares: int, time_steps: int):
     """ Simulate the ship with spare parts logic """
     
