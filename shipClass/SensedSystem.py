@@ -83,6 +83,9 @@ class SensedSystem():
                 fancybox=True, shadow=True, ncol=5)
         plt.show()
 
+        # add title 
+        ax.set_title(f'State History: {self.system.name}')
+
         if return_ax:
             return ax
         
