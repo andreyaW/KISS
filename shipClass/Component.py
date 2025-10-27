@@ -203,20 +203,22 @@ class Component(MarkovChain):
 
 
 
-        # # failure rates are split between degraded and failed states
-        # lambda_ = 1/self.MTTF
-        # lambda_d = lambda_ * self.rng.random()
-        # lambda_f = lambda_ - lambda_d
+    def repair(self):
+        """
+        Use the component's repair characteristics to determine how long it will take to repair it.
+        """
+        if self.MTTR == 'NR':
+            return  # Non-repairable component
 
-        # # repair rate
-        # mu_ = 0 if not repairable or self.MTTR=='NR' else 1/self.MTTR
-        
-        # # setting transition matrix
-        # T = np.zeros((3,3))
-        # T[0,0] = 1
-        # T[1,1] = 1 - mu_
-        # T[1,2] = mu_
-        # T[2,0] = lambda_f
-        # T[2,1] = lambda_d
-        # T[2,2] = 1 - (lambda_d + lambda_f)
-        # return T
+        # generate repair duration using a log-normal distribution and MTTR
+        repair_period = np.floor(np.random.lognormal(mean=np.log(self.MTTR), sigma=0.5))
+
+        # ensure the repair time is at least 1hr and at most 3*avg_repair_time (hrs)
+        repair_period= int(np.maximum(1, np.minimum(repair_period, 3 * self.MTTR)))
+
+        # simulate the repair process
+        self.history = np.concatenate([self.history, np.full(repair_period, -1)])  # update history to reflect repair time
+        self.history = np.concatenate([self.history, np.array([2])])                    # update history to reflect finished repair
+        self.state = self.history[-1]                                                   # set component state to operational
+
+        return repair_period

@@ -17,11 +17,15 @@ class SensedComp:
         self.comp = comp
         self.sensors = sensors
         self.sensedHistory = np.array([self.comp.state], dtype=int)
+        self.attach_sensors()
 
     def attach_sensors(self):
         """Attach sensors to this component."""
         for s in self.sensors:
             s.attachedComp = self
+            s.sensedHistory = np.array([self.comp.state], dtype=int)
+            s.history = np.array([2], dtype=int)
+
 
     def reset(self):
         """Reset the component and its sensors."""
@@ -42,6 +46,7 @@ class SensedComp:
         debug : bool
             If True, print summary of sensor vs truth agreement.
         """
+        
         # --- Simulate the true component behavior ---
         self.comp.simulate(num_steps)
         truth_history = self.comp.history[-num_steps:]  # shape (num_steps,)
@@ -54,6 +59,9 @@ class SensedComp:
 
         # --- Store combined sensed history for the component ---
         self.sensedHistory = np.concatenate([self.sensedHistory, sensed_readings])
+
+
+
 
     def majority_vote(self, truth_history):
         """ simulate sensor readings and aggregate them using majority vote """
@@ -127,6 +135,11 @@ class SensedComp:
             sensor.plotReadings(ax)
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), ncol=len(self.sensors) + 1) # add legend below plot
         ax.set_title(f"Sensed Component History - {self.comp.name} with {len(self.sensors)} Sensors")
+
+        if np.any(self.sensedHistory == -1):
+            # set y axis to reflect all comp state and a repair state
+            ax.set_yticks([-1] + list(self.comp.states.keys()))
+            ax.set_yticklabels(['repair'] + [self.comp.states[key] for key in self.comp.states.keys()])
 
         if showPlot:
             plt.show()
@@ -222,3 +235,34 @@ class SensedComp:
         aggregate_row = ["Aggregate", SM_aggregate, FN_aggregate, FP_aggregate, FA_aggregate, MA_aggregate]
 
         print(tabulate([headers] + list(rows) + [aggregate_row], headers="firstrow"))
+
+
+
+
+#------ Maintenance Repair Functions Using Spare Parts -----------------
+    def repair(self):
+
+        """ Use the component's repair method to repair it, also update the sensors """
+
+        # repair the component and get repair duration (final state is working)
+        repair_period = self.comp.repair()
+
+        # create repair array to mark repair duration in sensedHistory
+        repair_array = np.full(repair_period, -1)
+
+        for sensor in self.sensors:
+
+            # mark sensors as being repaired during repair period
+            sensor.sensedHistory = np.concatenate([sensor.sensedHistory, repair_array])
+            sensor.history = np.concatenate([sensor.history, repair_array])
+
+            # update the sensors and sensedComp to renewed state after repair
+            sensor.sensedHistory = np.concatenate([sensor.sensedHistory, np.array([2])])
+            sensor.history = np.concatenate([sensor.history, np.array([2])])
+
+            # update sensor state to operational
+            sensor.state = sensor.history[-1]
+
+        # update sensedHistory to reflect repair period and renewed state
+        self.sensedHistory = np.concatenate([self.sensedHistory, repair_array])
+        self.sensedHistory = np.concatenate([self.sensedHistory, np.array([2])])
