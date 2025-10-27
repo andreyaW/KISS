@@ -38,7 +38,7 @@ def simulateWithSpareParts(sensedShip, time_steps: int, number_of_spares: int):
     
     count_unrepairable_fails = 0  # counter for unrepairable failures(i.e. times with no spares left)
     count_false_alarms = 0        # counter for false failure alarms
-    
+    count_repairs = 0             # counter for total repairs made
     for t in range(time_steps):
         # simulate the ship for one time step
         sensedShip.simulate(1)  
@@ -51,8 +51,9 @@ def simulateWithSpareParts(sensedShip, time_steps: int, number_of_spares: int):
                 
                 # if spares are available, queue a repair using one one spare
                 if number_of_spares > 0:
-                    false_alarm, sensedSystem = queueRepair(sensedSystem, number_of_spares)  # queue repair for the system
+                    false_alarm, sensedSystem, num_repairs = queueRepair(sensedSystem, number_of_spares)  # queue repair for the system
                     count_false_alarms += false_alarm  # increment false alarm counter if applicable
+                    count_repairs += num_repairs      # increment total repairs counter
                 else:
                     # if no spares available, order new part and delay repair 
                     # *** "order part" logic goes here later***
@@ -66,7 +67,7 @@ def simulateWithSpareParts(sensedShip, time_steps: int, number_of_spares: int):
             
             else:
                 continue  # system is operational, do nothing
-    
+    print(f"Total repairs made: {count_repairs}")
     print(f"Total unrepairable failures due to lack of spares: {count_unrepairable_fails}")
     print(f"Total false failure alarms: {count_false_alarms}")
 
@@ -84,8 +85,6 @@ def queueRepair(sensedSystem, number_of_spares):
         # determine the component(s) that need repair and grab their MTTRs
         comps_to_repair = [comp for comp in system.comps if comp.state == 0]
         avg_repair_times = np.array([comp.MTTR for comp in comps_to_repair])
-
-        print(avg_repair_times[0])
 
         # generate repair duration for each component
         act_repair_times = np.zeros(len(comps_to_repair))
@@ -108,18 +107,18 @@ def queueRepair(sensedSystem, number_of_spares):
             # store the actual repair time
             act_repair_times[i] = repair_duration
 
-
-        # need to handle insufficient spares case here (e.g., order and wait for new spares, or priority logic, etc.)                    
-        # for simplicity, we will just skip the repair in this case
         if number_of_spares <= len(comps_to_repair): 
+            # need to handle insufficient spares case here (e.g., order and wait for new spares, or priority logic, etc.)                    
+            # for simplicity, we will just skip the repair in this case
             print("Not enough spare parts available for repair!")
         
-        # all failed components are non-repairable
+      
         elif len(comps_to_repair) == 0:
+          # all failed components are non-repairable
             print(f"All failed components in system '{system.name}' are non-repairable.")
 
-        # use a spare part to repair the system
         else: 
+            # use spare parts to repair the components
             number_of_spares -= len(comps_to_repair)  # decrement the number of spares available
             print(f"Repairing {len(comps_to_repair)} component(s) in system '{system.name}'.")
 
@@ -130,12 +129,12 @@ def queueRepair(sensedSystem, number_of_spares):
                 comp.history[-1] = 1  # update history to reflect finished repair
 
         # no false alarm and repairs were handled accordingly
-        return 0, sensedSystem  # return 0 indicating a real failure repair
+        return 0, sensedSystem, len(comps_to_repair)  # return 0 indicating a real failure repair
         
     # false alarm, no action needed
-    else:
+    elif system.state != 0:  # system is not actually failed
         print(f"False alarm for system '{system.name}'. No repair needed.")
-        return 1, sensedSystem
+        return 1, sensedSystem, 0
 
         
 

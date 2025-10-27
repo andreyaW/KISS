@@ -43,7 +43,8 @@ class Ship:
 
         # Initialize systems
         ship_systems = {}
-        total_num_comps = 0
+        ship_init_rng_num = np_rng_num
+        total_num_comps = 0 + ship_init_rng_num  # to ensure unique random seeds for this ship
 
         for i, sys_struct in enumerate(sys_structure_df.Structure):
             sys_comps = []
@@ -99,8 +100,6 @@ class Ship:
                     parallel_set = tuple([sys_comps.index(c) + 1 for c in parallel_set])
                     sys_parallels.append(parallel_set)
 
-                    # print(np_rng_num)
-
             # create the system from its components and parallel sets
             sys_name = sys_structure_df.System[i]
             if sys_parallels:
@@ -111,7 +110,7 @@ class Ship:
         # set important ship attributes
         self.systems = ship_systems                                 # dictionary of systems in the ship
         self.n = len(self.systems)                                  # total number of systems in the ship
-        self.total_num_comps = total_num_comps                      # total number of components in the ship
+        self.total_num_comps = total_num_comps- ship_init_rng_num   # total number of components in the ship
         self.states = list(ship_systems.values())[0].states         # assumes all systems have same states
         self.state = max(self.states.keys())                        # initial ship state
         self.history = np.array([self.state], dtype=int)            # ship history array (truth)
