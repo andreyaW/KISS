@@ -65,7 +65,6 @@ class SensedShip():
         self.sensedState = self.ship.state
         self.sensedHistory = np.array([self.sensedState], dtype=int)
 
-
     def checkSensingAccuracy(self):
         """ Check the accuracy of the sensing system by comparing the sensed state to the true state. """
         correct = np.sum(self.ship.history == self.sensedHistory)
@@ -92,10 +91,9 @@ class SensedShip():
         if show_plot:
             plt.show()
 
-        # if save_path is not None:
-        #     plt.savefig(save_path, bbox_inches='tight')
-        # plt.close()
-
+        if save_path is not None:
+            plt.savefig(save_path, bbox_inches='tight')
+        plt.close()
 
     def printHistory2Excel(self, filename: str, worksheet= None, addComps: bool = False) -> None:
         """ Print the history of the ship and its systems to an excel file """

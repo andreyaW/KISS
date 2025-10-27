@@ -46,10 +46,20 @@ class SensedComp:
         self.comp.simulate(num_steps)
         truth_history = self.comp.history[-num_steps:]  # shape (num_steps,)
 
-        if len(self.sensors) == 0:
-            raise ValueError("SensedComp.simulate: No sensors attached to component.")
+        # # USE HMM MULTI-SENSOR FILTERING APPROACH
+        # sensed_readings = self.hmm_multisensor_filter(truth_history)
 
+        # --- USE MAJORITY VOTE APPROACH ---
+        sensed_readings = self.majority_vote(truth_history)
+
+        # --- Store combined sensed history for the component ---
+        self.sensedHistory = np.concatenate([self.sensedHistory, sensed_readings])
+
+    def majority_vote(self, truth_history):
+        """ simulate sensor readings and aggregate them using majority vote """
         # --- Each sensor reads the true states (updates its own sensedHistory) ---
+        num_steps = len(truth_history)
+        
         for sensor in self.sensors:
             sensor.read(truth_history)  # updates sensor.sensedHistory internally
 
@@ -65,9 +75,45 @@ class SensedComp:
         counts = one_hot.sum(axis=0)                                # (num_steps, n_states)
         eps = np.linspace(0, 1e-9, n_states)                        # tiny bias for deterministic ties
         sensed_readings = (counts + eps).argmax(axis=1)             # (num_steps,)
+        return sensed_readings
+    
 
-        # --- Store combined sensed history for the component ---
-        self.sensedHistory = np.concatenate([self.sensedHistory, sensed_readings])
+    def hmm_multisensor_filter(self, truth_history):
+        P = self.comp.transition_matrix                                 # Transition matrix from the component
+        O_list = [sensor.observation_probs for sensor in self.sensors]  # List of observation matrices from each sensor
+
+        n_states = P.shape[0]
+        n_sensors = len(self.sensors)
+        n_steps = len(truth_history)
+        T = len(truth_history)
+        belief = np.zeros(n_states)
+
+        # --- Simulate multi-sensor readings ---
+        sensor_readings = np.zeros((n_steps, n_sensors), dtype=int)
+        for t in range(n_steps):
+            for i in range(n_sensors):
+                sensor_readings[t, i] = np.random.choice([0, 1, 2], p=O_list[i][truth_history[t]])
+
+        # --- update beliefs over time ---
+        init_state = truth_history[0]
+        belief[init_state] = 1.0    # start fully Healthy with 100% certainty
+        beliefs = np.zeros((T, n_states))
+        for t in range(T):
+            # Predict step
+            belief = belief @ P      # spread belief based on transition probabilities 
+            # Update step — multiply all sensor likelihoods
+            obs = sensor_readings[t]
+            likelihood = np.ones(n_states)
+            for i, O in enumerate(O_list):
+                likelihood *= O[:, obs[i]]
+            belief *= likelihood
+            # Normalize
+            belief /= belief.sum()
+            beliefs[t] = belief
+        
+        # --- Get estimated states from beliefs ---
+        estimated_states = beliefs.argmax(axis=1) 
+        return estimated_states
 
     # ---------------------- Plotting Functions -----------------------------
     def plotHistory(self, showPlot: bool = True, ax=None):
