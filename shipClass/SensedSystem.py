@@ -43,7 +43,10 @@ class SensedSystem():
         ''' simulate the system and all its sensed components for a number of time steps '''
         # simulate the sensed components of the system (updates history and sensedHistory)
         for sc in self.sensedComps:
-            sc.simulate(time_steps)
+
+            # skip simulating if the component is being repaired (i.e., its history is already updated for this step)
+            if len(sc.sensedHistory) < self.system.history.size + time_steps:
+                sc.simulate(time_steps)
 
         # solve the system structure function to get the true state of the system
         
@@ -77,14 +80,14 @@ class SensedSystem():
         # plot the sensed history of the system
         ax.plot(self.sensedHistory, marker=',', label='Sensed', 
                 linestyle='--', color='orange')
+        
+        # add title 
+        ax.set_title(f'State History: {self.system.name}')
 
         # add updated legend
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                 fancybox=True, shadow=True, ncol=5)
         plt.show()
-
-        # add title 
-        ax.set_title(f'State History: {self.system.name}')
 
         if return_ax:
             return ax

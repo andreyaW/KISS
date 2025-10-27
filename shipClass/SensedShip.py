@@ -74,7 +74,7 @@ class SensedShip():
         return accuracy
 
     # ---------------------- Plotting and Printing Functions -----------------------------
-    def plotHistory(self, show_plot=True, save_path=None):
+    def plotHistory(self, plot_systems = False, show_plot=True, save_path=None):
         # Plot the true history of the ship
         ax = self.ship.plotHistory(return_ax=True)
 
@@ -84,11 +84,17 @@ class SensedShip():
         # add updated legend and show fig
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
+        
+        if plot_systems:
+            for sensedSystem in self.sensedSystems:
+                sensedSystem.plotHistory()
+        
         if show_plot:
             plt.show()
-        if save_path is not None:
-            plt.savefig(save_path, bbox_inches='tight')
-        plt.close()
+
+        # if save_path is not None:
+        #     plt.savefig(save_path, bbox_inches='tight')
+        # plt.close()
 
 
     def printHistory2Excel(self, filename: str, worksheet= None, addComps: bool = False) -> None:

@@ -101,6 +101,16 @@ class SensedComp:
         plt.title(f"Confusion Matrix - Sensor Quality: {self.sensors[0].quality}")
         plt.show()
 
+    def printSensorMatrix(self):
+        """ Print the number of sensors and each sensor matrix for the sensors attached to this component. """
+        print(f"Component: {self.comp.name}")
+        print(f"Number of Sensors: {len(self.sensors)}")
+        for i, sensor in enumerate(self.sensors):
+            print(f"Sensor {i+1} (Quality: {sensor.quality}):")
+            print(sensor.observation_probs)
+            print()
+
+
     # ---------------------- Excel Export Functions -------------------------
     def printHistory2Excel(self, filename: str, worksheet=None):
         """Print the history of the sensed component and its sensors to Excel."""

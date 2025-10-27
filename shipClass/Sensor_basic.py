@@ -68,8 +68,6 @@ class Sensor:
         self.sensedHistory = np.concatenate([self.sensedHistory, sensed])
         self.history = np.concatenate([self.history, working])
 
-
-
     def reset(self):
         """Resets the sensor to its initial state."""
         self.history = np.array([], dtype=int)

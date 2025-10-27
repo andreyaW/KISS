@@ -17,7 +17,7 @@ class Ship:
         """Initialize ship with name, Excel data, and repairable status."""
         self.name = name
         self.repairable = repairable
-        self.initializeShipSystemsfromExcel(excel_file, self.repairable, np_rng_num*25)
+        self.initializeShipSystemsfromExcel(excel_file, self.repairable, np_rng_num)
 
 # ------------ Simulation Functions -------------------
 
@@ -43,24 +43,24 @@ class Ship:
 
         # Initialize systems
         ship_systems = {}
+        total_num_comps = 0
+
         for i, sys_struct in enumerate(sys_structure_df.Structure):
             sys_comps = []
             sys_parallels = []
 
-            total_num_comps = 0 + np_rng_num  # to ensure random seeds are specific to the ship
-
-
             # create components, series sets, and parallel sets as needed
             for comp in sys_struct:
-                
+
                 # if the value is a single integer, it's a single component
                 if isinstance(comp, int):
                     comp_name = rel_df.Component[comp]
                     comp_MTTF = rel_df.MTBF[comp]
                     comp_MTTR = rel_df.MTTR[comp]
                     sys_comps.append(Component(comp_name, comp_MTTF, comp_MTTR, 
-                                               np_rng_num = total_num_comps))  # unique random seed for each component
+                                               np_rng_num = total_num_comps))
                     total_num_comps += 1
+                    np_rng_num += 1  # unique random seed for each component
 
                 # if the value is a tuple, it's a parallel set 
                 elif isinstance(comp, tuple):
@@ -71,8 +71,9 @@ class Ship:
                             comp_MTTF = rel_df.MTBF[idx]
                             comp_MTTR = rel_df.MTTR[idx]
                             c = Component(comp_name, comp_MTTF, comp_MTTR, 
-                                           np_rng_num = total_num_comps)  # unique random seed for each component
+                                           np_rng_num = total_num_comps)
                             total_num_comps += 1
+                            np_rng_num += 1                                 # unique random seed for each component
                             sys_comps.append(c)
                             parallel_set[j] = c
 
@@ -87,15 +88,18 @@ class Ship:
                                     series_set_comps.append(Component(comp_name, comp_MTTF, comp_MTTR, 
                                                                      np_rng_num = total_num_comps))  # unique random seed for each component
                                     total_num_comps += 1
+                                    np_rng_num += 1  # unique random seed for each component
 
                             # create the series set
                             series_set = SeriesComps(components=series_set_comps)
                             sys_comps.append(series_set)
                             parallel_set[j] = series_set
-    
+
                     # replace parallel_set with their 1-based positions
                     parallel_set = tuple([sys_comps.index(c) + 1 for c in parallel_set])
                     sys_parallels.append(parallel_set)
+
+                    # print(np_rng_num)
 
             # create the system from its components and parallel sets
             sys_name = sys_structure_df.System[i]
@@ -107,7 +111,7 @@ class Ship:
         # set important ship attributes
         self.systems = ship_systems                                 # dictionary of systems in the ship
         self.n = len(self.systems)                                  # total number of systems in the ship
-        self.total_num_comps = total_num_comps - np_rng_num         # total number of components in the ship
+        self.total_num_comps = total_num_comps                      # total number of components in the ship
         self.states = list(ship_systems.values())[0].states         # assumes all systems have same states
         self.state = max(self.states.keys())                        # initial ship state
         self.history = np.array([self.state], dtype=int)            # ship history array (truth)
@@ -139,7 +143,7 @@ class Ship:
         
 # ------------ Plotting Functions -------------------
 
-    def plotHistory(self, return_ax=False):
+    def plotHistory(self, plotSystems=False, return_ax=False):
         fig, ax = plt.subplots()
         ax.plot(self.history, marker=',', linewidth=2, label='Ship Truth')
         ax.set_ylabel('State')
@@ -150,8 +154,14 @@ class Ship:
         ax.grid()
         ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15),
                   fancybox=True, shadow=True, ncol=5)
+        if plotSystems:
+            for system in self.systems.values():
+                system.plotHistory(showPlot=False, ax=ax)
+        
         if return_ax:
             return ax
+        
+        plt.show()
 
 # ------------ Vectorized Excel Export -------------------
     def printHistory2Excel(self, filename: str, addComps: bool = True):
